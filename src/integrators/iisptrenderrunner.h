@@ -129,6 +129,8 @@ public:
 
     virtual void run(const Scene &scene);
 
+    void run_direct(const Scene &scene);
+
 };
 
 }

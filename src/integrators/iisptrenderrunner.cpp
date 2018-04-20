@@ -188,7 +188,6 @@ void IisptRenderRunner::run(const Scene &scene)
 {
     std::cerr << "iisptrenderrunner.cpp: New tiled renderer\n";
     d_integrator->Preprocess(scene);
-    int loop_count = 0;
     std::unique_ptr<LightDistribution> lightDistribution =
             CreateLightSampleDistribution(std::string("spatial"), scene);
 
@@ -196,17 +195,18 @@ void IisptRenderRunner::run(const Scene &scene)
 
     while (1) {
 
-        loop_count++;
-        std::cerr << "iisptrenderrunner.cpp loop count " << loop_count << std::endl;
+        // Obtain the current task
+        IisptScheduleMonitorTask sm_task = schedule_monitor->next_task();
 
-        if (loop_count > 10) {
-            return;
+        // Check pass number for finish
+        if (sm_task.pass > 3) {
+            break;
         }
+
+        std::cerr << "iisptrenderrunner.cpp PASS " << sm_task.pass << std::endl;
 
         MemoryArena arena;
 
-        // Obtain the current task
-        IisptScheduleMonitorTask sm_task = schedule_monitor->next_task();
         // sm_task end points are exclusive
         std::cerr << "Obtained new task: ["<< sm_task.x0 <<"]["<< sm_task.y0 <<"]-["<< sm_task.x1 <<"]["<< sm_task.y1 <<"] tilesize ["<< sm_task.tilesize <<"]\n";
 
@@ -558,6 +558,16 @@ void IisptRenderRunner::run(const Scene &scene)
                     );
 
     }
+}
+
+// ============================================================================
+
+// Render direct illumination components
+void IisptRenderRunner::run_direct(const Scene &scene)
+{
+    std::cerr << "iisptrenderrunner.cpp: starting direct illumination pass\n";
+
+
 }
 
 // ============================================================================
