@@ -45,6 +45,35 @@ void IisptFilmMonitor::add_sample(Point2i pt, Spectrum s, double weight)
 
 // ============================================================================
 
+void IisptFilmMonitor::add_n_samples(
+        std::vector<Point2i> &pts,
+        std::vector<Spectrum> &ss,
+        std::vector<double> &weights
+        )
+{
+    lock.lock();
+
+    for (int i = 0; i < pts.size(); i++) {
+        Point2i pt = pts[i];
+        execute_on_pixel([&](int fx, int fy) {
+            IisptPixel pix = (pixels[fy])[fx];
+            pix.weight += weights[i];
+
+            float rgb[3];
+            ss[i].ToRGB(rgb);
+            pix.r += rgb[0];
+            pix.g += rgb[1];
+            pix.b += rgb[2];
+
+            (pixels[fy])[fx] = pix;
+        }, pt.x, pt.y);
+    }
+
+    lock.unlock();
+}
+
+// ============================================================================
+
 Bounds2i IisptFilmMonitor::get_film_bounds()
 {
     return film_bounds;

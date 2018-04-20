@@ -50,6 +50,12 @@ public:
 
     void add_sample(Point2i pt, Spectrum s, double weight);
 
+    void add_n_samples(
+            std::vector<Point2i> &pts,
+            std::vector<Spectrum> &ss,
+            std::vector<double> &weights
+            );
+
     std::shared_ptr<IntensityFilm> to_intensity_film();
 
     std::shared_ptr<IntensityFilm> to_intensity_film_reversed();
