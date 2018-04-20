@@ -187,6 +187,14 @@ IisptRenderRunner::IisptRenderRunner(
 void IisptRenderRunner::run(const Scene &scene)
 {
     std::cerr << "iisptrenderrunner.cpp: New tiled renderer\n";
+
+    // Read number of passes environment variable
+    char* num_passes_env = std::getenv("IISPT_INDIRECT_PASSES");
+    int num_passes = 3;
+    if (num_passes_env != NULL) {
+        num_passes = std::stoi(std::string(num_passes_env));
+    }
+
     d_integrator->Preprocess(scene);
     lightDistribution =
             CreateLightSampleDistribution(std::string("spatial"), scene);
@@ -199,7 +207,7 @@ void IisptRenderRunner::run(const Scene &scene)
         IisptScheduleMonitorTask sm_task = schedule_monitor->next_task();
 
         // Check pass number for finish
-        if (sm_task.pass > 3) {
+        if (sm_task.pass > num_passes) {
             break;
         }
 
