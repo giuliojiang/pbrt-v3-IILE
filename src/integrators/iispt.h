@@ -57,9 +57,9 @@ public:
 
     // Constructor ------------------------------------------------------------
     IISPTIntegrator(int maxDepth, std::shared_ptr<const Camera> camera,
-                   std::shared_ptr<Sampler> sampler,
                    const Bounds2i &pixelBounds,
                    std::shared_ptr<Camera> dcamera,
+                   std::shared_ptr<Sampler> sampler,
                    Float rrThreshold = 1,
                    const std::string &lightSampleStrategy = "spatial"
     );
@@ -161,9 +161,7 @@ private:
 
 };
 
-IISPTIntegrator *CreateIISPTIntegrator(
-        const ParamSet &params,
-        std::shared_ptr<Sampler> sampler,
+IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
         std::shared_ptr<const Camera> camera,
         std::shared_ptr<Camera> dcamera
 );

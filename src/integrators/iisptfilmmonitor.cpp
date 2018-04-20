@@ -172,4 +172,34 @@ std::shared_ptr<IntensityFilm> IisptFilmMonitor::to_intensity_film_reversed()
     return intensity_film;
 }
 
+// ============================================================================
+
+void IisptFilmMonitor::merge_from(
+        IisptFilmMonitor* other
+        )
+{
+    if (!iispt::bounds2i_equals(
+                this->film_bounds,
+                other->film_bounds
+                )) {
+        std::cerr << "iisptfilmmonitor.cpp::merge_from film bounds don't match!\n";
+        std::raise(SIGKILL);
+    }
+
+    Vector2i diagonal = film_bounds.Diagonal();
+    for (int y = 0; y <= diagonal.y; y++) {
+        for (int x = 0; x <= diagonal.x; x++) {
+            execute_on_pixel([&](int fx, int fy) {
+                IisptPixel pix = (pixels[fy])[fx];
+                IisptPixel ot = (other->pixels[fy])[fx];
+                pix.r += ot.r;
+                pix.g += ot.g;
+                pix.b += ot.b;
+                pix.weight += ot.weight;
+                (pixels[fy])[fx] = pix;
+            }, x, y);
+        }
+    }
+}
+
 } // namespace pbrt

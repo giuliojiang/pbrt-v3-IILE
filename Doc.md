@@ -56,6 +56,10 @@ The IntensityFilm object handles the Y direction in the same way as PBRT, mainta
 
 `IISPT_SCHEDULE_INTERVAL` Radius interval samples.
 
+`IISPT_DIRECT_SAMPLES` Number of pixel samples in the direct illumination pass.
+
+`IISPT_INDIRECT_PASSES` Number of IISPT indirect passes
+
 # IISPT Render Algorithm
 
 ## Classes

@@ -15,6 +15,7 @@ struct IisptScheduleMonitorTask
     int x1;
     int y1;
     int tilesize;
+    int pass;
 };
 
 // ============================================================================
@@ -42,6 +43,9 @@ private:
     // Current pixels in the film
     int nextx;
     int nexty;
+
+    // Pass number
+    int pass = 1;
 
 public:
 
