@@ -362,12 +362,22 @@ void IisptRenderRunner::run(const Scene &scene)
             }
         }
 
-        // Check neighbour hemi points for each pixel in the task
+        // Evaluate pixels in the task
+
+        // A neighbour hemi point is one of the 4 points closest
+        // to a film pixel
+
         // Neigh:
         //     S - top left
         //     R - top right
         //     B - bottom left
         //     E - bottom right
+
+        // Collect vectors for new additions
+        std::vector<Point2i> additions_pt;
+        std::vector<Spectrum> additions_spectrum;
+        std::vector<double> additions_weights;
+
         for (int fy = sm_task.y0; fy < sm_task.y1; fy++) {
             for (int fx = sm_task.x0; fx < sm_task.x1; fx++) {
 
@@ -479,11 +489,9 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 if (!f_intersection_found) {
                     // No intersection found, record background
-                    film_monitor->add_sample(
-                                f_pixel,
-                                f_background,
-                                1.0
-                                );
+                    additions_pt.push_back(f_pixel);
+                    additions_spectrum.push_back(f_background);
+                    additions_weights.push_back(1.0);
                     continue;
                 } else if (f_intersection_found && f_beta.y() <= 0.0) {
                     // Intersection found but black pixel
@@ -534,14 +542,17 @@ void IisptRenderRunner::run(const Scene &scene)
                             );
 
                 // Record sample
-                film_monitor->add_sample(
-                            f_pixel,
-                            f_beta * L,
-                            1.0);
-
-
+                additions_pt.push_back(f_pixel);
+                additions_spectrum.push_back(f_beta * L);
+                additions_weights.push_back(1.0);
             }
         }
+
+        film_monitor->add_n_samples(
+                    additions_pt,
+                    additions_spectrum,
+                    additions_weights
+                    );
 
     }
 }
