@@ -192,10 +192,14 @@ void IisptFilmMonitor::merge_from(
             execute_on_pixel([&](int fx, int fy) {
                 IisptPixel pix = (pixels[fy])[fx];
                 IisptPixel ot = (other->pixels[fy])[fx];
+
+                // Normalize the pixels
+                pix.normalize();
+                ot.normalize();
+
                 pix.r += ot.r;
                 pix.g += ot.g;
                 pix.b += ot.b;
-                pix.weight += ot.weight;
                 (pixels[fy])[fx] = pix;
             }, x, y);
         }
