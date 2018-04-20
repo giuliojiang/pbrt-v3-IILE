@@ -3,6 +3,8 @@
 
 #include <cmath>
 
+#include "geometry.h"
+
 namespace pbrt {
 
 namespace iispt {
@@ -47,6 +49,19 @@ static float points_distance(
     float dy2 = a.y - b.y;
     dy2 = dy2 * dy2;
     return std::sqrt(dx2 + dy2);
+}
+
+// ============================================================================
+static bool bounds2i_equals(
+        Bounds2i a,
+        Bounds2i b
+        )
+{
+    return
+            (a.pMin.x == b.pMin.x) &&
+            (a.pMin.y == b.pMin.y) &&
+            (a.pMax.x == b.pMax.x) &&
+            (a.pMax.y == b.pMax.y);
 }
 
 } // namespace iispt

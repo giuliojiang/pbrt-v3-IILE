@@ -5,10 +5,12 @@
 #include <mutex>
 #include <vector>
 #include <functional>
+#include <csignal>
 #include "film.h"
 #include "integrators/iisptfilmtile.h"
 #include "integrators/iisptpixel.h"
 #include "film/intensityfilm.h"
+#include "tools/iisptmathutils.h"
 
 namespace pbrt {
 
@@ -23,6 +25,7 @@ private:
 
     std::vector<std::vector<IisptPixel>> pixels;
 
+    // The bounds of the film are taken inclusively
     Bounds2i film_bounds;
 
     // Private methods --------------------------------------------------------
@@ -59,6 +62,8 @@ public:
     std::shared_ptr<IntensityFilm> to_intensity_film();
 
     std::shared_ptr<IntensityFilm> to_intensity_film_reversed();
+
+    void merge_from(IisptFilmMonitor* other);
 };
 
 } // namespace pbrt

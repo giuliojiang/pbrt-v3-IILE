@@ -138,7 +138,8 @@ Spectrum IisptRenderRunner::sample_hemisphere(
 IisptRenderRunner::IisptRenderRunner(
         IISPTIntegrator* iispt_integrator,
         std::shared_ptr<IisptScheduleMonitor> schedule_monitor,
-        std::shared_ptr<IisptFilmMonitor> film_monitor,
+        std::shared_ptr<IisptFilmMonitor> film_monitor_indirect,
+        std::shared_ptr<IisptFilmMonitor> film_monitor_direct,
         std::shared_ptr<const Camera> main_camera,
         std::shared_ptr<Camera> dcamera,
         std::shared_ptr<Sampler> sampler,
@@ -150,7 +151,9 @@ IisptRenderRunner::IisptRenderRunner(
 
     this->schedule_monitor = schedule_monitor;
 
-    this->film_monitor = film_monitor;
+    this->film_monitor_indirect = film_monitor_indirect;
+
+    this->film_monitor_direct = film_monitor_direct;
 
     this->d_integrator = CreateIISPTdIntegrator(dcamera);
     // Preprocess is called on run()
@@ -548,7 +551,7 @@ void IisptRenderRunner::run(const Scene &scene)
             }
         }
 
-        film_monitor->add_n_samples(
+        film_monitor_indirect->add_n_samples(
                     additions_pt,
                     additions_spectrum,
                     additions_weights
@@ -561,7 +564,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
 void IisptRenderRunner::generate_random_pixel(int *x, int *y)
 {
-    Bounds2i bounds = film_monitor->get_film_bounds();
+    Bounds2i bounds = film_monitor_indirect->get_film_bounds();
     int xmin = bounds.pMin.x;
     int xmax = bounds.pMax.x;
     int ymin = bounds.pMin.y;

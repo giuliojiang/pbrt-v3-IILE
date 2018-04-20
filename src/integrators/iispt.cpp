@@ -502,7 +502,13 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
                 new IisptScheduleMonitor(camera->film->GetSampleBounds())
                 );
 
-    std::shared_ptr<IisptFilmMonitor> film_monitor (
+    std::shared_ptr<IisptFilmMonitor> film_monitor_indirect (
+                new IisptFilmMonitor(
+                    camera->film->GetSampleBounds()
+                    )
+                );
+
+    std::shared_ptr<IisptFilmMonitor> film_monitor_direct (
                 new IisptFilmMonitor(
                     camera->film->GetSampleBounds()
                     )
@@ -512,7 +518,8 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
                 new IisptRenderRunner(
                     this,
                     schedule_monitor,
-                    film_monitor,
+                    film_monitor_indirect,
+                    film_monitor_direct,
                     camera,
                     dcamera,
                     sampler,
@@ -523,11 +530,11 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     render_runner->run(scene);
 
-    std::shared_ptr<IntensityFilm> output_film =
-            film_monitor->to_intensity_film();
+    film_monitor_indirect->to_intensity_film()->pbrt_write("/tmp/iispt_indirect.exr");
+    film_monitor_direct->to_intensity_film()->pbrt_write("/tmp/iispt_direct.exr");
 
-    output_film->write("/tmp/iispt.pfm");
-    output_film->pbrt_write("/tmp/iispt.exr");
+    film_monitor_direct->merge_from(film_monitor_indirect.get());
+    film_monitor_direct->to_intensity_film()->pbrt_write("/tmp/iispt_combined.exr");
 }
 
 // Render reference ===========================================================
