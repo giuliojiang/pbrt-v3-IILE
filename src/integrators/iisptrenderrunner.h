@@ -60,6 +60,8 @@ private:
 
     Bounds2i pixel_bounds;
 
+    std::unique_ptr<LightDistribution> lightDistribution;
+
     // Private methods --------------------------------------------------------
 
     void generate_random_pixel(int* x, int* y);
@@ -111,6 +113,8 @@ private:
 
     void sampler_next_pixel();
 
+    void run_direct(const Scene &scene);
+
 public:
 
     // Constructor ------------------------------------------------------------
@@ -128,8 +132,6 @@ public:
     // Public methods ---------------------------------------------------------
 
     virtual void run(const Scene &scene);
-
-    void run_direct(const Scene &scene);
 
 };
 
