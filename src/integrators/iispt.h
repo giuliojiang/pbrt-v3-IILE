@@ -59,6 +59,7 @@ public:
     IISPTIntegrator(int maxDepth, std::shared_ptr<const Camera> camera,
                    const Bounds2i &pixelBounds,
                    std::shared_ptr<Camera> dcamera,
+                   std::shared_ptr<Sampler> sampler,
                    Float rrThreshold = 1,
                    const std::string &lightSampleStrategy = "spatial"
     );
