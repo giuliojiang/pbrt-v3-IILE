@@ -1713,7 +1713,7 @@ Integrator *RenderOptions::MakeIntegrator() const {
         // Create aux camera
         std::shared_ptr<Camera> dcamera (MakeCamera(PbrtOptions.iisptHemiSize, PbrtOptions.iisptHemiSize));
         // Create integrator
-        integrator = CreateIISPTIntegrator(IntegratorParams, sampler, camera,
+        integrator = CreateIISPTIntegrator(IntegratorParams, camera,
             dcamera);
     } else {
         Error("Integrator \"%s\" unknown.", IntegratorName.c_str());

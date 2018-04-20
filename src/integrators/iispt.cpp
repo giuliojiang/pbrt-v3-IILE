@@ -243,20 +243,28 @@ static void exec_if_one_not_exists(std::vector<std::string> &file_paths, Func f)
 // Constructor
 IISPTIntegrator::IISPTIntegrator(int maxDepth,
                                std::shared_ptr<const Camera> camera,
-                               std::shared_ptr<Sampler> sampler,
                                const Bounds2i &pixelBounds,
                                std::shared_ptr<Camera> dcamera,
                                Float rrThreshold,
                                const std::string &lightSampleStrategy
 ) :
     SamplerIntegrator(camera, sampler, pixelBounds),
-    sampler(sampler),
     maxDepth(maxDepth),
     rrThreshold(rrThreshold),
     lightSampleStrategy(lightSampleStrategy),
     dcamera(dcamera)
 {
+    char* indirect_samples_env = std::getenv("IISPT_DIRECT_SAMPLES");
+    int indirect_samples = 8;
+    if (indirect_samples_env != NULL) {
+        indirect_samples = std::stoi(std::string(indirect_samples_env));
+    }
 
+    this->sampler = std::shared_ptr<Sampler>(
+                CreateSobolSampler(
+                pixelBounds,
+                indirect_samples
+                ));
 }
 
 void IISPTIntegrator::Preprocess(const Scene &scene) {
@@ -846,7 +854,6 @@ Spectrum IISPTIntegrator::Li(const RayDifferential &ray,
 
 // Creator ====================================================================
 IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
-    std::shared_ptr<Sampler> sampler,
     std::shared_ptr<const Camera> camera,
     std::shared_ptr<Camera> dcamera
 ) {
@@ -870,7 +877,7 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
     Float rrThreshold = params.FindOneFloat("rrthreshold", 1.);
     std::string lightStrategy =
         params.FindOneString("lightsamplestrategy", "spatial");
-    return new IISPTIntegrator(maxDepth, camera, sampler, pixelBounds,
+    return new IISPTIntegrator(maxDepth, camera, pixelBounds,
         dcamera, rrThreshold, lightStrategy);
 }
 
