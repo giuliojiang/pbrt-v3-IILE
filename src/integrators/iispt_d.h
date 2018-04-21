@@ -125,6 +125,10 @@ public:
                                           std::string normal_filename
                                           );
 
+    void save_reference_camera_only(
+            std::shared_ptr<Camera> camera
+            );
+
     std::unique_ptr<IntensityFilm> get_intensity_film(Camera *camera);
 
     NormalFilm* get_normal_film();

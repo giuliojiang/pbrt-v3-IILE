@@ -833,17 +833,40 @@ Spectrum IISPTIntegrator::Li(const RayDifferential &ray,
     if (PbrtOptions.referenceTiles > 0) {
         std::string reference_b_name = generate_reference_name("p", pixel, ".pfm");
         exec_if_not_exists(reference_b_name, [&]() {
-            std::shared_ptr<VolPathIntegrator> volpath =
-                    create_aux_volpath_integrator(
-                        PbrtOptions.referencePixelSamples,
-                        reference_b_name,
-                        auxCamera,
-                        auxRay,
-                        pixel
+            std::shared_ptr<HemisphericCamera> high_spp_camera (
+                        CreateHemisphericCamera(
+                            PbrtOptions.iisptHemiSize,
+                            PbrtOptions.iisptHemiSize,
+                            dcamera->medium,
+                            auxRay.o,
+                            Point3f(auxRay.d.x, auxRay.d.y, auxRay.d.z),
+                            pixel,
+                            reference_b_name
+                            )
                         );
-            // Start rendering the ground truth
-            // The render method will automatically save the image
-            volpath->Render(scene);
+
+            // Create 1spp sampler
+            std::unique_ptr<Sampler> high_spp_sampler (
+                        CreateSobolSampler(
+                            Bounds2i(
+                                Point2i(0, 0),
+                                Point2i(PbrtOptions.iisptHemiSize,
+                                        PbrtOptions.iisptHemiSize)
+                                ),
+                            PbrtOptions.referencePixelSamples
+                            )
+                        );
+
+            this->dintegrator->RenderView(
+                        scene,
+                        high_spp_camera.get(),
+                        high_spp_sampler.get()
+                        );
+
+            this->dintegrator->save_reference_camera_only(
+                        high_spp_camera
+                        );
+
         });
     }
 

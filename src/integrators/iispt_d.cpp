@@ -340,6 +340,13 @@ void IISPTdIntegrator::save_reference(std::shared_ptr<Camera> camera,
     normal_film->write(normal_filename);
 }
 
+// Save reference image (camera only) =========================================
+void IISPTdIntegrator::save_reference_camera_only(
+        std::shared_ptr<Camera> camera
+        ) {
+    camera->film->WriteImage();
+}
+
 // ============================================================================
 // To intensity film
 std::unique_ptr<IntensityFilm> IISPTdIntegrator::get_intensity_film(
