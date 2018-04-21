@@ -42,6 +42,7 @@
 #include "samplers/halton.h"
 #include "bssrdf.h"
 
+#include <csignal>
 #include <cstdlib>
 
 namespace pbrt {
@@ -63,8 +64,12 @@ void IISPTdIntegrator::Preprocess(const Scene &scene) {
 }
 
 Spectrum IISPTdIntegrator::Li(const RayDifferential &r,
-                                      const Scene &scene, Sampler &sampler,
-                                      MemoryArena &arena, int depth, int x, int y) {
+                              const Scene &scene,
+                              Sampler &sampler,
+                              MemoryArena &arena,
+                              int depth,
+                              int x,
+                              int y) {
     ProfilePhase p(Prof::SamplerIntegratorLi);
     Spectrum L(0.f), beta(1.f);
     RayDifferential ray(r);

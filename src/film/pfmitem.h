@@ -33,7 +33,7 @@ public:
 
     PfmItem(float v)
     {
-        this->r = r;
+        this->r = v;
         this->rgb = false;
     }
 
