@@ -290,6 +290,18 @@ void IisptRenderRunner::run(const Scene &scene)
                 // points towards the intersection surface normal
                 Ray aux_ray = isect.SpawnRay(Vector3f(surface_normal));
 
+                // Create 1spp sampler
+                std::unique_ptr<Sampler> one_spp_sampler (
+                            CreateSobolSampler(
+                                Bounds2i(
+                                    Point2i(0, 0),
+                                    Point2i(PbrtOptions.iisptHemiSize,
+                                            PbrtOptions.iisptHemiSize)
+                                    ),
+                                1
+                                )
+                            );
+
                 // Create aux camera
                 std::unique_ptr<HemisphericCamera> aux_camera (
                             CreateHemisphericCamera(
@@ -304,7 +316,11 @@ void IisptRenderRunner::run(const Scene &scene)
                             );
 
                 // Run dintegrator render
-                d_integrator->RenderView(scene, aux_camera.get());
+                d_integrator->RenderView(
+                            scene,
+                            aux_camera.get(),
+                            one_spp_sampler.get()
+                            );
 
                 // Use NN Connector
 

@@ -757,6 +757,18 @@ Spectrum IISPTIntegrator::Li(const RayDifferential &ray,
                     )
                 );
 
+    // Create 1spp sampler
+    std::unique_ptr<Sampler> one_spp_sampler (
+                CreateSobolSampler(
+                    Bounds2i(
+                        Point2i(0, 0),
+                        Point2i(PbrtOptions.iisptHemiSize,
+                                PbrtOptions.iisptHemiSize)
+                        ),
+                    1
+                    )
+                );
+
     // In Reference mode, save the rendered view ------------------------------
     if (PbrtOptions.referenceTiles > 0) {
         std::vector<std::string> direct_reference_names;
@@ -767,7 +779,11 @@ Spectrum IISPTIntegrator::Li(const RayDifferential &ray,
         direct_reference_names.push_back(reference_n_name);
         exec_if_one_not_exists(direct_reference_names, [&]() {
             // Start rendering the hemispherical view
-            this->dintegrator->RenderView(scene, auxCamera.get());
+            this->dintegrator->RenderView(
+                        scene,
+                        auxCamera.get(),
+                        one_spp_sampler.get()
+                        );
             dintegrator->save_reference(
                         auxCamera,
                         reference_z_name, // distance map
@@ -778,7 +794,11 @@ Spectrum IISPTIntegrator::Li(const RayDifferential &ray,
         // Normal mode --------------------------------------------------------
         // Start rendering the hemispherical view
         std::cerr << "Normal mode, starting hemispheric render" << std::endl;
-        this->dintegrator->RenderView(scene, auxCamera.get());
+        this->dintegrator->RenderView(
+                    scene,
+                    auxCamera.get(),
+                    one_spp_sampler.get()
+                    );
         std::cerr << "hemispheric render obtained. Getting intensity image" << std::endl;
         std::unique_ptr<IntensityFilm> dcamera_intensity = dintegrator->get_intensity_film(auxCamera.get());
         std::cerr << "Got the intensity image. Saving to /tmp/int.pfm" << std::endl;
@@ -809,6 +829,7 @@ Spectrum IISPTIntegrator::Li(const RayDifferential &ray,
         auxCamera->set_nn_film(nn_film);
     }
 
+    // Reference mode, High SPP path tracing ----------------------------------
     if (PbrtOptions.referenceTiles > 0) {
         std::string reference_b_name = generate_reference_name("p", pixel, ".pfm");
         exec_if_not_exists(reference_b_name, [&]() {

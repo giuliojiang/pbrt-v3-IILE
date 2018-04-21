@@ -105,11 +105,18 @@ Spectrum IISPTdIntegrator::Li(const RayDifferential &r,
         if (bounces == 0 || specularBounce) {
             // Add emitted light at path vertex or from the environment
             if (foundIntersection) {
-                L += beta * isect.Le(-ray.d);
-                VLOG(2) << "Added Le -> L = " << L;
+                // Do not add direct Le (bounce 0)
+                if (bounces != 0) {
+                    L += beta * isect.Le(-ray.d);
+                    VLOG(2) << "Added Le -> L = " << L;
+                }
             } else {
-                for (const auto &light : scene.infiniteLights)
-                    L += beta * light->Le(ray);
+                // Add infinitelights if not direct (bounce 0)
+                if (bounces != 0) {
+                    for (const auto &light : scene.infiniteLights) {
+                        L += beta * light->Le(ray);
+                    }
+                }
                 VLOG(2) << "Added infinite area lights -> L = " << L;
             }
         }
@@ -205,7 +212,12 @@ Spectrum IISPTdIntegrator::Li(const RayDifferential &r,
 
 }
 
-void IISPTdIntegrator::RenderView(const Scene &scene, Camera* camera) {
+void IISPTdIntegrator::RenderView(
+        const Scene &scene,
+        Camera* camera,
+        Sampler* sampler
+        )
+{
     // There is no preprocess here.
     // It must have already been called by the host.
 
