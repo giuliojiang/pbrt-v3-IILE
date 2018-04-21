@@ -55,7 +55,6 @@ void ImageFilm::write(std::string filename) {
             PfmItem pix = data[y * width + x];
             if (num_components == 1) {
                 float val = pix.get_single_component();
-                std::cerr << " " << val;
                 write_float_value(ofs, val);
             } else {
                 float r;
