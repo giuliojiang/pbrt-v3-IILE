@@ -75,13 +75,10 @@ public:
                  int depth
                  ) const;
 
-    Spectrum Li(const RayDifferential &r,
-                 const Scene &scene,
-                 Sampler &sampler,
-                 MemoryArena &arena,
-                 int depth,
-                 Point2i pixel
-                 ) const;
+    void Li_reference(const RayDifferential &ray,
+                                 const Scene &scene,
+                                 Point2i pixel
+                                 ) const;
 
     void Render(const Scene &scene);
 
