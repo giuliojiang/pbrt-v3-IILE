@@ -553,8 +553,33 @@ void IISPTIntegrator::render_reference(const Scene &scene) {
         return;
     }
 
+    // Read reference control variables
+    char* reference_control_mod_env = std::getenv("IISPT_REFERENCE_CONTROL_MOD");
+    int reference_control_mod = 1;
+    if (reference_control_mod_env != NULL) {
+        reference_control_mod = std::stoi(
+                    std::string(reference_control_mod_env));
+    }
+
+    char* reference_control_match_env =
+            std::getenv("IISPT_REFERENCE_CONTROL_MATCH");
+    int reference_control_match = 0;
+    if (reference_control_match_env != NULL) {
+        reference_control_match = std::stoi(
+                    std::string(reference_control_match_env)
+                    );
+    }
+
+    int ref_idx = 0;
+
     for (int px_y = 0; px_y < sampleExtent.y; px_y += reference_tile_interval_y) {
         for (int px_x = 0; px_x < sampleExtent.x; px_x += reference_tile_interval_x) {
+
+            ref_idx++;
+            if ((ref_idx % reference_control_mod) != reference_control_match) {
+                // This pixel is not a job of the current process
+                continue;
+            }
 
             std::cerr << "Current pixel ["<< px_x <<"] ["<< px_y <<"]" << std::endl;
 

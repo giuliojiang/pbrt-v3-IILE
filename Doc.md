@@ -133,3 +133,17 @@ An IisptPixel has:
 # Iispt Render Algorithm 2
 
 The new render algorithm uses a regular grid of hemispheric samples, and interpolates between them. The rendering frame is subdivided into smaller rectangular chunks, and each pass will first obtain all the hemispheric samples, and then evaluate all the relevant pixels.
+
+# Training generation
+
+## Multiprocessing control
+
+There are some simple flags that can be used to make it easier to control multiprocessing in reference generation mode.
+
+`IISPT_REFERENCE_CONTROL_MOD` defaults to 1
+
+`IISPT_REFERENCE_CONTROL_MATCH` defaults to 0
+
+The pixel index is modded by the MOD value, and the process will only render the reference pixel if the match value equals.
+
+With the default values, every pixel is rendered.
