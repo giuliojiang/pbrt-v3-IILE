@@ -16,6 +16,7 @@
 #include "tools/iisptmathutils.h"
 #include "tools/iisptrng.h"
 #include "tools/iisptpoint2i.h"
+#include "samplers/sobol.h"
 
 namespace pbrt {
 

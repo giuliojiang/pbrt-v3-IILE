@@ -553,12 +553,33 @@ void IISPTIntegrator::render_reference(const Scene &scene) {
         return;
     }
 
-    // Initialize sampler and arena
-    MemoryArena arena;
-    std::unique_ptr<Sampler> tile_sampler = sampler->Clone(0);
+    // Read reference control variables
+    char* reference_control_mod_env = std::getenv("IISPT_REFERENCE_CONTROL_MOD");
+    int reference_control_mod = 1;
+    if (reference_control_mod_env != NULL) {
+        reference_control_mod = std::stoi(
+                    std::string(reference_control_mod_env));
+    }
+
+    char* reference_control_match_env =
+            std::getenv("IISPT_REFERENCE_CONTROL_MATCH");
+    int reference_control_match = 0;
+    if (reference_control_match_env != NULL) {
+        reference_control_match = std::stoi(
+                    std::string(reference_control_match_env)
+                    );
+    }
+
+    int ref_idx = 0;
 
     for (int px_y = 0; px_y < sampleExtent.y; px_y += reference_tile_interval_y) {
         for (int px_x = 0; px_x < sampleExtent.x; px_x += reference_tile_interval_x) {
+
+            ref_idx++;
+            if ((ref_idx % reference_control_mod) != reference_control_match) {
+                // This pixel is not a job of the current process
+                continue;
+            }
 
             std::cerr << "Current pixel ["<< px_x <<"] ["<< px_y <<"]" << std::endl;
 
@@ -575,7 +596,7 @@ void IISPTIntegrator::render_reference(const Scene &scene) {
             ray.ScaleDifferentials(1);
             // The Li method, in reference mode, will automatically save the reference images
             // to the out/ directory
-            Li(ray, scene, *tile_sampler, arena, 0, Point2i(px_x, px_y));
+            Li_reference(ray, scene, Point2i(px_x, px_y));
 
 
         }
@@ -705,30 +726,16 @@ Spectrum IISPTIntegrator::Li_direct(
 }
 
 // New version ================================================================
-Spectrum IISPTIntegrator::Li(const RayDifferential &ray,
+void IISPTIntegrator::Li_reference(const RayDifferential &ray,
                              const Scene &scene,
-                             Sampler &sampler,
-                             MemoryArena &arena,
-                             int depth,
                              Point2i pixel
                              ) const {
-
-    std::cerr << "Debug trace start" << std::endl;
-
-    ProfilePhase p(Prof::SamplerIntegratorLi);
-    Spectrum L (0.f);
-    Spectrum beta (1.f);
 
     // Find closest ray intersection or return background radiance
     SurfaceInteraction isect;
     if (!scene.Intersect(ray, &isect)) {
-        if (PbrtOptions.referenceTiles > 0) {
-            std::cerr << "No intersection" << std::endl;
-        }
-        for (const auto &light : scene.infiniteLights) {
-            L += beta * light->Le(ray);
-        }
-        return L;
+        std::cerr << "No intersection" << std::endl;
+        return;
     }
 
     // Compute the hemisphere -------------------------------------------------
@@ -757,97 +764,79 @@ Spectrum IISPTIntegrator::Li(const RayDifferential &ray,
                     )
                 );
 
+    // Create 1spp sampler
+    std::unique_ptr<Sampler> one_spp_sampler (
+                CreateSobolSampler(
+                    Bounds2i(
+                        Point2i(0, 0),
+                        Point2i(PbrtOptions.iisptHemiSize,
+                                PbrtOptions.iisptHemiSize)
+                        ),
+                    1
+                    )
+                );
+
     // In Reference mode, save the rendered view ------------------------------
-    if (PbrtOptions.referenceTiles > 0) {
-        std::vector<std::string> direct_reference_names;
-        direct_reference_names.push_back(reference_d_name);
-        std::string reference_z_name = generate_reference_name("z", pixel, ".pfm");
-        direct_reference_names.push_back(reference_z_name);
-        std::string reference_n_name = generate_reference_name("n", pixel, ".pfm");
-        direct_reference_names.push_back(reference_n_name);
-        exec_if_one_not_exists(direct_reference_names, [&]() {
-            // Start rendering the hemispherical view
-            this->dintegrator->RenderView(scene, auxCamera.get());
-            dintegrator->save_reference(
-                        auxCamera,
-                        reference_z_name, // distance map
-                        reference_n_name  // normal map
-                        );
-        });
-    } else {
-        // Normal mode --------------------------------------------------------
+    std::vector<std::string> direct_reference_names;
+    direct_reference_names.push_back(reference_d_name);
+    std::string reference_z_name = generate_reference_name("z", pixel, ".pfm");
+    direct_reference_names.push_back(reference_z_name);
+    std::string reference_n_name = generate_reference_name("n", pixel, ".pfm");
+    direct_reference_names.push_back(reference_n_name);
+    exec_if_one_not_exists(direct_reference_names, [&]() {
         // Start rendering the hemispherical view
-        std::cerr << "Normal mode, starting hemispheric render" << std::endl;
-        this->dintegrator->RenderView(scene, auxCamera.get());
-        std::cerr << "hemispheric render obtained. Getting intensity image" << std::endl;
-        std::unique_ptr<IntensityFilm> dcamera_intensity = dintegrator->get_intensity_film(auxCamera.get());
-        std::cerr << "Got the intensity image. Saving to /tmp/int.pfm" << std::endl;
-        dcamera_intensity->write(std::string("/tmp/int.pfm"));
-        std::cerr << "Saved." << std::endl;
-
-        // Get normals and distance films
-        NormalFilm* dcamera_normal = dintegrator->get_normal_film();
-        DistanceFilm* dcamera_distance = dintegrator->get_distance_film();
-
-        // Create the IISPT NN Connector
-        std::cerr << "Creating NN connector..." << std::endl;
-        std::unique_ptr<IisptNnConnector> nn_connector (
-                    new IisptNnConnector()
+        this->dintegrator->RenderView(
+                    scene,
+                    auxCamera.get(),
+                    one_spp_sampler.get()
                     );
-        std::cerr << "Calling communicate" << std::endl;
-        int comm_status = -1;
-        std::shared_ptr<IntensityFilm> nn_film = nn_connector->communicate(
-                    dcamera_intensity.get(),
-                    dcamera_distance,
-                    dcamera_normal,
-                    max_intensity,
-                    max_distance,
-                    comm_status
+        dintegrator->save_reference(
+                    auxCamera,
+                    reference_z_name, // distance map
+                    reference_n_name  // normal map
+                    );
+    });
+
+    // Reference mode, High SPP path tracing ----------------------------------
+    std::string reference_b_name = generate_reference_name("p", pixel, ".pfm");
+    exec_if_not_exists(reference_b_name, [&]() {
+        std::shared_ptr<HemisphericCamera> high_spp_camera (
+                    CreateHemisphericCamera(
+                        PbrtOptions.iisptHemiSize,
+                        PbrtOptions.iisptHemiSize,
+                        dcamera->medium,
+                        auxRay.o,
+                        Point3f(auxRay.d.x, auxRay.d.y, auxRay.d.z),
+                        pixel,
+                        reference_b_name
+                        )
                     );
 
-        // Save the neural network produced film in the camera
-        auxCamera->set_nn_film(nn_film);
-    }
+        // Create 1spp sampler
+        std::unique_ptr<Sampler> high_spp_sampler (
+                    CreateSobolSampler(
+                        Bounds2i(
+                            Point2i(0, 0),
+                            Point2i(PbrtOptions.iisptHemiSize,
+                                    PbrtOptions.iisptHemiSize)
+                            ),
+                        PbrtOptions.referencePixelSamples
+                        )
+                    );
 
-    if (PbrtOptions.referenceTiles > 0) {
-        std::string reference_b_name = generate_reference_name("p", pixel, ".pfm");
-        exec_if_not_exists(reference_b_name, [&]() {
-            std::shared_ptr<VolPathIntegrator> volpath =
-                    create_aux_volpath_integrator(
-                        PbrtOptions.referencePixelSamples,
-                        reference_b_name,
-                        auxCamera,
-                        auxRay,
-                        pixel
-                        );
-            // Start rendering the ground truth
-            // The render method will automatically save the image
-            volpath->Render(scene);
-        });
-    }
+        this->dintegrator->RenderView(
+                    scene,
+                    high_spp_camera.get(),
+                    high_spp_sampler.get()
+                    );
 
-    // Compute scattering functions for surface interaction
-    isect.ComputeScatteringFunctions(ray, arena);
-    if (!isect.bsdf) {
-        return Li(isect.SpawnRay(ray.d), scene, sampler, arena, depth);
-    }
+        this->dintegrator->save_reference_camera_only(
+                    high_spp_camera
+                    );
 
-    // wo should be the vector towards camera, from intersection
-    Vector3f wo = isect.wo;
-    Float woLength = Dot(wo, wo);
-    if (woLength == 0) {
-        fprintf(stderr, "iispt.cpp: Detected a 0 length wo");
-        exit(1);
-    }
+    });
 
-    // Compute emitted light if ray hit an area light source
-    L += isect.Le(wo);
-    if (scene.lights.size() > 0) {
-        // Compute direct lighting using hemisphere information TODO
-        L += IISPTSampleHemisphere(isect, scene, arena, sampler, auxCamera.get());
-    }
-
-    return L;
+    std::cerr << "iispt.cpp: Completed reference pixel " << pixel << std::endl;
 
 }
 

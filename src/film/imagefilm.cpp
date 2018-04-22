@@ -3,6 +3,7 @@
 #include "geometry.h"
 #include "imageio.h"
 #include <fstream>
+#include <csignal>
 
 namespace pbrt {
 

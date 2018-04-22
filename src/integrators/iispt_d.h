@@ -59,7 +59,7 @@ class IISPTdIntegrator : public SamplerIntegrator {
 private:
   // IISPTdIntegrator Private Data
   std::shared_ptr<Camera> camera;
-  std::shared_ptr<Sampler> sampler;
+  std::shared_ptr<Sampler> sampler_internal;
   Bounds2i pixelBounds;
   const int maxDepth;
   std::vector<int> nLightSamples;
@@ -82,7 +82,7 @@ public:
                              const Bounds2i &pixelBounds) :
         SamplerIntegrator(camera, sampler, pixelBounds),
         camera(camera),
-        sampler(sampler),
+        sampler_internal(sampler),
         pixelBounds(pixelBounds),
         maxDepth(maxDepth)
     {
@@ -114,12 +114,20 @@ public:
 
     void Preprocess(const Scene &scene);
 
-    void RenderView(const Scene &scene, Camera* camera);
+    void RenderView(
+            const Scene &scene,
+            Camera* camera,
+            Sampler* sampler
+            );
 
     void save_reference(std::shared_ptr<Camera> camera,
                                           std::string distance_filename,
                                           std::string normal_filename
                                           );
+
+    void save_reference_camera_only(
+            std::shared_ptr<Camera> camera
+            );
 
     std::unique_ptr<IntensityFilm> get_intensity_film(Camera *camera);
 
