@@ -10,11 +10,12 @@ multiprocess_reference_py = os.path.join(rootdir, "tools", "multiprocess_referen
 
 TASK_LIST = [
 
-    "/home/gj/git/pbrt-v3-scenes/barcelona-pavilion/pavilion-night.pbrt",
-    "/home/gj/git/pbrt-v3-scenes/breakfast/breakfast.pbrt",
-    "/home/gj/git/pbrt-v3-scenes/buddha-fractal/buddha-fractal.pbrt",
-    "/home/gj/git/pbrt-v3-scenes/chopper-titan/chopper-titan.pbrt",
-    "/home/gj/git/pbrt-v3-scenes/crown/crown.pbrt"
+    "/home/gj/git/pbrt-v3-scenes/measure-one/frame120.pbrt",
+    "/home/gj/git/pbrt-v3-scenes/pbrt-book/book.pbrt",
+    "/home/gj/git/pbrt-v3-scenes/killeroos/killeroo-gold.pbrt",
+    "/home/gj/git/pbrt-v3-scenes/sanmiguel/sanmiguel.pbrt",
+    "/home/gj/git/pbrt-v3-scenes/sportscar/sportscar.pbrt",
+    "/home/gj/git/pbrt-v3-scenes/structuresynth/arcsphere.pbrt"
 
 ]
 
