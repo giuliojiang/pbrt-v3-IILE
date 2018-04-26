@@ -18,6 +18,10 @@ import iispt_transforms
 
 class PfmImage:
 
+    # self.data is a numpy array
+    # with shape (height, width, channels)
+    # of float32 values
+
     # -------------------------------------------------------------------------
     def __init__(self, data):
         self.data = data
@@ -25,6 +29,10 @@ class PfmImage:
     # -------------------------------------------------------------------------
     def print_shape(self):
         print(self.data.shape)
+
+    # -------------------------------------------------------------------------
+    def get_shape(self):
+        return self.data.shape
     
     # -------------------------------------------------------------------------
     def print_array(self):
@@ -38,7 +46,15 @@ class PfmImage:
     def map(self, f):
         f = numpy.vectorize(f)
         self.data = f(self.data)
-    
+
+    # -------------------------------------------------------------------------
+    def get_rgb(self, x, y):
+        res = []
+        res.append(self.data[y, x, 0])
+        res.append(self.data[y, x, 1])
+        res.append(self.data[y, x, 2])
+        return res
+
     # -------------------------------------------------------------------------
     def jacobian_transform(self):
         height, width, channels = self.data.shape
