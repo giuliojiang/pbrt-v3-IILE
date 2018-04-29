@@ -10,12 +10,6 @@ multiprocess_reference_py = os.path.join(rootdir, "tools", "multiprocess_referen
 
 TASK_LIST = [
 
-    "/home/gj/git/pbrt-v3-scenes/barcelona-pavilion/pavilion-night.pbrt",
-    "/home/gj/git/pbrt-v3-scenes/breakfast/breakfast.pbrt",
-    "/home/gj/git/pbrt-v3-scenes/buddha-fractal/buddha-fractal.pbrt",
-    "/home/gj/git/pbrt-v3-scenes/chopper-titan/chopper-titan.pbrt",
-    "/home/gj/git/pbrt-v3-scenes/crown/crown.pbrt"
-
 ]
 
 for task in TASK_LIST:

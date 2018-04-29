@@ -59,8 +59,13 @@ PfmItem IntensityFilm::get_camera_coord_jacobian(int x, int y) {
 
 PfmItem IntensityFilm::get_image_coord_jacobian(int x, int y) {
     PfmItem pix = get_image_coord(x, y);
+    // abs vertical is [0 - 1]
     Float abs_vertical_value = ((Float) y) / film->get_height();
-    Float polar_vertical_value = M_PI * abs_vertical_value;
+    // to [0 - pi/2]
+    Float polar_vertical_value = (M_PI / 2.0) * abs_vertical_value;
+    // to [pi/4 - 3/4 pi]
+    polar_vertical_value += (M_PI / 4.0);
+
     Float jacobian_factor = sin(polar_vertical_value);
     return pix.scalar_multiply(jacobian_factor);
 }

@@ -6,13 +6,21 @@
 import numpy
 import struct
 import math
+import scipy.misc
+import PIL
+import array
 
 import iispt_transforms
+
 
 # =============================================================================
 # Class definitions
 
 class PfmImage:
+
+    # self.data is a numpy array
+    # with shape (height, width, channels)
+    # of float32 values
 
     # -------------------------------------------------------------------------
     def __init__(self, data):
@@ -21,6 +29,10 @@ class PfmImage:
     # -------------------------------------------------------------------------
     def print_shape(self):
         print(self.data.shape)
+
+    # -------------------------------------------------------------------------
+    def get_shape(self):
+        return self.data.shape
     
     # -------------------------------------------------------------------------
     def print_array(self):
@@ -34,6 +46,26 @@ class PfmImage:
     def map(self, f):
         f = numpy.vectorize(f)
         self.data = f(self.data)
+
+    # -------------------------------------------------------------------------
+    def get_rgb(self, x, y):
+        res = []
+        res.append(self.data[y, x, 0])
+        res.append(self.data[y, x, 1])
+        res.append(self.data[y, x, 2])
+        return res
+
+    # -------------------------------------------------------------------------
+    def jacobian_transform(self):
+        height, width, channels = self.data.shape
+        for y in range(height):
+            abs_vertical_value = float(y) / float(height)
+            polar_vertical_value = (math.pi / 2.0) * abs_vertical_value
+            polar_vertical_value += (math.pi / 4.0)
+            jacobian_factor = math.sin(polar_vertical_value)
+            for x in range(width):
+                for c in range(channels):
+                    self.data[y, x, c] = self.data[y, x, c] * jacobian_factor
     
     # -------------------------------------------------------------------------
     # Given min and max vals in the original range,
@@ -82,7 +114,7 @@ class PfmImage:
         out_file.write(b"PF\n")
 
         # Write dimensions line
-        width, height, channels = self.data.shape
+        height, width, channels = self.data.shape
         out_file.write("{} {}\n".format(width, height).encode())
 
         # Write scale factor and endianness
@@ -95,6 +127,46 @@ class PfmImage:
                     write_float_32(out_file, self.data[y, x, c])
 
         out_file.close()
+    
+    # -------------------------------------------------------------------------
+    # Write out to LDR PNG file, with exposure and gamma settings
+    def save_png(self, out_path, exposure, gamma):
+        # Create bytebuffer
+        width, height, channels = self.data.shape
+        buff = bytearray()
+        for y in range(height):
+            for x in range(width):
+                arr_pix = []
+                if channels == 1:
+                    v = self.data[y, x, 0]
+                    rgb = [v, v, v]
+                elif channels == 3:
+                    rgb = [
+                        self.data[y, x, 0],
+                        self.data[y, x, 1],
+                        self.data[y, x, 2]
+                    ]
+                else:
+                    raise Exception("Number of channels is neither 1 nor 3 but it's {}".format(channels))
+
+                for v in rgb:
+                    # Adjust exposure
+                    v *= 2.0**exposure
+                    # Clamp
+                    if v < 0.0:
+                        v = 0.0
+                    if v > 1.0:
+                        v = 1.0
+                    # Gamma
+                    v = v**(1.0 / gamma)
+                    buff.append(int(255.0 * v))
+
+        im = PIL.Image.frombytes(
+            "RGB",
+            (width, height),
+            bytes(buff)
+        )
+        im.save(out_path)
 
 # =============================================================================
 # Utilities
