@@ -43,6 +43,7 @@ import random
 from torch.utils.data import Dataset, DataLoader
 
 import pfm
+import km
 
 # Ignore warnings
 import warnings
@@ -104,11 +105,14 @@ class IISPTDataset(Dataset):
         n_pfm = pfm.load(n_name)
         z_pfm = pfm.load(z_name)
 
-        # Transform P
-        p_pfm.normalize_log_gamma(log_normalization, GAMMA_VALUE)
-
         # Transform D
-        d_pfm.normalize_log_gamma(log_normalization, GAMMA_VALUE)
+        # Using Mean + std normalization
+        d_mean_std = km.KM()
+        d_pfm.normalize_log_mean_std(d_mean_std)
+
+        # Transform P
+        # Using the same Mean + std calculated for D
+        p_pfm.normalize_log_mean_std_with_prop(d_mean_std)
 
         # Transform N
         n_pfm.normalize(-1.0, 1.0)
@@ -119,9 +123,6 @@ class IISPTDataset(Dataset):
         # Convert from numpy to tensors and create results
         result = {}
         result["p"] = torch.from_numpy(p_pfm.get_numpy_array().flatten()).float()
-        # result["d"] = torch.from_numpy(d_pfm.get_numpy_array())
-        # result["n"] = torch.from_numpy(n_pfm.get_numpy_array())
-        # result["z"] = torch.from_numpy(z_pfm.get_numpy_array())
         train_d = d_pfm.get_numpy_array()
         train_n = n_pfm.get_numpy_array()
         train_z = z_pfm.get_numpy_array()

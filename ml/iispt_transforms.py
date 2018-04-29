@@ -94,6 +94,20 @@ class GammaTransform:
         if x < 0.0:
             x = 0.0
         return x ** self.exponent
+    
+# -----------------------------------------------------------------------------
+class MeanStdTransform:
+
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+    
+    def __call__(self, x):
+        x = x - self.mean
+        if self.std != 0.0:
+            return x / self.std
+        else:
+            return x
 
 # -----------------------------------------------------------------------------
 class Sequence:
@@ -142,6 +156,19 @@ class DistanceSequence:
         ts.append(SqrtTransform())
         ts.append(NormalizePositiveTransform(0.0, max_value))
         ts.append(GammaTransform(gamma))
+        self.seq = Sequence(ts)
+    
+    def __call__(self, x):
+        return self.seq(x)
+
+# -----------------------------------------------------------------------------
+# log + mean_std_normalization
+class LogMeanStdSequence:
+
+    def __init__(self, mean, std):
+        ts = []
+        ts.append(LogTransform())
+        ts.append(MeanStdTransform(mean, std))
         self.seq = Sequence(ts)
     
     def __call__(self, x):

@@ -13,10 +13,10 @@ import iispt_dataset
 import iispt_net
 import config
 
-TRAINING_TIME_MINUTES = 120.0
+TRAINING_TIME_MINUTES = 30.0
 BATCH_SIZE = 100
 NO_WORKERS = 2
-LEARNING_RATE = 0.0001
+LEARNING_RATE = 0.00005
 DATASET_DIR = "/home/gj/git/pbrt-v3-IISPT-dataset-indirect"
 
 log_dir = os.path.join('/tmp/runs', datetime.now().strftime('%b%d_%H-%M-%S'))
@@ -94,6 +94,8 @@ def train():
             layer, attr = os.path.splitext(name)
             attr = attr[1:]
             writer.add_histogram('{}/{}'.format(layer, attr), param.clone().cpu().data.numpy(), n_iter)
+
+        epoch += 1
 
     print("Finished training")
 

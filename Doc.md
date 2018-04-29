@@ -150,4 +150,71 @@ With the default values, every pixel is rendered.
 
 # NN training
 
-Using per-scene normalization with the normalization value, and batch normalization in the network.
+## 01
+
+* per scene normalization
+* batch normalization ON
+* rprop LR=0.0001
+
+## 02
+
+* per scene normalization
+* batch normalization ON
+* rprop LR=0.00005
+
+## 03
+
+* mean + standard deviation normalization
+* batch normalization ON
+* rprop LR=0.00003
+
+TODO inverse mean/std transform in stdio runner
+
+# Tiling and interpolation
+
+## New weight
+
+Define the new weight based on closeness in world-coordinates and on normals affinity.
+
+D is the overall distance
+P is the normalized position distance
+N is the normalized normals distance
+
+```
+D = P * N + P
+```
+
+When Position is at closest, D is 0.
+
+When Position is at farthest, D is maximal.
+
+Weight = max(0, 1-D) + eps
+
+Makes sure the weight is positive
+
+When D is 0, weight is 1 + eps
+
+When D is 1, weight is 0 + eps
+
+When D is 1.5, weight is 0 + eps
+
+To compute the normalized position distance:
+
+```
+P(a, b) = dist(a, b) / tileDiagonal
+```
+
+To compute a normalized normals distance:
+
+```
+N(a, b) = 
+    dt = Dot(a, b)
+    if dt < 0:
+        return 1
+    else:
+        return 1 - dt
+```
+
+When dot product is 1, distance is 0
+
+When dot product is negative, distance is maximal

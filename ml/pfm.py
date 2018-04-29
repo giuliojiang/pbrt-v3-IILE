@@ -105,6 +105,29 @@ class PfmImage:
         self.map(iispt_transforms.DistanceSequence(max_value, gamma))
     
     # -------------------------------------------------------------------------
+    # Subtracts mean, divides by standard deviation
+    def normalize_mean_std(self, prop):
+        prop.mean = numpy.mean(self.data)
+        prop.std = numpy.std(self.data)
+        self.map(iispt_transforms.MeanStdTransform(prop.mean, prop.std))
+
+    # -------------------------------------------------------------------------
+    # Log + mean_std normalization
+    # prop gets written:
+    #     .mean - the mean
+    #     .std - the standard deviation
+    def normalize_log_mean_std(self, prop):
+        prop.mean = numpy.mean(self.data)
+        prop.std = numpy.std(self.data)
+        self.map(iispt_transforms.LogMeanStdSequence(prop.mean, prop.std))
+
+    # -------------------------------------------------------------------------
+    # Log + mean_std normalization
+    # Instead of calculating mean and std uses those provided in prop
+    def normalize_log_mean_std_with_prop(self, prop):
+        self.map(iispt_transforms.LogMeanStdSequence(prop.mean, prop.std))
+    
+    # -------------------------------------------------------------------------
     # Write out to .pfm file
     def save_pfm(self, out_path):
         print("Writing {}".format(out_path))
