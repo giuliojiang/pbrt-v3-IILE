@@ -147,3 +147,7 @@ There are some simple flags that can be used to make it easier to control multip
 The pixel index is modded by the MOD value, and the process will only render the reference pixel if the match value equals.
 
 With the default values, every pixel is rendered.
+
+# NN training
+
+Using per-scene normalization with the normalization value, and batch normalization in the network.

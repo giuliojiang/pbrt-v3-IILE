@@ -9,70 +9,51 @@ class IISPTNet(torch.nn.Module):
         super(IISPTNet, self).__init__()
 
         self.hidden0 = nn.Sequential(
-            nn.Linear(7168, 6450),
+            nn.Linear(7168, 3584),
             nn.LeakyReLU(0.2)
         )
+
+        self.bn0 = nn.BatchNorm1d(3584)
 
         self.hidden1 = nn.Sequential(
-            nn.Linear(6450, 5800),
+            nn.Linear(3584, 1792),
             nn.LeakyReLU(0.2)
         )
+
+        self.bn1 = nn.BatchNorm1d(1792)
 
         self.hidden2 = nn.Sequential(
-            nn.Linear(5800, 5225),
+            nn.Linear(1792, 896),
             nn.LeakyReLU(0.2)
         )
+
+        self.bn2 = nn.BatchNorm1d(896)
 
         self.hidden3 = nn.Sequential(
-            nn.Linear(5225, 4700),
+            nn.Linear(896, 307),
             nn.LeakyReLU(0.2)
         )
 
-        self.hidden4 = nn.Sequential(
-            nn.Linear(4700, 3300),
-            nn.LeakyReLU(0.2)
-        )
-
-        self.hidden5 = nn.Sequential(
-            nn.Linear(3300, 2200),
-            nn.LeakyReLU(0.2)
-        )
-
-        self.hidden6 = nn.Sequential(
-            nn.Linear(2200, 1800),
-            nn.LeakyReLU(0.2)
-        )
-
-        self.hidden7 = nn.Sequential(
-            nn.Linear(1800, 1024),
-            nn.LeakyReLU(0.2)
-        )
+        self.bn3 = nn.BatchNorm1d(307)
 
         self.out0 = nn.Sequential(
-            nn.Linear(1024, 1800),
+            nn.Linear(307, 1228),
             nn.LeakyReLU(0.2)
         )
+
 
         self.out1 = nn.Sequential(
-            nn.Linear(1800, 2500),
+            nn.Linear(1228, 3072),
             nn.LeakyReLU(0.2)
         )
 
-        self.out2 = nn.Sequential(
-            nn.Linear(2500, 3072),
-            nn.LeakyReLU(0.2)
-        )
     
     def forward(self, x):
-        x = self.hidden0(x)
-        x = self.hidden1(x)
-        x = self.hidden2(x)
-        x = self.hidden3(x)
-        x = self.hidden4(x)
-        x = self.hidden5(x)
-        x = self.hidden6(x)
-        x = self.hidden7(x)
+        x = self.bn0(self.hidden0(x))
+        x = self.bn1(self.hidden1(x))
+        x = self.bn2(self.hidden2(x))
+        x = self.bn3(self.hidden3(x))
         x = self.out0(x)
         x = self.out1(x)
-        x = self.out2(x)
+
         return x
