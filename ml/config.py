@@ -1,1 +1,1 @@
-model_path = "iispt_model.dat"
+model_path = "iispt_model.tch"

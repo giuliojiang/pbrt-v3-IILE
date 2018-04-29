@@ -13,7 +13,11 @@ import iispt_dataset
 import iispt_net
 import config
 
-TRAINING_TIME_MINUTES = 30.0
+rootdir = os.path.abspath(os.path.join(__file__, "..", ".."))
+print(rootdir)
+os.chdir(rootdir)
+
+TRAINING_TIME_MINUTES = 10.0
 BATCH_SIZE = 100
 NO_WORKERS = 2
 LEARNING_RATE = 0.00005
@@ -40,8 +44,8 @@ def train():
     net = iispt_net.IISPTNet().cuda()
 
     criterion = nn.L1Loss()
-    # optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
-    optimizer = optim.Rprop(net.parameters(), lr=LEARNING_RATE)
+    optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
+    # optimizer = optim.Rprop(net.parameters(), lr=LEARNING_RATE)
 
     epoch_loss = []
     running_loss = 0.0

@@ -25,7 +25,7 @@ def convert_image(pfm_path, output_path, png_path):
 def main():
 
     # Load dataset
-    trainset, testset = iispt_dataset.load_dataset("/home/gj/git/pbrt-v3-IISPT-dataset", 0.1)
+    trainset, testset = iispt_dataset.load_dataset("/home/gj/git/pbrt-v3-IISPT-dataset-indirect", 0.1)
 
     selected_set = testset
     selected_set_len = testset.__len__()
@@ -53,6 +53,7 @@ def main():
 
         # Run the network on the data
         input_variable = Variable(item_input)
+        print_force("Input variable.data is {}".format(input_variable.data))
         result = net(input_variable)
         print_force("Result.data is {}".format(result.data))
         print_force("Expected is {}".format(item_expected))

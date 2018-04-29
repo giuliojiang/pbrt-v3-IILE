@@ -170,6 +170,12 @@ With the default values, every pixel is rendered.
 
 TODO inverse mean/std transform in stdio runner
 
+IT DOESN'T WORK because:
+
+I'm not normalizing distances in the same way
+
+It doesn't make sense to record mean and std and apply the same transformation on the ground truth, but should apply inverse transformation on the predicted result and compare with unchanged ground truth.
+
 # Tiling and interpolation
 
 ## New weight
