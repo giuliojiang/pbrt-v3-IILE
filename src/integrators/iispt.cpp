@@ -881,6 +881,7 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
                 pixelBounds,
                 indirect_samples
                 ));
+    sampler->
 
     return new IISPTIntegrator(maxDepth, camera, pixelBounds,
         dcamera, sampler, rrThreshold, lightStrategy);

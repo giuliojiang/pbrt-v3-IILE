@@ -22,6 +22,8 @@ private:
     // Fields -----------------------------------------------------------------
     std::shared_ptr<IntensityFilm> nn_film = nullptr;
 
+    Vector3f look_direction;
+
 public:
 
     // Constructor ------------------------------------------------------------
@@ -30,9 +32,15 @@ public:
             Float shutterOpen,
             Float shutterClose,
             Film* film,
-            const Medium* medium
+            const Medium* medium,
+            Vector3f look_direction
             ) :
-        Camera(CameraToWorld, shutterOpen, shutterClose, film, medium) {}
+        Camera(CameraToWorld, shutterOpen, shutterClose, film, medium)
+    {
+
+        this->look_direction = look_direction;
+
+    }
 
     // Public methods =========================================================
 
@@ -66,17 +74,19 @@ public:
 
     void compute_cdfs();
 
+    Vector3f get_look_direction() {
+        return this->look_direction;
+    }
+
 };
 
 // ============================================================================
 
-HemisphericCamera* CreateHemisphericCamera(
-        int xres,
+HemisphericCamera* CreateHemisphericCamera(int xres,
         int yres,
         const Medium *medium,
         Point3f pos,
-        Point3f dir,
-        Point2i originalPixel,
+        Vector3f dir,
         std::string output_file_name
         );
 

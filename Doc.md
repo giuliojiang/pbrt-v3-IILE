@@ -196,7 +196,9 @@ When Position is at closest, D is 0.
 
 When Position is at farthest, D is maximal.
 
+```
 Weight = max(0, 1-D) + eps
+```
 
 Makes sure the weight is positive
 
@@ -209,7 +211,7 @@ When D is 1.5, weight is 0 + eps
 To compute the normalized position distance:
 
 ```
-P(a, b) = dist(a, b) / tileDiagonal
+P(a, b) = dist(a, b) / tileDistance
 ```
 
 To compute a normalized normals distance:

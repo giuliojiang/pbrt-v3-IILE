@@ -115,8 +115,7 @@ HemisphericCamera* CreateHemisphericCamera(
         int yres,
         const Medium *medium,
         Point3f pos,
-        Point3f dir,
-        Point2i originalPixel,
+        Vector3f dir,
         std::string output_file_name
         ) {
 
@@ -127,7 +126,6 @@ HemisphericCamera* CreateHemisphericCamera(
 
 
     const Point3f look = Point3f(pos.x+dir.x, pos.y+dir.y, pos.z+dir.z);
-    const Point3f posAdjusted = Point3f(pos.x+(2), pos.y+(0.1*dir.y), pos.z+(0.1*dir.z));
     const Transform* cameraTransform = new Transform(LookAt(pos, look, up).GetInverseMatrix());
 
     AnimatedTransform cam2world (
@@ -156,7 +154,7 @@ HemisphericCamera* CreateHemisphericCamera(
     Float shutterclose = 1.f;
 
     return new HemisphericCamera(cam2world, shutteropen, shutterclose,
-                                 film, medium);
+                                 film, medium, dir);
 
 }
 
