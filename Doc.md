@@ -60,6 +60,8 @@ The IntensityFilm object handles the Y direction in the same way as PBRT, mainta
 
 `IISPT_INDIRECT_PASSES` Number of IISPT indirect passes
 
+`IISPT_RNG_SEED` Initial RNG seed.
+
 # IISPT Render Algorithm
 
 ## Classes

@@ -17,6 +17,8 @@ private:
 public:
     // Constructor ------------------------------------------------------------
 
+    IisptRng();
+
     IisptRng(uint64_t seed);
 
     // Public methods ---------------------------------------------------------
@@ -30,6 +32,15 @@ public:
 
     float uniform_float();
 };
+
+static long iile_rng_seed() {
+    long seed = 9546842247;
+    char* seed_env = std::getenv("IISPT_RNG_SEED");
+    if (seed_env != NULL) {
+        seed = std::stol(std::string(seed_env));
+    }
+    return seed;
+}
 
 }
 

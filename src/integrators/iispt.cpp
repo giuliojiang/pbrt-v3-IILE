@@ -416,7 +416,9 @@ void IISPTIntegrator::estimate_normalization_values(
         )
 {
     // Create RNG
-    std::shared_ptr<RNG> rng (new RNG());
+    std::unique_ptr<IisptRng> rng (
+                new IisptRng()
+                );
 
     // Create auxiliary estimation path tracer
     std::shared_ptr<VolPathIntegrator> aux_volpath =
@@ -435,8 +437,8 @@ void IISPTIntegrator::estimate_normalization_values(
 
     // Loop to get the samples
     for (int i = 0; i < IISPT_NORMALIZATION_ESTIMATION_SAMPLES; i++) {
-        int x = rng->UniformUInt32(sample_extent.x);
-        int y = rng->UniformUInt32(sample_extent.y);
+        int x = rng->uniform_uint32(sample_extent.x);
+        int y = rng->uniform_uint32(sample_extent.y);
         estimator_integrator->estimate_intensity(
                     scene,
                     Point2i(x, y),

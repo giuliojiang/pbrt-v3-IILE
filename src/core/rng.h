@@ -40,6 +40,7 @@
 
 // core/rng.h*
 #include "pbrt.h"
+#include <cstdlib>
 
 namespace pbrt {
 
@@ -135,7 +136,9 @@ class RNG {
 };
 
 // RNG Inline Method Definitions
-inline RNG::RNG() : state(PCG32_DEFAULT_STATE), inc(PCG32_DEFAULT_STREAM) {}
+inline RNG::RNG() : state(PCG32_DEFAULT_STATE), inc(PCG32_DEFAULT_STREAM)
+{}
+
 inline void RNG::SetSequence(uint64_t initseq) {
     state = 0u;
     inc = (initseq << 1u) | 1u;
