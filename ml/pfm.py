@@ -103,30 +103,27 @@ class PfmImage:
     # 3 - Apply gamma correction
     def normalize_sqrt_gamma(self, max_value, gamma):
         self.map(iispt_transforms.DistanceSequence(max_value, gamma))
-    
-    # -------------------------------------------------------------------------
-    # Subtracts mean, divides by standard deviation
-    def normalize_mean_std(self, prop):
-        prop.mean = numpy.mean(self.data)
-        prop.std = numpy.std(self.data)
-        self.map(iispt_transforms.MeanStdTransform(prop.mean, prop.std))
 
     # -------------------------------------------------------------------------
-    # Log + mean_std normalization
-    # prop gets written:
-    #     .mean - the mean
-    #     .std - the standard deviation
-    def normalize_log_mean_std(self, prop):
-        prop.mean = numpy.mean(self.data)
-        prop.std = numpy.std(self.data)
-        self.map(iispt_transforms.LogMeanStdSequence(prop.mean, prop.std))
+    # Normalize:
+    # - Relative luminance
+    # - Relative log luminance
+    # <return> the mean used for the Mean Gain Transform
+    def normalize_downstream_full(self):
+        mean = numpy.mean(self.data)
+        self.map(iispt_transforms.DownstreamFullSequence(mean))
+        return mean
 
     # -------------------------------------------------------------------------
-    # Log + mean_std normalization
-    # Instead of calculating mean and std uses those provided in prop
-    def normalize_log_mean_std_with_prop(self, prop):
-        self.map(iispt_transforms.LogMeanStdSequence(prop.mean, prop.std))
-    
+    # Normalize:
+    # - Relative luminance
+    # - Relative log luminance
+    # <return> the mean used for the Mean Gain Transform
+    def normalize_downstream_half(self):
+        mean = numpy.mean(self.data)
+        self.map(iispt_transforms.DownstreamHalfSequence(mean))
+        return mean
+
     # -------------------------------------------------------------------------
     # Write out to .pfm file
     def save_pfm(self, out_path):

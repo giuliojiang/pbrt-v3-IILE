@@ -17,7 +17,7 @@ rootdir = os.path.abspath(os.path.join(__file__, "..", ".."))
 print(rootdir)
 os.chdir(rootdir)
 
-TRAINING_TIME_MINUTES = 10.0
+TRAINING_TIME_MINUTES = 5.0
 BATCH_SIZE = 100
 NO_WORKERS = 2
 LEARNING_RATE = 0.00005

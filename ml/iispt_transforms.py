@@ -94,20 +94,18 @@ class GammaTransform:
         if x < 0.0:
             x = 0.0
         return x ** self.exponent
-    
-# -----------------------------------------------------------------------------
-class MeanStdTransform:
 
-    def __init__(self, mean, std):
-        self.mean = mean
-        self.std = std
+# -----------------------------------------------------------------------------
+class DivideTransform:
+
+    def __init__(self, div):
+        self.div = div
     
     def __call__(self, x):
-        x = x - self.mean
-        if self.std != 0.0:
-            return x / self.std
-        else:
+        if self.div == 0.0:
             return x
+        else:
+            return x / self.div
 
 # -----------------------------------------------------------------------------
 class Sequence:
@@ -162,13 +160,26 @@ class DistanceSequence:
         return self.seq(x)
 
 # -----------------------------------------------------------------------------
-# log + mean_std_normalization
-class LogMeanStdSequence:
+# Downstream full transform: mean gain, log
+class DownstreamFullSequence:
 
-    def __init__(self, mean, std):
+    def __init__(self, mean):
         ts = []
+        ts.append(DivideTransform(2.0 * mean))
         ts.append(LogTransform())
-        ts.append(MeanStdTransform(mean, std))
+        self.seq = Sequence(ts)
+    
+    def __call__(self, x):
+        return self.seq(x)
+
+# -----------------------------------------------------------------------------
+# Downstream half transform: mean gain, log
+class DownstreamHalfSequence:
+
+    def __init__(self, mean):
+        ts = []
+        ts.append(DivideTransform(2.0 * mean))
+        ts.append(LogTransform())
         self.seq = Sequence(ts)
     
     def __call__(self, x):

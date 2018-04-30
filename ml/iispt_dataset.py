@@ -107,12 +107,11 @@ class IISPTDataset(Dataset):
 
         # Transform D
         # Using Mean + std normalization
-        d_mean_std = km.KM()
-        d_pfm.normalize_log_mean_std(d_mean_std)
+        d_pfm.normalize_downstream_full()
 
         # Transform P
         # Using the same Mean + std calculated for D
-        p_pfm.normalize_log_mean_std_with_prop(d_mean_std)
+        p_pfm.normalize_downstream_half()
 
         # Transform N
         n_pfm.normalize(-1.0, 1.0)
