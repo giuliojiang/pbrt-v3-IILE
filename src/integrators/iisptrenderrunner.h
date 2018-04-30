@@ -116,6 +116,15 @@ private:
 
     void run_direct(const Scene &scene);
 
+    void compute_fpixel_weights(
+            std::vector<Point2i> &neighbour_points,
+            std::vector<HemisphericCamera*> &hemi_sampling_cameras,
+            Point2i f_pixel,
+            SurfaceInteraction &f_isect,
+            int tilesize,
+            std::vector<float> &out_probabilities
+            );
+
 public:
 
     // Constructor ------------------------------------------------------------

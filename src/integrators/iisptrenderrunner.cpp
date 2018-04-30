@@ -437,10 +437,14 @@ void IisptRenderRunner::run(const Scene &scene)
                             neigh_e.y
                             );
 
-                // Constructor vectors for sampling
-                std::vector<float> hemi_sampling_weights (4);
+                std::vector<Point2i> neighbour_points (4);
+                neighbour_points[0] = neigh_s;
+                neighbour_points[1] = neigh_e;
+                neighbour_points[2] = neigh_r;
+                neighbour_points[3] = neigh_b;
 
                 std::vector<HemisphericCamera*> hemi_sampling_cameras (4);
+
                 auto hemi_point_get = [&](Point2i pt) {
                     IisptPoint2i pt_key;
                     pt_key.x = pt.x;
@@ -454,10 +458,10 @@ void IisptRenderRunner::run(const Scene &scene)
                     }
                 };
 
-                hemi_sampling_cameras[0] = hemi_point_get(neigh_s);
-                hemi_sampling_cameras[1] = hemi_point_get(neigh_r);
-                hemi_sampling_cameras[2] = hemi_point_get(neigh_b);
-                hemi_sampling_cameras[3] = hemi_point_get(neigh_e);
+                for (int i = 0; i < 4; i++) {
+                    hemi_sampling_cameras[i] =
+                            hemi_point_get(neighbour_points[i]);
+                }
 
                 sampler_next_pixel();
                 CameraSample f_camera_sample =
@@ -498,74 +502,17 @@ void IisptRenderRunner::run(const Scene &scene)
                 }
 
                 // Valid intersection found
-                // Invert normal if surface normal points inwards
-                Normal3f surface_normal = f_isect.n;
-                Vector3f sf_norm_vec = Vector3f(f_isect.n.x, f_isect.n.y, f_isect.n.z);
-                Vector3f ray_vec = Vector3f(f_ray.d.x, f_ray.d.y, f_ray.d.z);
-                if (Dot(sf_norm_vec, ray_vec) > 0.0) {
-                    surface_normal = Normal3f(
-                                -f_isect.n.x,
-                                -f_isect.n.y,
-                                -f_isect.n.z
-                                );
-                }
-                // Aux ray
-                Ray aux_ray = isect.SpawnRay(Vector3f(surface_normal));
 
-                // Weighting distances for positions
-                float wdpos_s = iispt::weighting_distance_positions(
+                // Compute weights and probabilities for neighbours
+                std::vector<float> hemi_sampling_weights (4);
+                compute_fpixel_weights(
+                            neighbour_points,
+                            hemi_sampling_cameras,
                             f_pixel,
-                            neigh_s,
-                            sm_task.tilesize
+                            f_isect,
+                            sm_task.tilesize,
+                            hemi_sampling_weights // << output
                             );
-                float wdpos_r = iispt::weighting_distance_positions(
-                            f_pixel,
-                            neigh_r,
-                            sm_task.tilesize
-                            );
-                float wdpos_b = iispt::weighting_distance_positions(
-                            f_pixel,
-                            neigh_b,
-                            sm_task.tilesize
-                            );
-                float wdpos_e = iispt::weighting_distance_positions(
-                            f_pixel,
-                            neigh_e,
-                            sm_task.tilesize
-                            );
-
-                // Weighting distance for normals
-                float wdnor_s = iispt::weighting_distance_normals(
-                            aux_ray.d,
-                            hemi_sampling_cameras[0]->get_look_direction()
-                            );
-                float wdnor_r = iispt::weighting_distance_normals(
-                            aux_ray.d,
-                            hemi_sampling_cameras[1]->get_look_direction()
-                            );
-                float wdnor_b = iispt::weighting_distance_normals(
-                            aux_ray.d,
-                            hemi_sampling_cameras[2]->get_look_direction()
-                            );
-                float wdnor_e = iispt::weighting_distance_normals(
-                            aux_ray.d,
-                            hemi_sampling_cameras[3]->get_look_direction()
-                            );
-
-                // Weighting overall distance
-                float wovd_s = wdpos_s * wdnor_s + wdpos_s;
-                float wovd_r = wdpos_r * wdnor_r + wdpos_r;
-                float wovd_b = wdpos_b * wdnor_b + wdpos_b;
-                float wovd_e = wdpos_e * wdnor_e + wdpos_e;
-
-                // Final weights
-                hemi_sampling_weights[0] = std::max(0.0, 1.0 - wovd_s) + 0.001;
-                hemi_sampling_weights[1] = std::max(0.0, 1.0 - wovd_r) + 0.001;
-                hemi_sampling_weights[2] = std::max(0.0, 1.0 - wovd_b) + 0.001;
-                hemi_sampling_weights[3] = std::max(0.0, 1.0 - wovd_e) + 0.001;
-
-                // Weights to probabilities
-                iispt::weights_to_probabilities(hemi_sampling_weights);
 
                 // Compute scattering functions for surface interaction
                 f_isect.ComputeScatteringFunctions(f_ray, arena);
@@ -1047,6 +994,68 @@ void IisptRenderRunner::sampler_next_pixel()
     sampler_pixel_counter = Point2i(x, y);
     sampler->StartPixel(sampler_pixel_counter);
 
+}
+
+// ============================================================================
+// Compute weights for individual pixels
+
+void IisptRenderRunner::compute_fpixel_weights(
+        std::vector<Point2i> &neighbour_points,
+        std::vector<HemisphericCamera*> &hemi_sampling_cameras,
+        Point2i f_pixel,
+        SurfaceInteraction &f_isect,
+        int tilesize,
+        std::vector<float> &out_probabilities
+        )
+{
+    int len = neighbour_points.size();
+
+    // Invert surface normal if pointing inwards
+    Normal3f surface_normal = f_isect.n;
+    Vector3f sf_norm_vec = Vector3f(f_isect.n.x, f_isect.n.y, f_isect.n.z);
+    Vector3f ray_vec = Vector3f(f_ray.d.x, f_ray.d.y, f_ray.d.z);
+    if (Dot(sf_norm_vec, ray_vec) > 0.0) {
+        surface_normal = Normal3f(
+                    -f_isect.n.x,
+                    -f_isect.n.y,
+                    -f_isect.n.z
+                    );
+    }
+    // Aux ray
+    Ray aux_ray = f_isect.SpawnRay(Vector3f(surface_normal));
+
+    // Weighting distances for positions
+    std::vector<float> wdpos (len);
+    for (int i = 0; i < len; i++) {
+        wdpos[i] = iispt::weighting_distance_positions(
+                    f_pixel,
+                    neighbour_points[i],
+                    tilesize
+                    );
+    }
+
+    // Weighting distance for normals
+    std::vector<float> wdnor (len);
+    for (int i = 0; i < len; i++) {
+        wdnor[i] = iispt::weighting_distance_normals(
+                    aux_ray.d,
+                    hemi_sampling_cameras[i]->get_look_direction()
+                    );
+    }
+
+    // Weighting overall distance
+    std::vector<float> wod (len);
+    for (int i = 0; i < len; i++) {
+        wod[i] = wdpos[i] * wdnor[i] + wdpos[i];
+    }
+
+    // Final weights
+    for (int i = 0; i < len; i++) {
+        out_probabilities[i] = std::max(0.0, 1.0 - wod[i]) + 0.001;
+    }
+
+    // Weights to probabilities
+    iispt::weights_to_probabilities(out_probabilities);
 }
 
 }
