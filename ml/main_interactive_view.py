@@ -25,7 +25,7 @@ def convert_image(pfm_path, output_path, png_path):
 def main():
 
     # Load dataset
-    trainset, testset = iispt_dataset.load_dataset("/home/gj/git/pbrt-v3-IISPT-dataset-indirect", 0.1)
+    trainset, testset = iispt_dataset.load_dataset(config.dataset, 0.1)
 
     selected_set = testset
     selected_set_len = testset.__len__()

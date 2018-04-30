@@ -17,11 +17,10 @@ rootdir = os.path.abspath(os.path.join(__file__, "..", ".."))
 print(rootdir)
 os.chdir(rootdir)
 
-TRAINING_TIME_MINUTES = 5.0
-BATCH_SIZE = 100
+TRAINING_TIME_MINUTES = 120.0
+BATCH_SIZE = 50
 NO_WORKERS = 2
-LEARNING_RATE = 0.00005
-DATASET_DIR = "/home/gj/git/pbrt-v3-IISPT-dataset-indirect"
+LEARNING_RATE = 0.0001
 
 log_dir = os.path.join('/tmp/runs', datetime.now().strftime('%b%d_%H-%M-%S'))
 writer = SummaryWriter(log_dir=log_dir)
@@ -34,9 +33,9 @@ def minutes_elapsed():
     elapsed_minutes = elapsed_seconds / 60.0
     return elapsed_minutes
 
-def train():
+def main():
 
-    trainset, testset = iispt_dataset.load_dataset(DATASET_DIR, 0.1)
+    trainset, testset = iispt_dataset.load_dataset(config.dataset, 0.1)
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NO_WORKERS)
     testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NO_WORKERS)
@@ -45,7 +44,6 @@ def train():
 
     criterion = nn.L1Loss()
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
-    # optimizer = optim.Rprop(net.parameters(), lr=LEARNING_RATE)
 
     epoch_loss = []
     running_loss = 0.0
@@ -53,7 +51,6 @@ def train():
     epoch = 0
     n_iter = 0
 
-    print("Dataset loaded from {}".format(DATASET_DIR))
     print("About to start training... for Tensorboard, use tensorboard --logdir /tmp/runs")
 
     while True:
@@ -92,13 +89,6 @@ def train():
             n_iter += 1
         
         epoch_loss.append(running_loss)
-
-        # Log model parameters to TensorBoard at every epoch
-        for name, param in net.named_parameters():
-            layer, attr = os.path.splitext(name)
-            attr = attr[1:]
-            writer.add_histogram('{}/{}'.format(layer, attr), param.clone().cpu().data.numpy(), n_iter)
-
         epoch += 1
 
     print("Finished training")
@@ -110,5 +100,5 @@ def train():
     torch.save(net, config.model_path)
     print("Model saved: {}".format(config.model_path))
 
-train()
+main()
 writer.close()

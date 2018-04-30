@@ -103,33 +103,7 @@ class PfmImage:
     # 3 - Apply gamma correction
     def normalize_sqrt_gamma(self, max_value, gamma):
         self.map(iispt_transforms.DistanceSequence(max_value, gamma))
-
-    # -------------------------------------------------------------------------
-    # Normalize:
-    # - Relative luminance
-    # - Relative log luminance
-    # <return> the mean used for the Mean Gain Transform
-    def normalize_downstream_full(self):
-        mean = numpy.mean(self.data)
-        self.map(iispt_transforms.DownstreamFullSequence(mean))
-        return mean
-
-    # -------------------------------------------------------------------------
-    # Normalize:
-    # - Relative luminance
-    # - Relative log luminance
-    # <return> the mean used for the Mean Gain Transform
-    def normalize_downstream_half(self):
-        mean = numpy.mean(self.data)
-        self.map(iispt_transforms.DownstreamHalfSequence(mean))
-        return mean
-
-    # -------------------------------------------------------------------------
-    def normalize_distance_downstream_full(self):
-        mean = numpy.mean(self.data)
-        self.map(iispt_transforms.DownstreamDistanceSequence(mean))
-        return mean
-
+    
     # -------------------------------------------------------------------------
     # Write out to .pfm file
     def save_pfm(self, out_path):

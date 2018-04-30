@@ -44,6 +44,7 @@ from torch.utils.data import Dataset, DataLoader
 
 import pfm
 import km
+import config
 
 # Ignore warnings
 import warnings
@@ -105,23 +106,24 @@ class IISPTDataset(Dataset):
         n_pfm = pfm.load(n_name)
         z_pfm = pfm.load(z_name)
 
-        # Transform D
-        # Using Mean + std normalization
-        d_pfm.normalize_downstream_full()
-
         # Transform P
-        # Using the same Mean + std calculated for D
-        p_pfm.normalize_downstream_half()
+        p_pfm.normalize_log_gamma(log_normalization, GAMMA_VALUE)
+
+        # Transform D
+        d_pfm.normalize_log_gamma(log_normalization, GAMMA_VALUE)
 
         # Transform N
         n_pfm.normalize(-1.0, 1.0)
 
         # Transform Z
-        z_pfm.normalize_distance_downstream_full()
+        z_pfm.normalize_sqrt_gamma(sqrt_normalization, GAMMA_VALUE)
 
         # Convert from numpy to tensors and create results
         result = {}
         result["p"] = torch.from_numpy(p_pfm.get_numpy_array().flatten()).float()
+        # result["d"] = torch.from_numpy(d_pfm.get_numpy_array())
+        # result["n"] = torch.from_numpy(n_pfm.get_numpy_array())
+        # result["z"] = torch.from_numpy(z_pfm.get_numpy_array())
         train_d = d_pfm.get_numpy_array()
         train_n = n_pfm.get_numpy_array()
         train_z = z_pfm.get_numpy_array()
@@ -276,7 +278,7 @@ def load_dataset(root_directory, validation_probability):
 # =============================================================================
 
 def main_test():
-    dt, dv = load_dataset("/home/gj/git/pbrt-v3-IISPT-dataset", 0.1)
+    dt, dv = load_dataset(config.dataset, 0.1)
     print("Loaded {} + {} examples".format(dt.__len__(), dv.__len__()))
     print(dv.__getitem__(0))
 

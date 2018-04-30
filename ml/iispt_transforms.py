@@ -96,18 +96,6 @@ class GammaTransform:
         return x ** self.exponent
 
 # -----------------------------------------------------------------------------
-class DivideTransform:
-
-    def __init__(self, div):
-        self.div = div
-    
-    def __call__(self, x):
-        if self.div == 0.0:
-            return x
-        else:
-            return x / self.div
-
-# -----------------------------------------------------------------------------
 class Sequence:
 
     def __init__(self, ts):
@@ -154,44 +142,6 @@ class DistanceSequence:
         ts.append(SqrtTransform())
         ts.append(NormalizePositiveTransform(0.0, max_value))
         ts.append(GammaTransform(gamma))
-        self.seq = Sequence(ts)
-    
-    def __call__(self, x):
-        return self.seq(x)
-
-# -----------------------------------------------------------------------------
-# Downstream full transform: mean gain, log
-class DownstreamFullSequence:
-
-    def __init__(self, mean):
-        ts = []
-        ts.append(DivideTransform(2.0 * mean))
-        ts.append(LogTransform())
-        self.seq = Sequence(ts)
-    
-    def __call__(self, x):
-        return self.seq(x)
-
-# -----------------------------------------------------------------------------
-# Downstream half transform: mean gain, log
-class DownstreamHalfSequence:
-
-    def __init__(self, mean):
-        ts = []
-        ts.append(DivideTransform(2.0 * mean))
-        ts.append(LogTransform())
-        self.seq = Sequence(ts)
-    
-    def __call__(self, x):
-        return self.seq(x)
-
-# -----------------------------------------------------------------------------
-class DownstreamDistanceSequence:
-
-    def __init__(self, mean):
-        ts = []
-        ts.append(DivideTransform(2.0 * mean))
-        ts.append(SqrtTransform())
         self.seq = Sequence(ts)
     
     def __call__(self, x):
