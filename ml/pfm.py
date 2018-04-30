@@ -125,6 +125,12 @@ class PfmImage:
         return mean
 
     # -------------------------------------------------------------------------
+    def normalize_distance_downstream_full(self):
+        mean = numpy.mean(self.data)
+        self.map(iispt_transforms.DownstreamDistanceSequence(mean))
+        return mean
+
+    # -------------------------------------------------------------------------
     # Write out to .pfm file
     def save_pfm(self, out_path):
         print("Writing {}".format(out_path))

@@ -184,3 +184,15 @@ class DownstreamHalfSequence:
     
     def __call__(self, x):
         return self.seq(x)
+
+# -----------------------------------------------------------------------------
+class DownstreamDistanceSequence:
+
+    def __init__(self, mean):
+        ts = []
+        ts.append(DivideTransform(2.0 * mean))
+        ts.append(SqrtTransform())
+        self.seq = Sequence(ts)
+    
+    def __call__(self, x):
+        return self.seq(x)
