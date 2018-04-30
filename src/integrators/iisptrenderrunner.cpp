@@ -1058,4 +1058,42 @@ void IisptRenderRunner::compute_fpixel_weights(
     iispt::weights_to_probabilities(out_probabilities);
 }
 
+// ============================================================================
+void IisptRenderRunner::compute_fpixel_weights_simple(
+        std::vector<Point2i> &neighbour_points,
+        std::vector<HemisphericCamera*> &hemi_sampling_cameras,
+        Point2i f_pixel,
+        SurfaceInteraction &f_isect,
+        int tilesize,
+        std::vector<float> &out_probabilities
+        )
+{
+    int len = neighbour_points.size();
+
+    float total_distance = 0.0;
+    std::vector<float> distances (len);
+    for (int i = 0; i < len; i++) {
+        float a_distance = iispt::points_distance(
+                    f_pixel, neighbour_points[i]
+                    );
+        total_distance += a_distance;
+        distances[i] = a_distance;
+    }
+
+    // Divide by total distance
+    if (total_distance > 0.0) {
+        for (int i = 0; i < len; i++) {
+            distances[i] = distances[i] / total_distance;
+        }
+    }
+
+    // Invert
+    for (int i = 0; i < len; i++) {
+        out_probabilities[i] = 1.0 - distances[i];
+    }
+
+    // To probabilities
+    iispt::weights_to_probabilities(out_probabilities);
+}
+
 }
