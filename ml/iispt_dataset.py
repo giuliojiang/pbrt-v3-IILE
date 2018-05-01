@@ -75,6 +75,7 @@ class IISPTDataset(Dataset):
 
     # -------------------------------------------------------------------------
     def __init__(self, data_list):
+        # [{directory, x, y, log_normalization, sqrt_normalization, validation}]
         self.data_list = data_list
     
     # -------------------------------------------------------------------------
@@ -89,6 +90,13 @@ class IISPTDataset(Dataset):
             return self.data_list[idx]
     
     # -------------------------------------------------------------------------
+    # <return> {
+    #   p        nparray ground truth flattened and processed
+    #   t        nparray net input flattened and processed
+    #   p_name   path to p file
+    #   d_name   path to d file
+    #   mean     mean of D, returned by d_pfm normalize intensity downstream full
+    # }
     def __getitem__(self, idx):
         datum = self.data_list[idx]
         dirname = datum["directory"]
@@ -107,16 +115,16 @@ class IISPTDataset(Dataset):
         z_pfm = pfm.load(z_name)
 
         # Transform P
-        p_pfm.normalize_log_gamma(log_normalization, GAMMA_VALUE)
+        p_pfm.normalize_intensity_downstream_half()
 
         # Transform D
-        d_pfm.normalize_log_gamma(log_normalization, GAMMA_VALUE)
+        dmean = d_pfm.normalize_intensity_downstream_full(GAMMA_VALUE)
 
         # Transform N
         n_pfm.normalize(-1.0, 1.0)
 
         # Transform Z
-        z_pfm.normalize_sqrt_gamma(sqrt_normalization, GAMMA_VALUE)
+        z_pfm.normalize_distance_downstream_full(GAMMA_VALUE)
 
         # Convert from numpy to tensors and create results
         result = {}
@@ -132,6 +140,11 @@ class IISPTDataset(Dataset):
         train_z = train_z.flatten()
         train_combined = numpy.concatenate([train_d, train_n, train_z])
         result["t"] = torch.from_numpy(train_combined).float()
+
+        result["p_name"] = p_name
+        result["d_name"] = d_name
+
+        result["mean"] = dmean
 
         return result
 

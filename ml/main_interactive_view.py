@@ -62,10 +62,13 @@ def main():
 
         # Save the created result
         result_image = pfm.load_from_flat_numpy(result.data.numpy())
+        # Upstream processing
+        result_image.normalize_intensity_upstream(item["mean"])
         result_image.save_pfm("created.pfm")
 
         # Save the expected result
-        expected_image = pfm.load_from_flat_numpy(item_expected.numpy())
+        expected_image = pfm.load(item["p_name"])
+        # expected_image = pfm.load_from_flat_numpy(item_expected.numpy())
         expected_image.save_pfm("expected.pfm")
 
         # Convert images to PNG

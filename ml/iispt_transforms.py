@@ -1,6 +1,21 @@
 import math
 
 # =============================================================================
+# Math wrappers
+
+def safelog(x):
+    if x <= 1.0:
+        return 0.0
+    else:
+        return math.log(x)
+
+def safesqrt(x):
+    if x <= 0.0:
+        return 0.0
+    else:
+        return math.sqrt(x)
+
+# =============================================================================
 # Transform callables
 
 # -----------------------------------------------------------------------------
@@ -59,9 +74,7 @@ class LogTransform:
         pass
     
     def __call__(self, x):
-        if (x + 1.0) <= 0.0:
-            return 0.0
-        return math.log(x + 1.0)
+        return safelog(x + 1.0)
 
 class LogInvTransform:
 
@@ -80,9 +93,7 @@ class SqrtTransform:
         pass
     
     def __call__(self, x):
-        if x < 0.0:
-            return 0.0
-        return math.sqrt(x)
+        return safesqrt(x)
 
 # -----------------------------------------------------------------------------
 class GammaTransform:
@@ -94,6 +105,45 @@ class GammaTransform:
         if x < 0.0:
             x = 0.0
         return x ** self.exponent
+
+# -----------------------------------------------------------------------------
+class Divide:
+
+    def __init__(self, amount):
+        self.amount = amount
+    
+    def __call__(self, x):
+        if self.amount == 0.0:
+            return x
+        else:
+            return x / self.amount
+
+# -----------------------------------------------------------------------------
+class Multiply:
+
+    def __init__(self, amount):
+        self.amount = amount
+
+    def __call__(self, x):
+        return x * self.amount
+
+# -----------------------------------------------------------------------------
+class Add:
+
+    def __init__(self, amount):
+        self.amount = amount
+
+    def __call__(self, x):
+        return x + self.amount
+
+# -----------------------------------------------------------------------------
+class Subtract:
+
+    def __init__(self, amount):
+        self.amount = amount
+    
+    def __call__(self, x):
+        return x - self.amount
 
 # -----------------------------------------------------------------------------
 class Sequence:
@@ -141,6 +191,59 @@ class DistanceSequence:
         ts = []
         ts.append(SqrtTransform())
         ts.append(NormalizePositiveTransform(0.0, max_value))
+        ts.append(GammaTransform(gamma))
+        self.seq = Sequence(ts)
+    
+    def __call__(self, x):
+        return self.seq(x)
+
+# -----------------------------------------------------------------------------
+class IntensityDownstreamFullSequence:
+
+    def __init__(self, logmax, gamma):
+        ts = []
+        ts.append(LogTransform())
+        ts.append(NormalizePositiveTransform(0.0, logmax))
+        ts.append(GammaTransform(gamma))
+        self.seq = Sequence(ts)
+    
+    def __call__(self, x):
+        return self.seq(x)
+
+# -----------------------------------------------------------------------------
+class IntensityDownstreamHalfSequence:
+
+    def __init__(self, mean):
+        ts = []
+        ts.append(Divide(mean))
+        ts.append(LogTransform())
+        ts.append(LogTransform())
+        self.seq = Sequence(ts)
+    
+    def __call__(self, x):
+        return self.seq(x)
+
+# -----------------------------------------------------------------------------
+class IntensityUpstreamSequence:
+
+    def __init__(self, mean):
+        ts = []
+        ts.append(LogInvTransform())
+        ts.append(LogInvTransform())
+        ts.append(Multiply(mean))
+        self.seq = Sequence(ts)
+    
+    def __call__(self, x):
+        return self.seq(x)
+
+# -----------------------------------------------------------------------------
+class DistanceDownstreamSequence:
+
+    def __init__(self, sqrtmax, gamma):
+        ts = []
+        ts.append(Add(1.0))
+        ts.append(SqrtTransform())
+        ts.append(NormalizePositiveTransform(0.0, sqrtmax))
         ts.append(GammaTransform(gamma))
         self.seq = Sequence(ts)
     

@@ -589,8 +589,6 @@ void IISPTIntegrator::render_reference(const Scene &scene) {
             current_sample.pFilm = Point2f(px_x, px_y);
             current_sample.time = 0;
 
-            std::cerr << "Camera sample is " << current_sample << std::endl;
-
             // Render IISPTd views and Reference views
             RayDifferential ray;
             Float rayWeight = camera->GenerateRayDifferential(current_sample, &ray);
@@ -837,8 +835,6 @@ void IISPTIntegrator::Li_reference(const RayDifferential &ray,
                     );
 
     });
-
-    std::cerr << "iispt.cpp: Completed reference pixel " << pixel << std::endl;
 
 }
 

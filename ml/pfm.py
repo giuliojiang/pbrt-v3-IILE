@@ -105,6 +105,41 @@ class PfmImage:
         self.map(iispt_transforms.DistanceSequence(max_value, gamma))
     
     # -------------------------------------------------------------------------
+    # Log
+    # Normalize
+    # Gamma
+    # <return> mean
+    def normalize_intensity_downstream_full(self, gamma):
+        logmax = iispt_transforms.safelog(1.0 + numpy.amax(self.data))
+        mean = numpy.mean(self.data)
+        self.map(iispt_transforms.IntensityDownstreamFullSequence(logmax, gamma))
+        return mean
+
+    # -------------------------------------------------------------------------
+    # Normalize with mean at 0.0
+    # Log
+    # Log
+    def normalize_intensity_downstream_half(self):
+        mean = numpy.mean(self.data)
+        self.map(iispt_transforms.IntensityDownstreamHalfSequence(mean))
+    
+    # -------------------------------------------------------------------------
+    # Inv Log
+    # Inv Log
+    # Multiply by original mean
+    def normalize_intensity_upstream(self, omean):
+        self.map(iispt_transforms.IntensityUpstreamSequence(omean))
+
+    # -------------------------------------------------------------------------
+    # Add 1
+    # Sqrt
+    # Normalize
+    # Gamma
+    def normalize_distance_downstream_full(self, gamma):
+        sqrtmax = iispt_transforms.safesqrt(numpy.amax(self.data) + 1.0)
+        self.map(iispt_transforms.DistanceDownstreamSequence(sqrtmax, gamma))
+    
+    # -------------------------------------------------------------------------
     # Write out to .pfm file
     def save_pfm(self, out_path):
         print("Writing {}".format(out_path))

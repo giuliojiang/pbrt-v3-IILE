@@ -70,7 +70,6 @@ void ImageFilm::write(std::string filename) {
 
     // Close
     ofs.close();
-    std::cerr << "imagefilm.cpp: Finished writing " << filename << std::endl;
 
 }
 

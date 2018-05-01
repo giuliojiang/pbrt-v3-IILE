@@ -170,13 +170,20 @@ With the default values, every pixel is rendered.
 * batch normalization ON
 * rprop LR=0.00003
 
-TODO inverse mean/std transform in stdio runner
+## 06
 
-IT DOESN'T WORK because:
+* per frame: log, normalization into [0-1], gamma
+* backwards: gamma-1, normalization-1 with saved value, log-1
+* comparison level: lowest (gamma corrected level)
 
-I'm not normalizing distances in the same way
+Downstream Full (left): log, normalize positive, gamma
 
-It doesn't make sense to record mean and std and apply the same transformation on the ground truth, but should apply inverse transformation on the predicted result and compare with unchanged ground truth.
+Downstream Half (right): Divide by mean, Log, Log
+
+Upstream: InvLog, InvLog, Multiply by mean
+
+Distance Downstream: Add 1, Sqrt, Normalize positive, Gamma
+
 
 # Tiling and interpolation
 
