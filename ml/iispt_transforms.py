@@ -49,6 +49,8 @@ class NormalizePositiveTransform:
 
     def __call__(self, x):
         d = self.max_val - self.min_val
+        if d <= 0.0: # Degenerate range!
+            return 0.0
         x = x - self.min_val
         x = x / d
         if x < 0.0:

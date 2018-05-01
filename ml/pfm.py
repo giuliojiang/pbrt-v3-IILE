@@ -23,8 +23,9 @@ class PfmImage:
     # of float32 values
 
     # -------------------------------------------------------------------------
-    def __init__(self, data):
+    def __init__(self, data, location):
         self.data = data
+        self.location = location
     
     # -------------------------------------------------------------------------
     def print_shape(self):
@@ -272,7 +273,7 @@ def load(file_path):
     f.close()
 
     # Create final object
-    return PfmImage(data)
+    return PfmImage(data, file_path)
 
 # =============================================================================
 # Load from flattened numpy array
@@ -280,7 +281,7 @@ def load(file_path):
 def load_from_flat_numpy(narray, width=32, height=32, channels=3):
     shape = (height, width, channels)
     narray = narray.reshape(shape)
-    return PfmImage(narray)
+    return PfmImage(narray, "NPARRAY")
 
 # =============================================================================
 # Quick test
