@@ -35,12 +35,12 @@ def minutes_elapsed():
 
 def main():
 
-    trainset, _ = iispt_dataset.load_dataset(config.dataset, 0.1)
+    trainset, _ = iispt_dataset.load_dataset(config.dataset, 0.0)
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NO_WORKERS)
     # testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NO_WORKERS)
     
-    _, testset = iispt_dataset.load_dataset(config.testset, 1.0)
+    _, testset = iispt_dataset.load_dataset(config.testset, 0.0)
     testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NO_WORKERS)
 
     net = iispt_net.IISPTNet().cuda()
