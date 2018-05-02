@@ -107,8 +107,7 @@ static std::shared_ptr<PathIntegrator> create_aux_path_integrator(
                     PbrtOptions.iisptHemiSize,
                     dcamera->medium,
                     auxRay.o,
-                    Point3f(auxRay.d.x, auxRay.d.y, auxRay.d.z),
-                    pixel,
+                    auxRay.d,
                     output_filename
                     )
                 );
@@ -147,8 +146,7 @@ static std::shared_ptr<VolPathIntegrator> create_aux_volpath_integrator(
                     PbrtOptions.iisptHemiSize,
                     dcamera->medium,
                     auxRay.o,
-                    Point3f(auxRay.d.x, auxRay.d.y, auxRay.d.z),
-                    pixel,
+                    auxRay.d,
                     output_filename
                     )
                 );
@@ -758,8 +756,7 @@ void IISPTIntegrator::Li_reference(const RayDifferential &ray,
                     PbrtOptions.iisptHemiSize,
                     dcamera->medium,
                     auxRay.o,
-                    Point3f(auxRay.d.x, auxRay.d.y, auxRay.d.z),
-                    pixel,
+                    auxRay.d,
                     reference_d_name
                     )
                 );
@@ -806,8 +803,7 @@ void IISPTIntegrator::Li_reference(const RayDifferential &ray,
                         PbrtOptions.iisptHemiSize,
                         dcamera->medium,
                         auxRay.o,
-                        Point3f(auxRay.d.x, auxRay.d.y, auxRay.d.z),
-                        pixel,
+                        auxRay.d,
                         reference_b_name
                         )
                     );
@@ -877,7 +873,6 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
                 pixelBounds,
                 indirect_samples
                 ));
-    sampler->
 
     return new IISPTIntegrator(maxDepth, camera, pixelBounds,
         dcamera, sampler, rrThreshold, lightStrategy);

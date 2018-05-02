@@ -40,7 +40,7 @@ public:
     {
 
         this->look_direction = look_direction;
-        this->WorldToCamera = WorldToCamera;
+        this->WorldToCamera = std::move(WorldToCamera);
 
     }
 
@@ -84,7 +84,8 @@ public:
 
 // ============================================================================
 
-HemisphericCamera* CreateHemisphericCamera(int xres,
+HemisphericCamera* CreateHemisphericCamera(
+        int xres,
         int yres,
         const Medium *medium,
         Point3f pos,

@@ -190,6 +190,10 @@ Similar to 06, but the downstream half use the mean to normalize to 0.1, effecti
 
 Use TanH instead of ReLU for many of the layers.
 
+## 08
+
+Changing normal representation to camera-based instead of world-based.
+
 # Tiling and interpolation
 
 ## New weight

@@ -122,6 +122,7 @@ private:
             Point2i f_pixel,
             SurfaceInteraction &f_isect,
             int tilesize,
+            RayDifferential &f_ray,
             std::vector<float> &out_probabilities
             );
 
@@ -131,6 +132,7 @@ private:
             Point2i f_pixel,
             SurfaceInteraction &f_isect,
             int tilesize,
+            RayDifferential &f_ray,
             std::vector<float> &out_probabilities
             );
 

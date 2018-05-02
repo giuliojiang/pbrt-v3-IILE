@@ -309,8 +309,7 @@ void IisptRenderRunner::run(const Scene &scene)
                                 PbrtOptions.iisptHemiSize,
                                 dcamera->medium,
                                 aux_ray.o,
-                                Point3f(aux_ray.d.x, aux_ray.d.y, aux_ray.d.z),
-                                pixel,
+                                aux_ray.d,
                                 std::string("/tmp/null")
                                 )
                             );
@@ -511,6 +510,7 @@ void IisptRenderRunner::run(const Scene &scene)
                             f_pixel,
                             f_isect,
                             sm_task.tilesize,
+                            f_ray,
                             hemi_sampling_weights // << output
                             );
 
@@ -1005,6 +1005,7 @@ void IisptRenderRunner::compute_fpixel_weights(
         Point2i f_pixel,
         SurfaceInteraction &f_isect,
         int tilesize,
+        RayDifferential &f_ray,
         std::vector<float> &out_probabilities
         )
 {
@@ -1065,6 +1066,7 @@ void IisptRenderRunner::compute_fpixel_weights_simple(
         Point2i f_pixel,
         SurfaceInteraction &f_isect,
         int tilesize,
+        RayDifferential &f_ray,
         std::vector<float> &out_probabilities
         )
 {

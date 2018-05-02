@@ -103,7 +103,8 @@ Spectrum IISPTdIntegrator::Li(const RayDifferential &r,
                 distance_film->set(x, y, d);
 
                 // Compute camera-relative normal film
-                Normal3f cameraNormal = camera->WorldToCamera(isect.n);
+                Normal3f cameraNormal = camera->WorldToCamera
+                        ->operator()(isect.n);
                 normal_film->set(x, y, cameraNormal);
             } else {
                 distance_film->set(x, y, NO_INTERSECTION_DISTANCE);
