@@ -184,6 +184,9 @@ Upstream: InvLog, InvLog, Multiply by mean
 
 Distance Downstream: Add 1, Sqrt, Normalize positive, Gamma
 
+## 07
+
+Similar to 06, but the downstream half use the mean to normalize to 0.1, effectively using 10*mean as ratio.
 
 # Tiling and interpolation
 

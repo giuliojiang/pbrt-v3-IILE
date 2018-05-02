@@ -122,7 +122,7 @@ class PfmImage:
     # Log
     def normalize_intensity_downstream_half(self):
         mean = numpy.mean(self.data)
-        self.map(iispt_transforms.IntensityDownstreamHalfSequence(mean))
+        self.map(iispt_transforms.IntensityDownstreamHalfSequence(10.0 * mean))
     
     # -------------------------------------------------------------------------
     # Inv Log
