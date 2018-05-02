@@ -24,6 +24,8 @@ private:
 
     Vector3f look_direction;
 
+    std::unique_ptr<Transform> WorldToCamera;
+
 public:
 
     // Constructor ------------------------------------------------------------
@@ -33,12 +35,14 @@ public:
             Float shutterClose,
             Film* film,
             const Medium* medium,
-            Vector3f look_direction
+            Vector3f look_direction,
+            std::unique_ptr<Transform> WorldToCamera
             ) :
         Camera(CameraToWorld, shutterOpen, shutterClose, film, medium)
     {
 
         this->look_direction = look_direction;
+        this->WorldToCamera = WorldToCamera;
 
     }
 

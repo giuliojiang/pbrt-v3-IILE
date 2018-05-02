@@ -188,6 +188,8 @@ Distance Downstream: Add 1, Sqrt, Normalize positive, Gamma
 
 Similar to 06, but the downstream half use the mean to normalize to 0.1, effectively using 10*mean as ratio.
 
+Use TanH instead of ReLU for many of the layers.
+
 # Tiling and interpolation
 
 ## New weight
@@ -240,10 +242,6 @@ When dot product is 1, distance is 0
 When dot product is negative, distance is maximal
 
 # TODO
-
-Report: net structure for model 6.
-
-Report: downstream/upstream graph for model 6.
 
 Report: net structure for model 7.
 
