@@ -24,8 +24,6 @@ private:
 
     Vector3f look_direction;
 
-    std::unique_ptr<Transform> WorldToCamera;
-
 public:
 
     // Constructor ------------------------------------------------------------

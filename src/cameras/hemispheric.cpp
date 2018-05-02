@@ -134,6 +134,10 @@ HemisphericCamera* CreateHemisphericCamera(
                 cameraTransform,
                 0.);
 
+    std::unique_ptr<Transform> worldToCamera (
+                new Transform(cameraTransform->GetInverseMatrix())
+                );
+
     // Create film
     const Point2i resolution (xres, yres);
     const Bounds2f cropWindow (Point2f(0., 0.), Point2f(1., 1.));
@@ -154,7 +158,7 @@ HemisphericCamera* CreateHemisphericCamera(
     Float shutterclose = 1.f;
 
     return new HemisphericCamera(cam2world, shutteropen, shutterclose,
-                                 film, medium, dir);
+                                 film, medium, dir, std::move(worldToCamera));
 
 }
 

@@ -102,13 +102,26 @@ public:
 
     }
 
-    Spectrum Li(const RayDifferential &ray,
-                                          const Scene &scene, Sampler &sampler,
-                                          MemoryArena &arena, int depth, int x, int y);
+    Spectrum Li(const RayDifferential &r,
+                                  const Scene &scene,
+                                  Sampler &sampler,
+                                  MemoryArena &arena,
+                                  int depth,
+                                  int x,
+                                  int y,
+                                  Camera* camera
+                                  );
 
-    Spectrum Li(const RayDifferential &ray, const Scene &scene,
-                Sampler &sampler, MemoryArena &arena, int depth) const {
-        std::cerr << "Call on iispt_d: Li's default implementation, empty." << std::endl;
+    Spectrum Li(
+            const RayDifferential &ray,
+            const Scene &scene,
+            Sampler &sampler,
+            MemoryArena &arena,
+            int depth) const
+    {
+        std::cerr
+                << "Call on iispt_d: Li's default implementation, empty."
+                << std::endl;
         exit(1);
     }
 
