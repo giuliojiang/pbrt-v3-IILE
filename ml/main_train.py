@@ -35,10 +35,13 @@ def minutes_elapsed():
 
 def main():
 
-    trainset, testset = iispt_dataset.load_dataset(config.dataset, 0.1)
+    trainset, _ = iispt_dataset.load_dataset(config.dataset, 0.1)
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NO_WORKERS)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NO_WORKERS)
+    # testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NO_WORKERS)
+    
+    _, testset = iispt_dataset.load_dataset(config.testset, 1.0)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NO_WORKERS)
 
     net = iispt_net.IISPTNet().cuda()
 
@@ -46,10 +49,13 @@ def main():
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
 
     epoch_loss = []
+    epoch_tloss = []
     running_loss = 0.0
+    running_tloss = 0.0
 
     epoch = 0
     n_iter = 0
+    t_iter = 0
 
     print("About to start training... for Tensorboard, use tensorboard --logdir /tmp/runs")
 
@@ -88,13 +94,40 @@ def main():
             writer.add_scalar('train/loss', loss.data[0], n_iter)
             n_iter += 1
         
+        # compute loss on the testset
+        for i, data in enumerate(testloader, 0):
+
+            # Get the inputs
+            input_x = data["t"]
+            expected_x = data["p"]
+
+            # Wrap in variables
+            input_v = Variable(input_x.cuda())
+            expected_v = Variable(expected_x.cuda())
+
+            # Zero parameter gradiets
+            optimizer.zero_grad()
+
+            # Forward
+            outputs = net(input_v)
+            loss = criterion(outputs, expected_v)
+
+            # Statistics
+            running_tloss = loss.data[0]
+            print("Epoch [{}] __testset__ [{}] Loss [{}]".format(epoch, i * BATCH_SIZE, running_tloss))
+
+            # Log to TensorBoard
+            writer.add_scalar('train/testloss', loss.data[0], t_iter)
+            t_iter += 1
+        
         epoch_loss.append(running_loss)
+        epoch_tloss.append(running_tloss)
         epoch += 1
 
     print("Finished training")
 
     for i in range(len(epoch_loss)):
-        print("Epoch {} Loss {}".format(i, epoch_loss[i]))
+        print("Epoch {} Loss {} Tloss {}".format(i, epoch_loss[i], epoch_tloss[i]))
 
     net = net.cpu()
     torch.save(net, config.model_path)

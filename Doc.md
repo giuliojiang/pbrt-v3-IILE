@@ -238,3 +238,19 @@ N(a, b) =
 When dot product is 1, distance is 0
 
 When dot product is negative, distance is maximal
+
+# TODO
+
+Report: net structure for model 6.
+
+Report: downstream/upstream graph for model 6.
+
+Report: net structure for model 7.
+
+Report: downstream/upstream graph for model 7.
+
+Prevent overfitting: dropout and recording loss on test data
+
+Rewrite the main_stdio python system. Move the normalization stuff to C++ entirely for efficiency.
+
+Test the 2 interpolation methods.
