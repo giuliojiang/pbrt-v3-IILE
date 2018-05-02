@@ -20,47 +20,47 @@ class IISPTNet(torch.nn.Module):
 
         self.hidden2 = nn.Sequential(
             nn.Linear(5800, 5225),
-            nn.LeakyReLU(0.2)
+            nn.Tanh()
         )
 
         self.hidden3 = nn.Sequential(
             nn.Linear(5225, 4700),
-            nn.LeakyReLU(0.2)
+            nn.Tanh()
         )
 
         self.hidden4 = nn.Sequential(
             nn.Linear(4700, 3300),
-            nn.LeakyReLU(0.2)
+            nn.Tanh()
         )
 
         self.hidden5 = nn.Sequential(
             nn.Linear(3300, 2200),
-            nn.LeakyReLU(0.2)
+            nn.Tanh()
         )
 
         self.hidden6 = nn.Sequential(
             nn.Linear(2200, 1800),
-            nn.LeakyReLU(0.2)
+            nn.Tanh()
         )
 
         self.hidden7 = nn.Sequential(
             nn.Linear(1800, 1024),
-            nn.LeakyReLU(0.2)
+            nn.Tanh()
         )
 
         self.out0 = nn.Sequential(
             nn.Linear(1024, 1800),
-            nn.LeakyReLU(0.2)
+            nn.Tanh()
         )
 
         self.out1 = nn.Sequential(
             nn.Linear(1800, 2500),
-            nn.LeakyReLU(0.2)
+            nn.Tanh()
         )
 
         self.out2 = nn.Sequential(
             nn.Linear(2500, 3072),
-            nn.LeakyReLU(0.2)
+            nn.Tanh()
         )
     
     def forward(self, x):

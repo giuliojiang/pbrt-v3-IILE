@@ -202,11 +202,11 @@ class DistanceSequence:
 # -----------------------------------------------------------------------------
 class IntensityDownstreamFullSequence:
 
-    def __init__(self, logmax, gamma):
+    def __init__(self, ratio, gamma):
         ts = []
+        ts.append(Divide(ratio))
         ts.append(LogTransform())
-        ts.append(NormalizePositiveTransform(0.0, logmax))
-        ts.append(GammaTransform(gamma))
+        ts.append(LogTransform())
         self.seq = Sequence(ts)
     
     def __call__(self, x):
@@ -215,9 +215,9 @@ class IntensityDownstreamFullSequence:
 # -----------------------------------------------------------------------------
 class IntensityDownstreamHalfSequence:
 
-    def __init__(self, mean):
+    def __init__(self, ratio):
         ts = []
-        ts.append(Divide(mean))
+        ts.append(Divide(ratio))
         ts.append(LogTransform())
         ts.append(LogTransform())
         self.seq = Sequence(ts)
@@ -228,11 +228,11 @@ class IntensityDownstreamHalfSequence:
 # -----------------------------------------------------------------------------
 class IntensityUpstreamSequence:
 
-    def __init__(self, mean):
+    def __init__(self, ratio):
         ts = []
         ts.append(LogInvTransform())
         ts.append(LogInvTransform())
-        ts.append(Multiply(mean))
+        ts.append(Multiply(ratio))
         self.seq = Sequence(ts)
     
     def __call__(self, x):

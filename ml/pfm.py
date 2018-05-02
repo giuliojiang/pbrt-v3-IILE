@@ -111,9 +111,8 @@ class PfmImage:
     # Gamma
     # <return> mean
     def normalize_intensity_downstream_full(self, gamma):
-        logmax = iispt_transforms.safelog(1.0 + numpy.amax(self.data))
         mean = numpy.mean(self.data)
-        self.map(iispt_transforms.IntensityDownstreamFullSequence(logmax, gamma))
+        self.map(iispt_transforms.IntensityDownstreamFullSequence(10.0 * mean, gamma))
         return mean
 
     # -------------------------------------------------------------------------
@@ -129,7 +128,7 @@ class PfmImage:
     # Inv Log
     # Multiply by original mean
     def normalize_intensity_upstream(self, omean):
-        self.map(iispt_transforms.IntensityUpstreamSequence(omean))
+        self.map(iispt_transforms.IntensityUpstreamSequence(10.0 * omean))
 
     # -------------------------------------------------------------------------
     # Add 1
