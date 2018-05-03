@@ -9,13 +9,13 @@ class IISPTNet(torch.nn.Module):
         super(IISPTNet, self).__init__()
 
         self.hidden0 = nn.Sequential(
-            nn.Linear(7168, 5600),
+            nn.Linear(7168, 6000),
             nn.ELU(),
             nn.Dropout(0.2)
         )
 
         self.hidden1 = nn.Sequential(
-            nn.Linear(5600, 5000),
+            nn.Linear(6000, 5000),
             nn.ELU(),
             nn.Dropout(0.2)
         )
@@ -27,52 +27,55 @@ class IISPTNet(torch.nn.Module):
         )
 
         self.hidden3 = nn.Sequential(
-            nn.Linear(4500, 3200),
+            nn.Linear(4500, 4000),
             nn.ELU(),
             nn.Dropout(0.2)
         )
 
         self.hidden4 = nn.Sequential(
-            nn.Linear(3200, 2000),
+            nn.Linear(4000, 3500),
             nn.ELU(),
             nn.Dropout(0.2)
         )
 
         self.hidden5 = nn.Sequential(
-            nn.Linear(2000, 1000),
+            nn.Linear(3500, 3000),
             nn.ELU(),
             nn.Dropout(0.2)
         )
 
         self.hidden6 = nn.Sequential(
-            nn.Linear(1000, 800),
+            nn.Linear(3000, 2500),
             nn.ELU(),
             nn.Dropout(0.2)
         )
 
         self.hidden7 = nn.Sequential(
-            nn.Linear(800, 600),
+            nn.Linear(2500, 2000),
             nn.ELU(),
             nn.Dropout(0.2)
         )
 
         self.hidden8 = nn.Sequential(
-            nn.Linear(600, 500),
-            nn.ELU()
+            nn.Linear(2000, 1950),
+            nn.ELU(),
+            nn.Dropout(0.2)
         )
 
         self.out0 = nn.Sequential(
-            nn.Linear(500, 1000),
-            nn.ELU()
+            nn.Linear(1950, 2000),
+            nn.ELU(),
+            nn.Dropout(0.2)
         )
 
         self.out1 = nn.Sequential(
-            nn.Linear(1000, 2000),
-            nn.ELU()
+            nn.Linear(2000, 2500),
+            nn.ELU(),
+            nn.Dropout(0.2)
         )
 
         self.out2 = nn.Sequential(
-            nn.Linear(2000, 3072),
+            nn.Linear(2500, 3072),
             nn.ELU()
         )
 

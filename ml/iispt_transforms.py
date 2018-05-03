@@ -206,6 +206,7 @@ class IntensityDownstreamFullSequence:
         ts = []
         ts.append(Divide(10.0 * mean))
         ts.append(LogTransform())
+        ts.append(Subtract(0.1))
         self.seq = Sequence(ts)
     
     def __call__(self, x):
@@ -238,10 +239,12 @@ class IntensityUpstreamSequence:
 # -----------------------------------------------------------------------------
 class DistanceDownstreamSequence:
 
-    def __init__(self):
+    def __init__(self, mean):
         ts = []
         ts.append(Add(1.0))
+        ts.append(Divide(10.0 * (mean + 1.0)))
         ts.append(LogTransform())
+        ts.append(Subtract(0.1))
         self.seq = Sequence(ts)
     
     def __call__(self, x):

@@ -9,6 +9,7 @@ import math
 import scipy.misc
 import PIL
 import array
+import sys
 
 import iispt_transforms
 
@@ -38,10 +39,27 @@ class PfmImage:
     # -------------------------------------------------------------------------
     def print_array(self):
         print(self.data)
+
+    # -------------------------------------------------------------------------
+    def print_samples(self):
+        height, width, channels = self.data.shape
+        y = 0
+        while y < height:
+            x = 0
+            while x < width:
+                for c in range(channels):
+                    sys.stdout.write(" {}".format(self.data[y, x, c]))
+                x += 5
+            y += 5
+        print()
     
     # -------------------------------------------------------------------------
     def get_numpy_array(self):
         return self.data
+    
+    # -------------------------------------------------------------------------
+    def get_mean(self):
+        return numpy.mean(self.data)
     
     # -------------------------------------------------------------------------
     def map(self, f):
@@ -129,7 +147,8 @@ class PfmImage:
 
     # -------------------------------------------------------------------------
     def normalize_distance_downstream_full(self):
-        self.map(iispt_transforms.DistanceDownstreamSequence())
+        mean = numpy.mean(self.data)
+        self.map(iispt_transforms.DistanceDownstreamSequence(mean))
     
     # -------------------------------------------------------------------------
     # Write out to .pfm file
@@ -138,7 +157,10 @@ class PfmImage:
         out_file = open(out_path, "wb")
 
         # Write identifier line
-        out_file.write(b"PF\n")
+        if self.data.shape[2] == 3:
+            out_file.write(b"PF\n")
+        else:
+            out_file.write(b"Pf\n")
 
         # Write dimensions line
         height, width, channels = self.data.shape
@@ -278,9 +300,20 @@ def load_from_flat_numpy(narray, width=32, height=32, channels=3):
 # Quick test
 
 def test_main():
-    p = load("/home/gj/git/pbrt-v3-IISPT-dataset/barcelona_pavilion_day/p_160_420.pfm")
-    p.print_shape()
-    p.print_array()
-    p.save_pfm("test.pfm")
+    files = [
+        "/home/gj/git/pbrt-v3-IISPT/TMP_P_ORIGINAL.pfm",
+        "/home/gj/git/pbrt-v3-IISPT/TMP_P_NORM.pfm",
+        "/home/gj/git/pbrt-v3-IISPT/TMP_D_ORIGINAL.pfm",
+        "/home/gj/git/pbrt-v3-IISPT/TMP_D_NORM.pfm",
+        "/home/gj/git/pbrt-v3-IISPT/TMP_Z_ORIGINAL.pfm",
+        "/home/gj/git/pbrt-v3-IISPT/TMP_Z_NORM.pfm"
+    ]
+
+    for f in files:
+        print(f)
+        p = load(f)
+        p.print_shape()
+        p.print_samples()
+        print("Mean is : {}\n\n\n".format(p.get_mean()))
 
 # test_main()
