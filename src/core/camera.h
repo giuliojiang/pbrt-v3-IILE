@@ -67,6 +67,8 @@ class Camera {
     const Float shutterOpen, shutterClose;
     Film *film;
     const Medium *medium;
+
+    std::unique_ptr<Transform> WorldToCamera;
 };
 
 struct CameraSample {

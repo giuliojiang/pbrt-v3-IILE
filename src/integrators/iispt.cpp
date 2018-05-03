@@ -107,8 +107,7 @@ static std::shared_ptr<PathIntegrator> create_aux_path_integrator(
                     PbrtOptions.iisptHemiSize,
                     dcamera->medium,
                     auxRay.o,
-                    Point3f(auxRay.d.x, auxRay.d.y, auxRay.d.z),
-                    pixel,
+                    auxRay.d,
                     output_filename
                     )
                 );
@@ -147,8 +146,7 @@ static std::shared_ptr<VolPathIntegrator> create_aux_volpath_integrator(
                     PbrtOptions.iisptHemiSize,
                     dcamera->medium,
                     auxRay.o,
-                    Point3f(auxRay.d.x, auxRay.d.y, auxRay.d.z),
-                    pixel,
+                    auxRay.d,
                     output_filename
                     )
                 );
@@ -416,7 +414,9 @@ void IISPTIntegrator::estimate_normalization_values(
         )
 {
     // Create RNG
-    std::shared_ptr<RNG> rng (new RNG());
+    std::unique_ptr<IisptRng> rng (
+                new IisptRng()
+                );
 
     // Create auxiliary estimation path tracer
     std::shared_ptr<VolPathIntegrator> aux_volpath =
@@ -435,8 +435,8 @@ void IISPTIntegrator::estimate_normalization_values(
 
     // Loop to get the samples
     for (int i = 0; i < IISPT_NORMALIZATION_ESTIMATION_SAMPLES; i++) {
-        int x = rng->UniformUInt32(sample_extent.x);
-        int y = rng->UniformUInt32(sample_extent.y);
+        int x = rng->uniform_uint32(sample_extent.x);
+        int y = rng->uniform_uint32(sample_extent.y);
         estimator_integrator->estimate_intensity(
                     scene,
                     Point2i(x, y),
@@ -586,8 +586,6 @@ void IISPTIntegrator::render_reference(const Scene &scene) {
             CameraSample current_sample;
             current_sample.pFilm = Point2f(px_x, px_y);
             current_sample.time = 0;
-
-            std::cerr << "Camera sample is " << current_sample << std::endl;
 
             // Render IISPTd views and Reference views
             RayDifferential ray;
@@ -758,8 +756,7 @@ void IISPTIntegrator::Li_reference(const RayDifferential &ray,
                     PbrtOptions.iisptHemiSize,
                     dcamera->medium,
                     auxRay.o,
-                    Point3f(auxRay.d.x, auxRay.d.y, auxRay.d.z),
-                    pixel,
+                    auxRay.d,
                     reference_d_name
                     )
                 );
@@ -806,8 +803,7 @@ void IISPTIntegrator::Li_reference(const RayDifferential &ray,
                         PbrtOptions.iisptHemiSize,
                         dcamera->medium,
                         auxRay.o,
-                        Point3f(auxRay.d.x, auxRay.d.y, auxRay.d.z),
-                        pixel,
+                        auxRay.d,
                         reference_b_name
                         )
                     );
@@ -835,8 +831,6 @@ void IISPTIntegrator::Li_reference(const RayDifferential &ray,
                     );
 
     });
-
-    std::cerr << "iispt.cpp: Completed reference pixel " << pixel << std::endl;
 
 }
 

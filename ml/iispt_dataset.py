@@ -43,6 +43,8 @@ import random
 from torch.utils.data import Dataset, DataLoader
 
 import pfm
+import km
+import config
 
 # Ignore warnings
 import warnings
@@ -73,6 +75,7 @@ class IISPTDataset(Dataset):
 
     # -------------------------------------------------------------------------
     def __init__(self, data_list):
+        # [{directory, x, y, log_normalization, sqrt_normalization, validation}]
         self.data_list = data_list
     
     # -------------------------------------------------------------------------
@@ -87,6 +90,13 @@ class IISPTDataset(Dataset):
             return self.data_list[idx]
     
     # -------------------------------------------------------------------------
+    # <return> {
+    #   p        nparray ground truth flattened and processed
+    #   t        nparray net input flattened and processed
+    #   p_name   path to p file
+    #   d_name   path to d file
+    #   mean     mean of D, returned by d_pfm normalize intensity downstream full
+    # }
     def __getitem__(self, idx):
         datum = self.data_list[idx]
         dirname = datum["directory"]
@@ -104,17 +114,30 @@ class IISPTDataset(Dataset):
         n_pfm = pfm.load(n_name)
         z_pfm = pfm.load(z_name)
 
+        # p_pfm.save_pfm("TMP_P_ORIGINAL.pfm")
+        # d_pfm.save_pfm("TMP_D_ORIGINAL.pfm")
+        # n_pfm.save_pfm("TMP_N_ORIGINAL.pfm")
+        # z_pfm.save_pfm("TMP_Z_ORIGINAL.pfm")
+
         # Transform P
-        p_pfm.normalize_log_gamma(log_normalization, GAMMA_VALUE)
+        p_pfm.normalize_intensity_downstream_half()
+
+        # p_pfm.save_pfm("TMP_P_NORM.pfm")
 
         # Transform D
-        d_pfm.normalize_log_gamma(log_normalization, GAMMA_VALUE)
+        dmean = d_pfm.normalize_intensity_downstream_full()
+
+        # d_pfm.save_pfm("TMP_D_NORM.pfm")
 
         # Transform N
         n_pfm.normalize(-1.0, 1.0)
 
+        # n_pfm.save_pfm("TMP_N_NORM.pfm")
+
         # Transform Z
-        z_pfm.normalize_sqrt_gamma(sqrt_normalization, GAMMA_VALUE)
+        z_pfm.normalize_distance_downstream_full()
+
+        # z_pfm.save_pfm("TMP_Z_NORM.pfm")
 
         # Convert from numpy to tensors and create results
         result = {}
@@ -130,6 +153,11 @@ class IISPTDataset(Dataset):
         train_z = train_z.flatten()
         train_combined = numpy.concatenate([train_d, train_n, train_z])
         result["t"] = torch.from_numpy(train_combined).float()
+
+        result["p_name"] = p_name
+        result["d_name"] = d_name
+
+        result["mean"] = dmean
 
         return result
 
@@ -276,7 +304,7 @@ def load_dataset(root_directory, validation_probability):
 # =============================================================================
 
 def main_test():
-    dt, dv = load_dataset("/home/gj/git/pbrt-v3-IISPT-dataset", 0.1)
+    dt, dv = load_dataset(config.dataset, 0.1)
     print("Loaded {} + {} examples".format(dt.__len__(), dv.__len__()))
     print(dv.__getitem__(0))
 

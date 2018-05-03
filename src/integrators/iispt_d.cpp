@@ -69,7 +69,9 @@ Spectrum IISPTdIntegrator::Li(const RayDifferential &r,
                               MemoryArena &arena,
                               int depth,
                               int x,
-                              int y) {
+                              int y,
+                              Camera* camera
+                              ) {
     ProfilePhase p(Prof::SamplerIntegratorLi);
     Spectrum L(0.f), beta(1.f);
     RayDifferential ray(r);
@@ -99,7 +101,11 @@ Spectrum IISPTdIntegrator::Li(const RayDifferential &r,
                 float d2 = Dot(connecting_vector, connecting_vector);
                 float d = sqrt(d2);
                 distance_film->set(x, y, d);
-                normal_film->set(x, y, isect.n);
+
+                // Compute camera-relative normal film
+                Normal3f cameraNormal = camera->WorldToCamera
+                        ->operator()(isect.n);
+                normal_film->set(x, y, cameraNormal);
             } else {
                 distance_film->set(x, y, NO_INTERSECTION_DISTANCE);
                 normal_film->set(x, y, Normal3f(0.0, 0.0, 0.0));
@@ -291,7 +297,7 @@ void IISPTdIntegrator::RenderView(
 
                         // Evaluate radiance along camera ray
                         Spectrum L(0.f);
-                        if (rayWeight > 0) L = Li(ray, scene, *tileSampler, arena, 0, pixel.x, pixel.y);
+                        if (rayWeight > 0) L = Li(ray, scene, *tileSampler, arena, 0, pixel.x, pixel.y, camera);
 
                         // Issue warning if unexpected radiance value returned
                         if (L.HasNaNs()) {

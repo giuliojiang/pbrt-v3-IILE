@@ -60,6 +60,8 @@ The IntensityFilm object handles the Y direction in the same way as PBRT, mainta
 
 `IISPT_INDIRECT_PASSES` Number of IISPT indirect passes
 
+`IISPT_RNG_SEED` Initial RNG seed.
+
 # IISPT Render Algorithm
 
 ## Classes
@@ -147,3 +149,116 @@ There are some simple flags that can be used to make it easier to control multip
 The pixel index is modded by the MOD value, and the process will only render the reference pixel if the match value equals.
 
 With the default values, every pixel is rendered.
+
+# NN training
+
+## 01
+
+* per scene normalization
+* batch normalization ON
+* rprop LR=0.0001
+
+## 02
+
+* per scene normalization
+* batch normalization ON
+* rprop LR=0.00005
+
+## 03
+
+* mean + standard deviation normalization
+* batch normalization ON
+* rprop LR=0.00003
+
+## 06
+
+* per frame: log, normalization into [0-1], gamma
+* backwards: gamma-1, normalization-1 with saved value, log-1
+* comparison level: lowest (gamma corrected level)
+
+Downstream Full (left): log, normalize positive, gamma
+
+Downstream Half (right): Divide by mean, Log, Log
+
+Upstream: InvLog, InvLog, Multiply by mean
+
+Distance Downstream: Add 1, Sqrt, Normalize positive, Gamma
+
+## 07
+
+Similar to 06, but the downstream half use the mean to normalize to 0.1, effectively using 10*mean as ratio.
+
+Use TanH instead of ReLU for many of the layers.
+
+## 08
+
+Changing normal representation to camera-based instead of world-based.
+
+ELU activation function.
+
+Dropout
+
+Paper on ELU: https://arxiv.org/abs/1706.02515
+
+# Tiling and interpolation
+
+## New weight
+
+Define the new weight based on closeness in world-coordinates and on normals affinity.
+
+D is the overall distance
+P is the normalized position distance
+N is the normalized normals distance
+
+```
+D = P * N + P
+```
+
+When Position is at closest, D is 0.
+
+When Position is at farthest, D is maximal.
+
+```
+Weight = max(0, 1-D) + eps
+```
+
+Makes sure the weight is positive
+
+When D is 0, weight is 1 + eps
+
+When D is 1, weight is 0 + eps
+
+When D is 1.5, weight is 0 + eps
+
+To compute the normalized position distance:
+
+```
+P(a, b) = dist(a, b) / tileDistance
+```
+
+To compute a normalized normals distance:
+
+```
+N(a, b) = 
+    dt = Dot(a, b)
+    if dt < 0:
+        return 1
+    else:
+        return 1 - dt
+```
+
+When dot product is 1, distance is 0
+
+When dot product is negative, distance is maximal
+
+# TODO
+
+Report: net structure for model 7.
+
+Report: downstream/upstream graph for model 7.
+
+Prevent overfitting: dropout and recording loss on test data
+
+Rewrite the main_stdio python system. Move the normalization stuff to C++ entirely for efficiency.
+
+Test the 2 interpolation methods.

@@ -1,6 +1,16 @@
 #include "iisptrng.h"
+#include <cstdlib>
+#include <string>
 
 namespace pbrt {
+
+IisptRng::IisptRng()
+{
+    long seed = iile_rng_seed();
+    this->rng = std::unique_ptr<RNG>(
+                new RNG(seed)
+                );
+}
 
 IisptRng::IisptRng(uint64_t seed)
 {
