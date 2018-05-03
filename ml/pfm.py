@@ -301,7 +301,7 @@ def load_from_flat_numpy(narray, width=32, height=32, channels=3):
 
 def loadFromConvOutNpArray(vals):
     channels, height, width = vals.shape
-    res = numpy.zeros((height, width, channels))
+    res = numpy.zeros((height, width, channels), dtype=numpy.float32)
     for y in range(height):
         for x in range(width):
             for c in range(channels):

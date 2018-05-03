@@ -78,7 +78,7 @@ def concatenate_conv_np_arrays(intensity, normals, distance):
     normData = normals.data
     distData = distance.data
     height, width, _ = intData.shape
-    res = numpy.zeros((7, height, width))
+    res = numpy.zeros((7, height, width), dtype=numpy.float32)
 
     for y in range(height):
         for x in range(width):
@@ -100,7 +100,7 @@ def concatenate_conv_np_arrays(intensity, normals, distance):
 def pfm_to_conv_np_array(intensity):
     intData = intensity.data
     height, width, _ = intData.shape
-    res = numpy.zeros((3, height, width))
+    res = numpy.zeros((3, height, width), dtype=numpy.float32)
 
     for y in range(height):
         for x in range(width):
@@ -187,7 +187,7 @@ class IISPTDataset(Dataset):
         result["t"] = concatenate_conv_np_arrays(d_pfm, n_pfm, z_pfm)
 
         result["p_name"] = p_name
-        
+
         result["d_name"] = d_name
 
         result["mean"] = dmean
