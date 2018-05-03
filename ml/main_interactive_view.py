@@ -3,6 +3,7 @@ import os
 import subprocess
 
 import torch
+from torch import nn
 from torch.autograd.variable import Variable
 import numpy
 
@@ -32,6 +33,7 @@ def main():
 
     # Load model
     net = torch.load(config.model_path)
+    net.eval()
     print_force("#LOADCOMPLETE {}".format(selected_set_len))
 
 
@@ -49,19 +51,21 @@ def main():
             continue
         item = selected_set.__getitem__(idx)
         item_input = item["t"]
+        item_input = item_input.unsqueeze(0)
         item_expected = item["p"]
 
         # Run the network on the data
         input_variable = Variable(item_input)
         print_force("Input variable.data is {}".format(input_variable.data))
         result = net(input_variable)
+        
         print_force("Result.data is {}".format(result.data))
         print_force("Expected is {}".format(item_expected))
 
         # TODO inverse log transform
 
         # Save the created result
-        result_image = pfm.loadFromConvOutNpArray(result.data.numpy())
+        result_image = pfm.loadFromConvOutNpArray(result.data.numpy()[0])
         # Upstream processing
         result_image.normalize_intensity_upstream(item["mean"])
         result_image.save_pfm("created.pfm")

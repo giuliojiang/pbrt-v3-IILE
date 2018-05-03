@@ -182,9 +182,9 @@ class IISPTDataset(Dataset):
         # Convert from numpy to tensors and create results
         result = {}
 
-        result["p"] = pfm_to_conv_np_array(p_pfm)
+        result["p"] = torch.from_numpy(pfm_to_conv_np_array(p_pfm)).float()
 
-        result["t"] = concatenate_conv_np_arrays(d_pfm, n_pfm, z_pfm)
+        result["t"] = torch.from_numpy(concatenate_conv_np_arrays(d_pfm, n_pfm, z_pfm)).float()
 
         result["p_name"] = p_name
 

@@ -44,6 +44,7 @@ def main():
     testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NO_WORKERS)
 
     net = iispt_net.IISPTNet().cuda()
+    net.train()
 
     criterion = nn.L1Loss()
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)

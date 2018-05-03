@@ -21,10 +21,10 @@ class IISPTNet(torch.nn.Module):
         self.encoder = nn.Sequential(
             # If input is 7 layers, 32x32
             nn.Conv2d(7, 16, 3, stride=1, padding=1),
-            nn.ReLU(True),
+            nn.ELU(),
             nn.MaxPool2d(2), # 16 layers, 16x16
             nn.Conv2d(16, 8, 3, stride=1, padding=1),
-            nn.ReLU(True),
+            nn.ELU(),
             nn.MaxPool2d(2) # 8 layers, 8x8
         )
 
@@ -37,14 +37,6 @@ class IISPTNet(torch.nn.Module):
             nn.Upsample(scale_factor=2), # 8 32x32
             nn.ConvTranspose2d(8, 3, 3, stride=1, padding=1), # 3 32x32
             nn.ELU()
-            
-
-            # nn.ConvTranspose2d(8, 16, 3),
-            # nn.ReLU(True),
-            # nn.ConvTranspose2d(16, 8, 3),
-            # nn.ReLU(True),
-            # nn.ConvTranspose2d(8, 3, 3),
-            # nn.Tanh()
         )
 
     def forward(self, x):
