@@ -10,49 +10,50 @@ class IISPTNet(torch.nn.Module):
 
         self.hidden0 = nn.Sequential(
             nn.Linear(7168, 5600),
-            nn.ELU()
+            nn.ELU(),
+            nn.Dropout(0.2)
         )
 
         self.hidden1 = nn.Sequential(
             nn.Linear(5600, 5000),
             nn.ELU(),
-            nn.Dropout(0.4)
+            nn.Dropout(0.2)
         )
 
         self.hidden2 = nn.Sequential(
             nn.Linear(5000, 4500),
             nn.ELU(),
-            nn.Dropout(0.4)
+            nn.Dropout(0.2)
         )
 
         self.hidden3 = nn.Sequential(
             nn.Linear(4500, 3200),
             nn.ELU(),
-            nn.Dropout(0.4)
+            nn.Dropout(0.2)
         )
 
         self.hidden4 = nn.Sequential(
             nn.Linear(3200, 2000),
             nn.ELU(),
-            nn.Dropout(0.4)
+            nn.Dropout(0.2)
         )
 
         self.hidden5 = nn.Sequential(
             nn.Linear(2000, 1000),
             nn.ELU(),
-            nn.Dropout(0.4)
+            nn.Dropout(0.2)
         )
 
         self.hidden6 = nn.Sequential(
             nn.Linear(1000, 800),
             nn.ELU(),
-            nn.Dropout(0.4)
+            nn.Dropout(0.2)
         )
 
         self.hidden7 = nn.Sequential(
             nn.Linear(800, 600),
             nn.ELU(),
-            nn.Dropout(0.4)
+            nn.Dropout(0.2)
         )
 
         self.hidden8 = nn.Sequential(

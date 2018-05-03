@@ -118,13 +118,13 @@ class IISPTDataset(Dataset):
         p_pfm.normalize_intensity_downstream_half()
 
         # Transform D
-        dmean = d_pfm.normalize_intensity_downstream_full(GAMMA_VALUE)
+        dmean = d_pfm.normalize_intensity_downstream_full()
 
         # Transform N
         n_pfm.normalize(-1.0, 1.0)
 
         # Transform Z
-        z_pfm.normalize_distance_downstream_full(GAMMA_VALUE)
+        z_pfm.normalize_distance_downstream_full()
 
         # Convert from numpy to tensors and create results
         result = {}

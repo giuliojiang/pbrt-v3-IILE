@@ -25,7 +25,7 @@ def convert_image(pfm_path, output_path, png_path):
 def main():
 
     # Load dataset
-    trainset, testset = iispt_dataset.load_dataset(config.testset, 0.1)
+    trainset, testset = iispt_dataset.load_dataset(config.testset, 0.0)
 
     selected_set = testset
     selected_set_len = testset.__len__()

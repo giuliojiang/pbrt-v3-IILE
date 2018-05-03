@@ -198,6 +198,8 @@ ELU activation function.
 
 Dropout
 
+Paper on ELU: https://arxiv.org/abs/1706.02515
+
 # Tiling and interpolation
 
 ## New weight
