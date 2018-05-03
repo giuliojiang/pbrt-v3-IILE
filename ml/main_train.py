@@ -11,13 +11,14 @@ from tensorboardX import SummaryWriter
 
 import iispt_dataset
 import iispt_net
+import iispt_loss
 import config
 
 rootdir = os.path.abspath(os.path.join(__file__, "..", ".."))
 print(rootdir)
 os.chdir(rootdir)
 
-TRAINING_TIME_MINUTES = 60.0
+TRAINING_TIME_MINUTES = 20.0
 BATCH_SIZE = 50
 NO_WORKERS = 2
 LEARNING_RATE = 0.0001
@@ -46,7 +47,8 @@ def main():
     net = iispt_net.IISPTNet().cuda()
     net.train()
 
-    criterion = nn.L1Loss()
+    # criterion = nn.L1Loss()
+    criterion = iispt_loss.RelMSELoss()
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
 
     epoch_loss = []
