@@ -297,6 +297,18 @@ def load_from_flat_numpy(narray, width=32, height=32, channels=3):
     return PfmImage(narray, "NPARRAY")
 
 # =============================================================================
+# Load from ConvOutNpArray
+
+def loadFromConvOutNpArray(vals):
+    channels, height, width = vals.shape
+    res = numpy.zeros((height, width, channels))
+    for y in range(height):
+        for x in range(width):
+            for c in range(channels):
+                res[y, x, c] = vals[c, y, x]
+    return PfmImage(res, "CONVOUTNPARRAY")
+
+# =============================================================================
 # Quick test
 
 def test_main():

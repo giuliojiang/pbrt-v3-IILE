@@ -70,6 +70,46 @@ def generate_pfm_filenames(dirname, x, y):
         results.append(a_name)
     return results
 
+# -----------------------------------------------------------------------------
+# Takes 3 PfmImage objects and returns a ConvNpArray for network input
+# <return> a (7, height, width) shaped nparray
+def concatenate_conv_np_arrays(intensity, normals, distance):
+    intData = intensity.data
+    normData = normals.data
+    distData = distance.data
+    height, width, _ = intData.shape
+    res = numpy.zeros((7, height, width))
+
+    for y in range(height):
+        for x in range(width):
+            # Copy intensity data
+            res[0, y, x] = intData[y, x, 0]
+            res[1, y, x] = intData[y, x, 1]
+            res[2, y, x] = intData[y, x, 2]
+            # Copy normals data
+            res[3, y, x] = normData[y, x, 0]
+            res[4, y, x] = normData[y, x, 1]
+            res[5, y, x] = normData[y, x, 2]
+            # Copy distance data
+            res[6, y, x] = distData[y, x, 0]
+
+    return res
+
+# -----------------------------------------------------------------------------
+# Takes a single PfmImage and returns a ConvOutNpArray
+def pfm_to_conv_np_array(intensity):
+    intData = intensity.data
+    height, width, _ = intData.shape
+    res = numpy.zeros((3, height, width))
+
+    for y in range(height):
+        for x in range(width):
+            res[0, y, x] = intData[y, x, 0]
+            res[1, y, x] = intData[y, x, 1]
+            res[2, y, x] = intData[y, x, 2]
+    return res
+
+
 # =============================================================================
 class IISPTDataset(Dataset):
 
@@ -141,20 +181,13 @@ class IISPTDataset(Dataset):
 
         # Convert from numpy to tensors and create results
         result = {}
-        result["p"] = torch.from_numpy(p_pfm.get_numpy_array().flatten()).float()
-        # result["d"] = torch.from_numpy(d_pfm.get_numpy_array())
-        # result["n"] = torch.from_numpy(n_pfm.get_numpy_array())
-        # result["z"] = torch.from_numpy(z_pfm.get_numpy_array())
-        train_d = d_pfm.get_numpy_array()
-        train_n = n_pfm.get_numpy_array()
-        train_z = z_pfm.get_numpy_array()
-        train_d = train_d.flatten()
-        train_n = train_n.flatten()
-        train_z = train_z.flatten()
-        train_combined = numpy.concatenate([train_d, train_n, train_z])
-        result["t"] = torch.from_numpy(train_combined).float()
+
+        result["p"] = pfm_to_conv_np_array(p_pfm)
+
+        result["t"] = concatenate_conv_np_arrays(d_pfm, n_pfm, z_pfm)
 
         result["p_name"] = p_name
+        
         result["d_name"] = d_name
 
         result["mean"] = dmean

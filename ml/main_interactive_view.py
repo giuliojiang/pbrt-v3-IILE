@@ -61,7 +61,7 @@ def main():
         # TODO inverse log transform
 
         # Save the created result
-        result_image = pfm.load_from_flat_numpy(result.data.numpy())
+        result_image = pfm.loadFromConvOutNpArray(result.data.numpy())
         # Upstream processing
         result_image.normalize_intensity_upstream(item["mean"])
         result_image.save_pfm("created.pfm")

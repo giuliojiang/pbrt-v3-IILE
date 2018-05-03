@@ -200,6 +200,31 @@ Dropout
 
 Paper on ELU: https://arxiv.org/abs/1706.02515
 
+## 09
+
+Convolutional NN
+
+Input data format: Numpy array of shape (depth, height, width)
+
+Input depth is 7: Intensity RGB, Normals RGB, Distance.
+
+```
+Channels:
+0 R
+1 G
+2 B
+3 n.X
+4 n.Y
+5 n.Z
+6 D
+```
+
+Output depth is 3: Intensity RGB
+
+This data type is called ConvNpArray
+
+The corresponding output version with 3 channels is a ConvOutNpArray
+
 # Tiling and interpolation
 
 ## New weight
