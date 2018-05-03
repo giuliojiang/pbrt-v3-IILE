@@ -194,6 +194,10 @@ Use TanH instead of ReLU for many of the layers.
 
 Changing normal representation to camera-based instead of world-based.
 
+ELU activation function.
+
+Dropout
+
 # Tiling and interpolation
 
 ## New weight
