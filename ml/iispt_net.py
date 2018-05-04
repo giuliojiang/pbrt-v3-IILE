@@ -18,51 +18,71 @@ class IISPTNet(torch.nn.Module):
         # Intensity RGB
         # 3 channels
 
-        self.encoder = nn.Sequential(
+
+        # TODO do the skip connections using torch.cat(dim 1) to concatenate
+
+        # In 32x32
+        self.encoder0 = nn.Sequential(
             # Input 32x32
-            nn.Conv2d(7, 16, 5, stride=1, padding=2),
+            nn.Conv2d(7, 16, 3, stride=1, padding=1),
             nn.ELU(),
             nn.Dropout2d(0.1),
-
-            nn.Conv2d(16, 32, 5, stride=1, padding=2),
-            nn.ELU(),
-
-            nn.MaxPool2d(2), # 16x16
-
-            nn.Conv2d(32, 22, 5, stride=1, padding=2),
-            nn.ELU(),
-
-            nn.Conv2d(22, 20, 5, stride=1, padding=2),
-            nn.ELU(),
-
-            nn.MaxPool2d(2), # 8x8
-
-            nn.Conv2d(20, 19, 5, stride=1, padding=2),
+            nn.Conv2d(16, 24, 3, stride=1, padding=1),
             nn.ELU()
         )
+        # Out 32x32
 
-        self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(19, 20, 5, stride=1, padding=2), # 8x8
+        # In 32x32
+        self.encoder1 = nn.Sequential(
+            nn.MaxPool2d(2),
+            nn.Conv2d(24, 38, 3, stride=1, padding=1),
             nn.ELU(),
-
-            nn.Upsample(scale_factor=2), # 16x16
-
-            nn.ConvTranspose2d(20, 22, 5, stride=1, padding=2),
-            nn.ELU(),
-
-            nn.ConvTranspose2d(22, 32, 5, stride=1, padding=2),
-            nn.ELU(),
-
-            nn.Upsample(scale_factor=2), # 32x32
-
-            nn.ConvTranspose2d(32, 16, 5, stride=1, padding=2),
-            nn.ELU(),
-
-            nn.ConvTranspose2d(16, 3, 5, stride=1, padding=2),
-            nn.ELU(),
+            nn.Conv2d(38, 42, 3, stride=1, padding=1),
+            nn.ELU()
         )
+        # Out 16x16
+
+        # In 16x16
+        self.encoder2 = nn.Sequential(
+            nn.MaxPool2d(2), # 8x8
+            nn.Conv2d(42, 64, 3, stride=1, padding=1),
+            nn.ELU()
+        )
+        # Out 8x8
+
+        # In 8x8
+        self.decoder0 = nn.Sequential(
+            nn.ConvTranspose2d(64, 42, 3, stride=1, padding=1), # 8x8
+            nn.ELU(),
+            nn.Upsample(scale_factor=2, mode="bilinear") # 16x16
+        )
+        # Out 16x16
+
+        # In 16x16
+        self.decoder1 = nn.Sequential(
+            nn.ConvTranspose2d(84, 42, 3, stride=1, padding=1),
+            nn.ELU(),
+            nn.ConvTranspose2d(42, 24, 3, stride=1, padding=1),
+            nn.ELU(),
+            nn.Upsample(scale_factor=2, mode="bilinear") # 32x32
+        )
+        # Out 32x32
+
+        # In 32x32
+        self.decoder2 = nn.Sequential(
+            nn.ConvTranspose2d(48, 24, 3, stride=1, padding=1),
+            nn.ELU(),
+            nn.ConvTranspose2d(24, 3, 3, stride=1, padding=1),
+            nn.ELU()
+        )
+        # Out 32x32
 
     def forward(self, x):
-        x = self.encoder(x)
-        x = self.decoder(x)
-        return x
+        x0 = self.encoder0(x)
+        x1 = self.encoder1(x0)
+        x2 = self.encoder2(x1)
+
+        x3 = self.decoder0(x2)
+        x4 = self.decoder1(torch.cat((x3, x1), 1))
+        x5 = self.decoder2(torch.cat((x4, x0), 1))
+        return x5
