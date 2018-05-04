@@ -85,7 +85,22 @@ class PfmImage:
             for x in range(width):
                 for c in range(channels):
                     self.data[y, x, c] = self.data[y, x, c] * jacobian_factor
-    
+
+    # -------------------------------------------------------------------------
+    # Flips the entire image on the Y axis
+    def flipY(self):
+        height, width, channels = self.data.shape
+        res = numpy.zeros(shape=(height, width, channels), dtype=numpy.float32)
+
+        # X, Y, C are in the output image
+        # YY is in the original image
+        for y in range(height):
+            yy = height - 1 - y
+            for x in range(width):
+                for c in range(channels):
+                    res[y, x, c] = self.data[yy, x, c]
+        self.data = res
+
     # -------------------------------------------------------------------------
     # Given min and max vals in the original range,
     # Remaps everything into the [-1, +1] range

@@ -52,6 +52,8 @@ public:
     // Set ====================================================================
     void set(int x, int y, PfmItem pixel);
 
+    void set_camera_coord(int x, int y, PfmItem pixel);
+
     // Get ====================================================================
     PfmItem get(int x, int y);
 

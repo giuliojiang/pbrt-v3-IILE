@@ -23,6 +23,13 @@ void ImageFilm::set(int x, int y, PfmItem pixel) {
 
 }
 
+void ImageFilm::set_camera_coord(int xx, int yy, PfmItem pixel)
+{
+    int x = xx;
+    int y = height - 1 - yy;
+    set(x, y, pixel);
+}
+
 // ============================================================================
 PfmItem ImageFilm::get(int x, int y) {
 

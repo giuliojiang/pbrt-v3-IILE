@@ -109,8 +109,8 @@ void test_main6()
     for (int y = 0; y < 32; y++) {
         for (int x = 0; x < 32; x++) {
             intensity->set(x, y, 12.0, 23.0, 13.0);
-            distance->set(x, y, 0.59);
-            normals->set(x, y, Normal3f(1.0, 0.25, 0.36));
+            distance->set_camera_coord(x, y, 0.59);
+            normals->set_camera_coord(x, y, Normal3f(1.0, 0.25, 0.36));
         }
     }
     float intensity_normalization = 10.0;
