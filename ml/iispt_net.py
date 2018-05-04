@@ -22,6 +22,7 @@ class IISPTNet(torch.nn.Module):
             # Input 32x32
             nn.Conv2d(7, 16, 5, stride=1, padding=2),
             nn.ELU(),
+            nn.Dropout2d(0.1),
 
             nn.Conv2d(16, 32, 5, stride=1, padding=2),
             nn.ELU(),
