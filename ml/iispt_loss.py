@@ -15,7 +15,7 @@ def pointwiseLoss(lambd, input, target, size_average=True, reduce=True):
 
 def relMSELoss(input, target, eps, size_average=True, reduce=True):
     return pointwiseLoss(
-        lambda a, b: ((a - b)**2.0 / (a**2.0 + eps)),
+        lambda a, b: (((a - b)**2.0) / ((a**2.0) + eps)),
         input,
         target,
         size_average,
