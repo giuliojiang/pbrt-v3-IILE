@@ -61,7 +61,7 @@ class L1Loss(IisptLoss):
 # =============================================================================
 
 def relL1Func(a, b):
-    return (torch.abs(a - b)) / (a + 0.00001)
+    return (torch.abs(a - b)) / (torch.abs(a) + 0.00001)
 
 def relL1Loss(input, target, size_average=True, reduce=True):
     return pointwiseLoss(
