@@ -20,42 +20,45 @@ class IISPTNet(torch.nn.Module):
 
         self.encoder = nn.Sequential(
             # Input 32x32
-            nn.Conv2d(7, 16, 3, stride=1, padding=1),
+            nn.Conv2d(7, 16, 5, stride=1, padding=2),
             nn.ELU(),
 
-            nn.Conv2d(16, 24, 3, stride=1, padding=1),
-            nn.ELU(),
-            nn.Dropout2d(0.2),
-
-            nn.AvgPool2d(2), # 16x16
-
-            nn.Conv2d(24, 32, 3, stride=1, padding=1),
+            nn.Conv2d(16, 32, 5, stride=1, padding=2),
             nn.ELU(),
 
-            nn.AvgPool2d(2), # 8x8
+            nn.MaxPool2d(2), # 16x16
 
-            nn.Conv2d(32, 40, 3, stride=1, padding=1),
+            nn.Conv2d(32, 22, 5, stride=1, padding=2),
+            nn.ELU(),
+
+            nn.Conv2d(22, 20, 5, stride=1, padding=2),
+            nn.ELU(),
+
+            nn.MaxPool2d(2), # 8x8
+
+            nn.Conv2d(20, 19, 5, stride=1, padding=2),
             nn.ELU()
-
         )
 
         self.decoder = nn.Sequential(
-
-            nn.ConvTranspose2d(40, 32, 3, stride=1, padding=1), # 8x8
+            nn.ConvTranspose2d(19, 20, 5, stride=1, padding=2), # 8x8
             nn.ELU(),
 
             nn.Upsample(scale_factor=2), # 16x16
 
-            nn.ConvTranspose2d(32, 24, 3, stride=1, padding=1),
+            nn.ConvTranspose2d(20, 22, 5, stride=1, padding=2),
+            nn.ELU(),
+
+            nn.ConvTranspose2d(22, 32, 5, stride=1, padding=2),
             nn.ELU(),
 
             nn.Upsample(scale_factor=2), # 32x32
 
-            nn.ConvTranspose2d(24, 16, 3, stride=1, padding=1),
+            nn.ConvTranspose2d(32, 16, 5, stride=1, padding=2),
             nn.ELU(),
 
-            nn.ConvTranspose2d(16, 3, 3, stride=1, padding=1),
-            nn.ELU()
+            nn.ConvTranspose2d(16, 3, 5, stride=1, padding=2),
+            nn.ELU(),
         )
 
     def forward(self, x):

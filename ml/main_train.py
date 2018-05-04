@@ -48,7 +48,8 @@ def main():
     net.train()
 
     # criterion = nn.L1Loss()
-    criterion = iispt_loss.RelMSELoss()
+    # criterion = iispt_loss.RelMSELoss()
+    criterion = iispt_loss.RelL1Loss()
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
 
     epoch_loss = []
