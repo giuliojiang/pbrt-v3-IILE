@@ -18,7 +18,7 @@ rootdir = os.path.abspath(os.path.join(__file__, "..", ".."))
 print(rootdir)
 os.chdir(rootdir)
 
-TRAINING_TIME_MINUTES = 180.0
+TRAINING_TIME_MINUTES = 7.0 * 60.0
 BATCH_SIZE = 64
 NO_WORKERS = 2
 LEARNING_RATE = 0.0001
@@ -62,6 +62,8 @@ def main():
     t_iter = 0
 
     print("About to start training... for Tensorboard, use tensorboard --logdir /tmp/runs")
+
+    print("Target train duration is {} hours".format(TRAINING_TIME_MINUTES / 60.0))
 
     while True:
 
