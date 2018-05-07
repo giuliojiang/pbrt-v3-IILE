@@ -129,6 +129,11 @@ static void weights_to_probabilities(
     }
 }
 
+// ============================================================================
+static int positiveModulo(int i, int n) {
+    return (i % n + n) % n;
+}
+
 } // namespace iispt
 
 } // namespace pbrt

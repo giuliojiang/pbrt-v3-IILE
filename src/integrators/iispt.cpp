@@ -803,16 +803,16 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
 
     std::cerr << "iispt.cpp: CreateIISPTIntegrator end\n";
 
-    char* indirect_samples_env = std::getenv("IISPT_DIRECT_SAMPLES");
-    int indirect_samples = 8;
-    if (indirect_samples_env != NULL) {
-        indirect_samples = std::stoi(std::string(indirect_samples_env));
+    char* direct_samples_env = std::getenv("IISPT_DIRECT_SAMPLES");
+    int direct_samples = 8;
+    if (direct_samples_env != NULL) {
+        direct_samples = std::stoi(std::string(direct_samples_env));
     }
 
     std::shared_ptr<Sampler> sampler (
                 CreateSobolSampler(
                 pixelBounds,
-                indirect_samples
+                direct_samples
                 ));
 
     return new IISPTIntegrator(maxDepth, camera, pixelBounds,

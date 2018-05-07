@@ -190,7 +190,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
     // Read number of passes environment variable
     char* num_passes_env = std::getenv("IISPT_INDIRECT_PASSES");
-    int num_passes = 3;
+    int num_passes = 2;
     if (num_passes_env != NULL) {
         num_passes = std::stoi(std::string(num_passes_env));
     }
@@ -328,18 +328,11 @@ void IisptRenderRunner::run(const Scene &scene)
                 std::unique_ptr<IntensityFilm> aux_intensity =
                         d_integrator->get_intensity_film(aux_camera.get());
 
-                std::cerr << "=====ORIGINAL INTENSITY D\n";
-                aux_intensity->get_image_film()->testPrintValueSamples();
-
                 NormalFilm* aux_normals =
                         d_integrator->get_normal_film();
-                std::cerr << "ORIGINAL NORMALS\n";
-                aux_normals->get_image_film()->testPrintValueSamples();
 
                 DistanceFilm* aux_distance =
                         d_integrator->get_distance_film();
-                std::cerr << "ORIGINAL DISTANCE\n";
-                aux_distance->get_image_film()->testPrintValueSamples();
 
                 // Normalize the maps
                 float intensityMean = normalizeMapsDownstream(
@@ -347,14 +340,6 @@ void IisptRenderRunner::run(const Scene &scene)
                             aux_normals,
                             aux_distance
                             );
-
-                std::cerr << "Computed mean is ["<< intensityMean <<"]\n";
-                std::cerr << "DOWNSTREAM INTENSITY\n";
-                aux_intensity->get_image_film()->testPrintValueSamples();
-                std::cerr << "DOWNSTREAM NORMALS\n";
-                aux_normals->get_image_film()->testPrintValueSamples();
-                std::cerr << "DOWNSTREAM DISTANCE\n";
-                aux_distance->get_image_film()->testPrintValueSamples();
 
                 int communicate_status = -1;
                 std::shared_ptr<IntensityFilm> nn_film =
@@ -367,8 +352,6 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 // Upstream transforms on returned intensity
                 transformMapsUpstream(nn_film.get(), intensityMean);
-                std::cerr << "UPSTREAM INTENSITY\n";
-                nn_film->get_image_film()->testPrintValueSamples();
 
                 if (communicate_status) {
                     std::cerr << "NN communication issue" << std::endl;
@@ -435,10 +418,9 @@ void IisptRenderRunner::run(const Scene &scene)
                 Point2i f_pixel (fx, fy);
 
                 Point2i neigh_s (
-                            fx - (fx % sm_task.tilesize),
-                            fy - (fy % sm_task.tilesize)
+                            fx - (iispt::positiveModulo(fx - sm_task.x0, sm_task.tilesize)),
+                            fy - (iispt::positiveModulo(fy - sm_task.y0, sm_task.tilesize))
                             );
-
 
                 Point2i neigh_e (
                             std::min(
@@ -473,6 +455,10 @@ void IisptRenderRunner::run(const Scene &scene)
                     IisptPoint2i pt_key;
                     pt_key.x = pt.x;
                     pt_key.y = pt.y;
+                    if (hemi_points.count(pt_key) <= 0) {
+                        std::cerr << "iisptrenderrunner.cpp: hemi_points does not have key ["<< pt.x <<"]["<< pt.y <<"]\n";
+                        std::raise(SIGKILL);
+                    }
                     std::shared_ptr<HemisphericCamera> a_cmr =
                             hemi_points.at(pt_key);
                     if (a_cmr == nullptr) {

@@ -31,6 +31,7 @@ IisptScheduleMonitor::IisptScheduleMonitor(Bounds2i bounds) {
         update_interval = std::stoi(std::string(update_interval_env));
     }
 
+    std::cerr << "iisptschedulemonitor.cpp: bounds pMin is " << bounds.pMin << std::endl;
     nextx = bounds.pMin.x;
     nexty = bounds.pMin.y;
 }
