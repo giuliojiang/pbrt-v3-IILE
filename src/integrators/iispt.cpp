@@ -463,11 +463,23 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     render_runner->run(scene);
 
+    std::cerr << "iispt.cpp: saving indirect EXR\n";
+
     film_monitor_indirect->to_intensity_film()->pbrt_write("/tmp/iispt_indirect.exr");
+
+    std::cerr << "iispt.cpp: saving direct EXR\n";
+
     film_monitor_direct->to_intensity_film()->pbrt_write("/tmp/iispt_direct.exr");
 
+    std::cerr << "iispt.cpp: merging...\n";
+
     film_monitor_direct->merge_from(film_monitor_indirect.get());
+
+    std::cerr << "iispt.cpp: saving combined EXR\n";
+
     film_monitor_direct->to_intensity_film()->pbrt_write("/tmp/iispt_combined.exr");
+
+    std::cerr << "iispt.cpp: render normal 2 end\n";
 }
 
 // Render reference ===========================================================

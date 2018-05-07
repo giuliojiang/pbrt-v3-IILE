@@ -186,9 +186,8 @@ void IisptFilmMonitor::merge_from(
         std::raise(SIGKILL);
     }
 
-    Vector2i diagonal = film_bounds.Diagonal();
-    for (int y = 0; y <= diagonal.y; y++) {
-        for (int x = 0; x <= diagonal.x; x++) {
+    for (int y = film_bounds.pMin.y; y < film_bounds.pMax.y; y++) {
+        for (int x = film_bounds.pMin.x; x < film_bounds.pMax.x; x++) {
             execute_on_pixel([&](int fx, int fy) {
                 IisptPixel pix = (pixels[fy])[fx];
                 IisptPixel ot = (other->pixels[fy])[fx];
@@ -204,6 +203,7 @@ void IisptFilmMonitor::merge_from(
             }, x, y);
         }
     }
+
 }
 
 } // namespace pbrt

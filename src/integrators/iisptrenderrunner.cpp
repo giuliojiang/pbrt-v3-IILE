@@ -683,11 +683,15 @@ void IisptRenderRunner::run_direct(const Scene &scene)
         }
     }
 
+    std::cerr << "iisptrenderrunner.cpp: Completed direct pass loop\n";
+
     film_monitor_direct->add_n_samples(
                 additions_pt,
                 additions_spectrum,
                 additions_weights
                 );
+
+    std::cerr << "iisptrenderrunner.cpp: Completed direct pass add_n_samples\n";
 }
 
 // ============================================================================
