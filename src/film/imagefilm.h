@@ -5,6 +5,8 @@
 #include <vector>
 #include <iostream>
 #include <cstdlib>
+#include <functional>
+#include <cmath>
 
 #include "pfmitem.h"
 
@@ -22,6 +24,11 @@ private:
     int num_components;
 
     std::vector<PfmItem> data;
+
+    // ========================================================================
+    // Private methods
+
+    void map(std::function<float(float)> func);
 
 public:
 
@@ -92,6 +99,22 @@ public:
     // ========================================================================
     // Compute mean
     float computeMean();
+
+    // ========================================================================
+    // Multiply
+    void multiply(float ratio);
+
+    // ========================================================================
+    // Log
+    void positiveLog();
+
+    // ========================================================================
+    // Add
+    void add(float amount);
+
+    // ========================================================================
+    // Normalize
+    void normalize(float minVal, float maxVal);
 
 };
 

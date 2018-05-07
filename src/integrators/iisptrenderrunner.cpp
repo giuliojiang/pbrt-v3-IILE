@@ -1105,8 +1105,8 @@ void IisptRenderRunner::compute_fpixel_weights_simple(
 // <return> the mean value of the Intensity Film
 float IisptRenderRunner::normalizeMapsDownstream(
         IntensityFilm* intensity,
-        NormalFilm* normalFilm,
-        DistanceFilm* distanceFilm
+        NormalFilm* normals,
+        DistanceFilm* distance
         )
 {
     // Intensity --------------------------------------------------------------
@@ -1116,10 +1116,42 @@ float IisptRenderRunner::normalizeMapsDownstream(
     float mean = intensityFilm->computeMean();
 
     // Divide by 10*mean
+    float multRatio = mean == 0.0 ?
+                0.0 :
+                (1.0 / (10.0 * mean));
+    intensityFilm->multiply(multRatio);
 
     // Log
+    intensityFilm->positiveLog();
 
     // Subtract 0.1
+    intensityFilm->add(-0.1);
+
+    // Normals ----------------------------------------------------------------
+
+    normals->get_image_film()->normalize(-1.0, 1.0);
+
+    // Distance ---------------------------------------------------------------
+
+    std::shared_ptr<ImageFilm> distanceFilm = distance->get_image_film();
+
+    float zMean = distanceFilm->computeMean();
+
+    // Add 1
+    distanceFilm->add(1.0);
+
+    // Divide by 10 * (mean + 1)
+    float distanceDiv = 10.0 * (zMean + 1.0);
+    if (distanceDiv == 0) {
+        distanceDiv = 1.0;
+    }
+    distanceFilm->multiply(1.0 / distanceDiv);
+
+    // Log
+    distanceFilm->positiveLog();
+
+    // Subtract 0.1
+    distanceFilm->add(-0.1);
 
     return mean;
 }

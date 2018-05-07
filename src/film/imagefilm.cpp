@@ -183,4 +183,77 @@ float ImageFilm::computeMean()
     return sum / count;
 }
 
+// ============================================================================
+// Map
+
+void ImageFilm::map(std::function<float(float)> func)
+{
+    for (int i = 0; i < data.size(); i++) {
+        PfmItem item = data[i];
+        if (num_components == 1) {
+            item.r = func(item.r);
+        } else {
+            item.r = func(item.r);
+            item.g = func(item.g);
+            item.b = func(item.b);
+        }
+        data[i] = item;
+    }
+}
+
+// ============================================================================
+// Multiply
+void ImageFilm::multiply(float ratio)
+{
+    map([&](float v) {
+        return v * ratio;
+    });
+}
+
+// ============================================================================
+// Log
+void ImageFilm::positiveLog()
+{
+    map([&](float v) {
+        float vv = v;
+        if (vv <= 0.0) {
+            vv = 0.0;
+        }
+        return std::log(1.0 + vv);
+    });
+}
+
+// ============================================================================
+// Add
+void ImageFilm::add(float amount)
+{
+    map([&](float v) {
+        return v + amount;
+    });
+}
+
+// ============================================================================
+// Normalize
+void ImageFilm::normalize(float minVal, float maxVal)
+{
+    float mid = (minVal + maxVal) / 2.0;
+    float r = maxVal - mid;
+    if (r == 0) {
+        r = 1.0;
+    }
+
+    map([&](float v) {
+        float x = v;
+        x = x - mid;
+        x = x / r;
+        if (x < -1.0) {
+            return -1.0;
+        } else if (x > 1.0) {
+            return 1.0;
+        } else {
+            return x;
+        }
+    });
+}
+
 } // namespace pbrt
