@@ -11,15 +11,13 @@ namespace pbrt {
 
 class PfmItem {
 
-private:
+public:
 
     // Fields -----------------------------------------------------------------
     float r = 0.0;
     float g = 0.0;
     float b = 0.0;
     bool rgb = false;
-
-public:
 
     // Constructor ------------------------------------------------------------
 

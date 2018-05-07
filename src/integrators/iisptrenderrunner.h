@@ -136,6 +136,17 @@ private:
             std::vector<float> &out_probabilities
             );
 
+    float normalizeMapsDownstream(
+            IntensityFilm* intensity,
+            NormalFilm* normals,
+            DistanceFilm* distance
+            );
+
+    void transformMapsUpstream(
+            IntensityFilm* intensity,
+            float targetMean
+            );
+
 public:
 
     // Constructor ------------------------------------------------------------

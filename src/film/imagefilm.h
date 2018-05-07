@@ -116,6 +116,10 @@ public:
     // Normalize
     void normalize(float minVal, float maxVal);
 
+    // ========================================================================
+    // LogInverse
+    void positiveLogInverse();
+
 };
 
 }; // namespace pbrt

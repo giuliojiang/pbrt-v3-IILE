@@ -224,6 +224,19 @@ void ImageFilm::positiveLog()
 }
 
 // ============================================================================
+// PositiveLogInverse
+void ImageFilm::positiveLogInverse()
+{
+    map([&](float v) {
+        float y = v;
+        if (y < 0.0) {
+            y = 0.0;
+        }
+        return std::exp(y) - 1.0;
+    });
+}
+
+// ============================================================================
 // Add
 void ImageFilm::add(float amount)
 {
@@ -247,9 +260,9 @@ void ImageFilm::normalize(float minVal, float maxVal)
         x = x - mid;
         x = x / r;
         if (x < -1.0) {
-            return -1.0;
+            return -1.0f;
         } else if (x > 1.0) {
-            return 1.0;
+            return 1.0f;
         } else {
             return x;
         }

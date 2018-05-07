@@ -335,7 +335,11 @@ void IisptRenderRunner::run(const Scene &scene)
                         d_integrator->get_distance_film();
 
                 // Normalize the maps
-
+                float intensityMean = normalizeMapsDownstream(
+                            aux_intensity.get(),
+                            aux_normals,
+                            aux_distance
+                            );
 
                 int communicate_status = -1;
                 std::shared_ptr<IntensityFilm> nn_film =
@@ -343,10 +347,11 @@ void IisptRenderRunner::run(const Scene &scene)
                             aux_intensity.get(),
                             aux_distance,
                             aux_normals,
-                            iispt_integrator->get_normalization_intensity(),
-                            iispt_integrator->get_normalization_distance(),
                             communicate_status
                             );
+
+                // Upstream transforms on returned intensity
+                transformMapsUpstream(nn_film.get(), intensityMean);
 
                 if (communicate_status) {
                     std::cerr << "NN communication issue" << std::endl;
@@ -1113,12 +1118,12 @@ float IisptRenderRunner::normalizeMapsDownstream(
 
     // Compute mean of intensity
     std::shared_ptr<ImageFilm> intensityFilm = intensity->get_image_film();
-    float mean = intensityFilm->computeMean();
+    float intensityMean = intensityFilm->computeMean();
 
     // Divide by 10*mean
-    float multRatio = mean == 0.0 ?
+    float multRatio = intensityMean == 0.0 ?
                 0.0 :
-                (1.0 / (10.0 * mean));
+                (1.0 / (10.0 * intensityMean));
     intensityFilm->multiply(multRatio);
 
     // Log
@@ -1153,7 +1158,32 @@ float IisptRenderRunner::normalizeMapsDownstream(
     // Subtract 0.1
     distanceFilm->add(-0.1);
 
-    return mean;
+    return intensityMean;
+}
+
+// ============================================================================
+void IisptRenderRunner::transformMapsUpstream(
+        IntensityFilm* intensity,
+        float targetMean
+        )
+{
+    std::shared_ptr<ImageFilm> intensityFilm = intensity->get_image_film();
+
+    // Log inverse
+    intensityFilm->positiveLogInverse();
+
+    // Compute actual mean
+    float actualMean = intensityFilm->computeMean();
+
+    float multiplier;
+    if (actualMean > 0.0) {
+        multiplier = targetMean / actualMean;
+    } else {
+        multiplier = 1.0;
+    }
+
+    // Multiply by 10*mean
+    intensityFilm->multiply(multiplier);
 }
 
 }
