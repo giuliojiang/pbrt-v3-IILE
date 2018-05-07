@@ -67,15 +67,14 @@ private:
 
     void generate_random_pixel(int* x, int* y);
 
-    bool find_intersection(
-            RayDifferential r,
+    bool find_intersection(RayDifferential r,
             const Scene &scene,
             MemoryArena &arena,
             SurfaceInteraction* isect_out,
             RayDifferential* ray_out,
             Spectrum* beta_out,
             Spectrum* background_out
-            );
+            , Spectrum *emitted_out);
 
     double compute_filter_weight(
             int cx, // Centre sampling pixel

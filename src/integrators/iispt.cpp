@@ -816,7 +816,7 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
     std::cerr << "iispt.cpp: CreateIISPTIntegrator end\n";
 
     char* direct_samples_env = std::getenv("IISPT_DIRECT_SAMPLES");
-    int direct_samples = 8;
+    int direct_samples = 2;
     if (direct_samples_env != NULL) {
         direct_samples = std::stoi(std::string(direct_samples_env));
     }

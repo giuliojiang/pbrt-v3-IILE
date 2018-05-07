@@ -315,3 +315,5 @@ Prevent overfitting: dropout and recording loss on test data
 Rewrite the main_stdio python system. Move the normalization stuff to C++ entirely for efficiency.
 
 Test the 2 interpolation methods.
+
+Fix issue with directly visible area lights being black in both direct and indirect passes.

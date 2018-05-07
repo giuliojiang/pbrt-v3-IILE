@@ -190,7 +190,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
     // Read number of passes environment variable
     char* num_passes_env = std::getenv("IISPT_INDIRECT_PASSES");
-    int num_passes = 2;
+    int num_passes = 1;
     if (num_passes_env != NULL) {
         num_passes = std::stoi(std::string(num_passes_env));
     }
@@ -256,6 +256,7 @@ void IisptRenderRunner::run(const Scene &scene)
             Spectrum beta;
             Spectrum background;
             RayDifferential ray;
+            Spectrum area_out;
 
             bool intersection_found = find_intersection(
                         r,
@@ -264,7 +265,8 @@ void IisptRenderRunner::run(const Scene &scene)
                         &isect,
                         &ray,
                         &beta,
-                        &background
+                        &background,
+                        &area_out
                         );
 
             if (!intersection_found || beta.y() <= 0.0) {
@@ -488,6 +490,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 Spectrum f_beta;
                 Spectrum f_background;
                 RayDifferential f_ray;
+                Spectrum area_out;
 
                 // Find intersection point
                 bool f_intersection_found = find_intersection(
@@ -497,7 +500,8 @@ void IisptRenderRunner::run(const Scene &scene)
                             &f_isect,
                             &f_ray,
                             &f_beta,
-                            &f_background
+                            &f_background,
+                            &area_out
                             );
 
                 if (!f_intersection_found) {
@@ -616,6 +620,7 @@ void IisptRenderRunner::run_direct(const Scene &scene)
                 Spectrum f_beta;
                 Spectrum f_background;
                 RayDifferential f_ray;
+                Spectrum area_out;
 
                 // Find intersection point
                 bool f_intersection_found = find_intersection(
@@ -625,18 +630,26 @@ void IisptRenderRunner::run_direct(const Scene &scene)
                             &f_isect,
                             &f_ray,
                             &f_beta,
-                            &f_background
+                            &f_background,
+                            &area_out
                             );
+
+                Spectrum L (0.0);
+                L += area_out;
 
                 if (!f_intersection_found) {
                     // No intersection found, record background
                     additions_pt.push_back(f_pixel);
-                    additions_spectrum.push_back(f_background);
+                    L += f_background;
+                    additions_spectrum.push_back(L);
                     additions_weights.push_back(1.0);
                     continue;
                 } else if (f_intersection_found && f_beta.y() <= 0.0) {
                     // Intersection found but black pixel
                     // Nothing to do
+                    additions_pt.push_back(f_pixel);
+                    additions_spectrum.push_back(L);
+                    additions_weights.push_back(1.0);
                     continue;
                 }
 
@@ -658,7 +671,7 @@ void IisptRenderRunner::run_direct(const Scene &scene)
                     exit(1);
                 }
 
-                Spectrum L (0.0);
+
 
                 // Sample one direct lighting
                 const Distribution1D* distribution = lightDistribution->Lookup(f_isect.p);
@@ -669,9 +682,6 @@ void IisptRenderRunner::run_direct(const Scene &scene)
                             false,
                             distribution
                             );
-
-                // Compute emitted light if ray hit an area light source
-                L += f_isect.Le(wo);
 
                 // Record sample
                 additions_pt.push_back(f_pixel);
@@ -725,7 +735,8 @@ bool IisptRenderRunner::find_intersection(
         SurfaceInteraction* isect_out,
         RayDifferential* ray_out,
         Spectrum* beta_out,
-        Spectrum* background_out
+        Spectrum* background_out,
+        Spectrum* emitted_out
         )
 {
 
@@ -747,6 +758,16 @@ bool IisptRenderRunner::find_intersection(
             }
             *background_out = L;
             return false;
+        }
+
+        // Possibly add emitted light at intersection
+        // It's always a specular bounce
+        if (found_intersection) {
+            Spectrum emittedOutUpdated = *emitted_out + (beta * isect.Le(-ray.d));
+            if (emittedOutUpdated.y() > 0.0) {
+                std::cerr << "iisptrenderrunner.cpp: some emittedOutUpdated " << emittedOutUpdated << std::endl;
+            }
+            *emitted_out = emittedOutUpdated;
         }
 
         // Compute scattering functions
