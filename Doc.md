@@ -15,6 +15,34 @@ Expected stdout format:
 * Intensity raster: 32x32x3 = 3072 float (each 4 bytes)
 * Magic characters sequence: 'x' '\n'
 
+## New format
+
+Expected stdin format:
+
+* Intensity raster: 32x32x3 = 3072 float (each 4 bytes)
+* Distance raster: 32x32x1 = 1024 float (each 4 bytes)
+* Normals raster: 32x32x3 = 3072 float (each 4 bytes)
+
+The order of each raster is a 2D array (height, width)
+
+## ML data loader array format
+
+Each data is a numpy array with shape (channels, height, width), so typically it would be (7, 32, 32).
+
+The channels order is
+
+* Intensity R
+* Intensity G
+* Intensity B
+* Normals X
+* Normals Y
+* Normals Z
+* Distance
+
+The data that the C++ process sends to main_stdio_net is already transformed and normalized and does not require additional processing.
+
+The output of the main_stdio process does not apply the upstream transformations, as those are handled by the C++ process.
+
 ## Performance
 
 ```

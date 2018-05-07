@@ -10,6 +10,7 @@ import numpy
 import config
 import iispt_dataset
 import pfm
+import iispt_net
 
 pydir = os.path.dirname(os.path.abspath(__file__)) # root/ml
 rootdir = os.path.dirname(pydir)
@@ -32,7 +33,9 @@ def main():
     selected_set_len = testset.__len__()
 
     # Load model
-    net = torch.load(config.model_path)
+    net = iispt_net.IISPTNet()
+    net.load_state_dict(torch.load(config.model_path))
+    # Put in eval mode
     net.eval()
     print_force("#LOADCOMPLETE {}".format(selected_set_len))
 

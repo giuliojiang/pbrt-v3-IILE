@@ -18,9 +18,6 @@ class IISPTNet(torch.nn.Module):
         # Intensity RGB
         # 3 channels
 
-
-        # TODO do the skip connections using torch.cat(dim 1) to concatenate
-
         # In 32x32
         self.encoder0 = nn.Sequential(
             # Input 32x32

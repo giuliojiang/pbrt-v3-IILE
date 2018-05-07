@@ -18,9 +18,9 @@ rootdir = os.path.abspath(os.path.join(__file__, "..", ".."))
 print(rootdir)
 os.chdir(rootdir)
 
-TRAINING_TIME_MINUTES = 7.0 * 60.0
+TRAINING_TIME_MINUTES = 2.0 * 60.0
 BATCH_SIZE = 64
-NO_WORKERS = 2
+NO_WORKERS = 4
 LEARNING_RATE = 0.0001
 
 log_dir = os.path.join('/tmp/runs', datetime.now().strftime('%b%d_%H-%M-%S'))
@@ -136,7 +136,9 @@ def main():
         print("Epoch {} Loss {} Tloss {}".format(i, epoch_loss[i], epoch_tloss[i]))
 
     net = net.cpu()
-    torch.save(net, config.model_path)
+
+    torch.save(net.state_dict(), config.model_path)
+
     print("Model saved: {}".format(config.model_path))
 
 main()
