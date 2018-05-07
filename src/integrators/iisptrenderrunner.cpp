@@ -190,7 +190,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
     // Read number of passes environment variable
     char* num_passes_env = std::getenv("IISPT_INDIRECT_PASSES");
-    int num_passes = 1;
+    int num_passes = 2;
     if (num_passes_env != NULL) {
         num_passes = std::stoi(std::string(num_passes_env));
     }
@@ -519,7 +519,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 // Compute weights and probabilities for neighbours
                 std::vector<float> hemi_sampling_weights (4);
-                compute_fpixel_weights_simple(
+                compute_fpixel_weights(
                             neighbour_points,
                             hemi_sampling_cameras,
                             f_pixel,
@@ -764,9 +764,6 @@ bool IisptRenderRunner::find_intersection(
         // It's always a specular bounce
         if (found_intersection) {
             Spectrum emittedOutUpdated = *emitted_out + (beta * isect.Le(-ray.d));
-            if (emittedOutUpdated.y() > 0.0) {
-                std::cerr << "iisptrenderrunner.cpp: some emittedOutUpdated " << emittedOutUpdated << std::endl;
-            }
             *emitted_out = emittedOutUpdated;
         }
 
