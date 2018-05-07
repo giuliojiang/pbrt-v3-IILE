@@ -159,4 +159,28 @@ void ImageFilm::populate_from_float_array(float* floats) {
     }
 }
 
+// ============================================================================
+// Compute mean
+
+float ImageFilm::computeMean()
+{
+    double sum = 0.0;
+    int count = 0;
+
+    for (int i = 0; i < data.size(); i++) {
+        PfmItem item = data[i];
+        if (num_components == 1) {
+            sum += item.get_single_component();
+            count += 1;
+        } else {
+            float r, g, b;
+            item.get_triple_component(r, g, b);
+            sum += (r + g + b);
+            count += 3;
+        }
+    }
+
+    return sum / count;
+}
+
 } // namespace pbrt

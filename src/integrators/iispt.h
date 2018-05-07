@@ -49,8 +49,6 @@
 
 namespace pbrt {
 
-const int IISPT_NORMALIZATION_ESTIMATION_SAMPLES = 10000;
-
 // IISPTIntegrator Declarations
 class IISPTIntegrator : public SamplerIntegrator {
 public:
@@ -113,9 +111,6 @@ private:
 
     std::shared_ptr<Camera> dcamera;
     std::shared_ptr<IISPTdIntegrator> dintegrator;
-
-    Float max_intensity = -1;
-    Float max_distance = -1;
 
     // Private methods --------------------------------------------------------
 

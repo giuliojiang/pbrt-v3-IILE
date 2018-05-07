@@ -89,6 +89,10 @@ public:
     // Populate from float array
     void populate_from_float_array(float* floats);
 
+    // ========================================================================
+    // Compute mean
+    float computeMean();
+
 };
 
 }; // namespace pbrt

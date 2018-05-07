@@ -334,6 +334,9 @@ void IisptRenderRunner::run(const Scene &scene)
                 DistanceFilm* aux_distance =
                         d_integrator->get_distance_film();
 
+                // Normalize the maps
+
+
                 int communicate_status = -1;
                 std::shared_ptr<IntensityFilm> nn_film =
                         nn_connector->communicate(
@@ -1096,6 +1099,29 @@ void IisptRenderRunner::compute_fpixel_weights_simple(
 
     // To probabilities
     iispt::weights_to_probabilities(out_probabilities);
+}
+
+// ============================================================================
+// <return> the mean value of the Intensity Film
+float IisptRenderRunner::normalizeMapsDownstream(
+        IntensityFilm* intensity,
+        NormalFilm* normalFilm,
+        DistanceFilm* distanceFilm
+        )
+{
+    // Intensity --------------------------------------------------------------
+
+    // Compute mean of intensity
+    std::shared_ptr<ImageFilm> intensityFilm = intensity->get_image_film();
+    float mean = intensityFilm->computeMean();
+
+    // Divide by 10*mean
+
+    // Log
+
+    // Subtract 0.1
+
+    return mean;
 }
 
 }

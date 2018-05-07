@@ -16,12 +16,14 @@ pydir = os.path.dirname(os.path.abspath(__file__)) # root/ml
 rootdir = os.path.dirname(pydir)
 os.chdir(rootdir)
 
+pfmExecutable = os.path.join(rootdir, "tools", "pfm.js")
+
 def print_force(s):
     print(s)
     sys.stdout.flush()
 
 def convert_image(pfm_path, output_path, png_path):
-    subprocess.call(["pfm", pfm_path, "--out=" + output_path])
+    subprocess.call([pfmExecutable, pfm_path, "--out=" + output_path])
     subprocess.call(["convert", output_path, png_path])
 
 def main():

@@ -131,18 +131,13 @@ std::unique_ptr<IntensityFilm> IisptNnConnector::communicate(
         IntensityFilm* intensity,
         DistanceFilm* distance,
         NormalFilm* normals,
-        Float intensity_normalization,
-        Float distance_normalization,
         int &status
         )
 {
     // Write rasters
     pipe_image_film(intensity->get_image_film());
-    pipe_image_film(distance->get_image_film());
     pipe_image_film(normals->get_image_film());
-    // Write normalization
-    child_process->write_float32(intensity_normalization);
-    child_process->write_float32(distance_normalization);
+    pipe_image_film(distance->get_image_film());
 
     // Read output from child process
     int st = -1;

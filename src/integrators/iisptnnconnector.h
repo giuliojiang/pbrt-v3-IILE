@@ -31,12 +31,9 @@ public: // ====================================================================
     IisptNnConnector();
 
     // Communicate
-    std::unique_ptr<IntensityFilm> communicate(
-            IntensityFilm* intensity,
+    std::unique_ptr<IntensityFilm> communicate(IntensityFilm* intensity,
             DistanceFilm* distance,
             NormalFilm* normals,
-            Float intensity_normalization,
-            Float distance_normalization,
             int &status
             );
 

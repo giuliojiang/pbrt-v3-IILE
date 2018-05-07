@@ -20,8 +20,8 @@ Expected stdout format:
 Expected stdin format:
 
 * Intensity raster: 32x32x3 = 3072 float (each 4 bytes)
-* Distance raster: 32x32x1 = 1024 float (each 4 bytes)
 * Normals raster: 32x32x3 = 3072 float (each 4 bytes)
+* Distance raster: 32x32x1 = 1024 float (each 4 bytes)
 
 The order of each raster is a 2D array (height, width)
 
