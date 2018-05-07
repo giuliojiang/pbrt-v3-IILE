@@ -269,4 +269,20 @@ void ImageFilm::normalize(float minVal, float maxVal)
     });
 }
 
+// ============================================================================
+void ImageFilm::testPrintValueSamples()
+{
+    for (int i = 0; i < data.size(); i += 51) {
+        if (num_components == 1) {
+            float val = data[i].get_single_component();
+            std::cerr << " " << val;
+        } else {
+            float r, g, b;
+            data[i].get_triple_component(r, g, b);
+            std::cerr << " ["<< r <<"]["<< g <<"]["<< b <<"]";
+        }
+    }
+    std::cerr << std::endl;
+}
+
 } // namespace pbrt

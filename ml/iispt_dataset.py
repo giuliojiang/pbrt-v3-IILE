@@ -162,22 +162,14 @@ class IISPTDataset(Dataset):
         # Transform P
         p_pfm.normalize_intensity_downstream_half()
 
-        # p_pfm.save_pfm("TMP_P_NORM.pfm")
-
         # Transform D
         dmean = d_pfm.normalize_intensity_downstream_full()
-
-        # d_pfm.save_pfm("TMP_D_NORM.pfm")
 
         # Transform N
         n_pfm.normalize(-1.0, 1.0)
 
-        # n_pfm.save_pfm("TMP_N_NORM.pfm")
-
         # Transform Z
         z_pfm.normalize_distance_downstream_full()
-
-        # z_pfm.save_pfm("TMP_Z_NORM.pfm")
 
         # Convert from numpy to tensors and create results
         result = {}

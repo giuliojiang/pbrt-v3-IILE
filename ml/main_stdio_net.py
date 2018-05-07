@@ -41,8 +41,7 @@ def read_float():
     return struct.unpack('f', sys.stdin.buffer.read(4))[0]
 
 def write_float(x):
-    data = struct.pack("f", x)
-    sys.stdout.buffer.write(data)
+    sys.stdout.buffer.write(struct.pack("f", x))
 
 def write_float_array(xs):
     data = struct.pack("{}f".format(len(xs)), *xs)
@@ -58,15 +57,21 @@ def read_float_array(num):
     return struct.unpack('{}f'.format(num), buff)
 
 # <return> a (7, height, width) shaped ndarray
-def read_input(prop):
+def read_input():
     # Read intensity data
+    print_stderr("python: Reading intensity")
     intensityArray = read_float_array(IISPT_IMAGE_SIZE * IISPT_IMAGE_SIZE * 3)
+    print_stderr("python: intensity read.")
 
     # Read normals data
+    print_stderr("python: reading normals")
     normalsArray = read_float_array(IISPT_IMAGE_SIZE * IISPT_IMAGE_SIZE * 3)
+    print_stderr("python: normals read")
 
     # Read distance data
+    print_stderr("python: reading distance")
     distanceArray = read_float_array(IISPT_IMAGE_SIZE * IISPT_IMAGE_SIZE * 1)
+    print_stderr("python: distance read.")
 
     # Create final numpy ndarray
     res = numpy.zeros(
@@ -99,15 +104,21 @@ def read_input(prop):
 # <nparray> a shape (channel, height, width) 3D ndarray
 # Outputted as an image with dimensions order as (height, width, channel)
 def output_to_stdout(nparray):
+    print_stderr("python: waiting 5 seconds before writing")
+    time.sleep(5.0)
     channels, height, width = nparray.shape
+    print_stderr("python: Writing to STDOUT. Shape is: {}".format(nparray.shape))
+    writeCount = 0
     for y in range(height):
         for x in range(width):
             for c in range(channels):
                 write_float(nparray[c, y, x])
+                writeCount += 1
+
+    print_stderr("python: Written {} floats".format(writeCount))
 
     write_char("x")
     write_char("\n")
-    sys.stdout.flush()
 
 # =============================================================================
 # Processing function
@@ -124,6 +135,7 @@ def process_one(net):
 
     outputNdArray = outputVariable.data.numpy()[0]
     output_to_stdout(outputNdArray)
+    print_stderr("python: One completed.")
 
 # =============================================================================
 # Main

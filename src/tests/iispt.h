@@ -34,7 +34,9 @@ void test_main8()
     for (int i = 0; i < 250; i++) {
         IisptScheduleMonitorTask task =
                 schedule_monitor->next_task();
-        std::cerr << "Start ["<< task.x0 <<"]["<< task.y0 <<"] Finish ["<< task.x1 <<"]["<< task.y1 <<"] Radius ["<< task.tilesize <<"]\n";
+        std::cerr << "Start ["<< task.x0 <<"]["<< task.y0 <<
+                     "] Finish ["<< task.x1 <<"]["<< task.y1 <<
+                     "] Radius ["<< task.tilesize <<"]\n";
     }
 }
 

@@ -328,11 +328,18 @@ void IisptRenderRunner::run(const Scene &scene)
                 std::unique_ptr<IntensityFilm> aux_intensity =
                         d_integrator->get_intensity_film(aux_camera.get());
 
+                std::cerr << "=====ORIGINAL INTENSITY D\n";
+                aux_intensity->get_image_film()->testPrintValueSamples();
+
                 NormalFilm* aux_normals =
                         d_integrator->get_normal_film();
+                std::cerr << "ORIGINAL NORMALS\n";
+                aux_normals->get_image_film()->testPrintValueSamples();
 
                 DistanceFilm* aux_distance =
                         d_integrator->get_distance_film();
+                std::cerr << "ORIGINAL DISTANCE\n";
+                aux_distance->get_image_film()->testPrintValueSamples();
 
                 // Normalize the maps
                 float intensityMean = normalizeMapsDownstream(
@@ -340,6 +347,14 @@ void IisptRenderRunner::run(const Scene &scene)
                             aux_normals,
                             aux_distance
                             );
+
+                std::cerr << "Computed mean is ["<< intensityMean <<"]\n";
+                std::cerr << "DOWNSTREAM INTENSITY\n";
+                aux_intensity->get_image_film()->testPrintValueSamples();
+                std::cerr << "DOWNSTREAM NORMALS\n";
+                aux_normals->get_image_film()->testPrintValueSamples();
+                std::cerr << "DOWNSTREAM DISTANCE\n";
+                aux_distance->get_image_film()->testPrintValueSamples();
 
                 int communicate_status = -1;
                 std::shared_ptr<IntensityFilm> nn_film =
@@ -352,6 +367,8 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 // Upstream transforms on returned intensity
                 transformMapsUpstream(nn_film.get(), intensityMean);
+                std::cerr << "UPSTREAM INTENSITY\n";
+                nn_film->get_image_film()->testPrintValueSamples();
 
                 if (communicate_status) {
                     std::cerr << "NN communication issue" << std::endl;

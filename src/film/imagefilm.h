@@ -120,6 +120,10 @@ public:
     // LogInverse
     void positiveLogInverse();
 
+    // ========================================================================
+    // Print samples
+    void testPrintValueSamples();
+
 };
 
 }; // namespace pbrt

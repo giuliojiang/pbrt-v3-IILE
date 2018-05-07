@@ -98,13 +98,23 @@ public: // ====================================================================
     // Returns 1 if error
     // Result is written into <buffer>
     int read_n_float32(float* buffer, int n) {
-        int bytes = n * 4;
-        ssize_t count = read(stdout_pipe[0], buffer, bytes);
-        if (count != bytes) {
-            return 1;
-        } else {
-            return 0;
+        int bytesRemaining = n * 4;
+        char* barray = (char*) buffer;
+        int currentPosition = 0;
+
+        while (bytesRemaining > 0) {
+            ssize_t bytesRead = read(stdout_pipe[0], &barray[currentPosition], bytesRemaining);
+            if (bytesRead == 0) {
+                // EOF
+                std::cerr << "childprocess.hpp: Encountered EOF after ["<< currentPosition <<"] bytes already read\n";
+                return 1;
+            }
+            bytesRemaining -= bytesRead;
+            currentPosition += bytesRead;
         }
+
+        return 0;
+
     }
 
     // ------------------------------------------------------------------------
