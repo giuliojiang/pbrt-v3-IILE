@@ -519,7 +519,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 // Compute weights and probabilities for neighbours
                 std::vector<float> hemi_sampling_weights (4);
-                compute_fpixel_weights_3d(
+                compute_fpixel_weights(
                             neighbour_points,
                             hemi_sampling_cameras,
                             f_pixel,
