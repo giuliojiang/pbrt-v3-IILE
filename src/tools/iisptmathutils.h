@@ -112,6 +112,32 @@ static float weighting_distance_normals(
 }
 
 // ============================================================================
+static float weighting_normals(
+        Vector3f a,
+        Vector3f b
+        )
+{
+    // Check for invalid vectors
+    float al = a.Length();
+    float bl = b.Length();
+    if (al <= 0.0 || bl <= 0.0) {
+        return 0.0;
+    }
+
+    // Normalize
+    a = a / al;
+    b = b / bl;
+
+    // Compute dot product
+    float dt = Dot(a, b);
+    if (dt < 0.0) {
+        return 0.0;
+    } else {
+        return dt;
+    }
+}
+
+// ============================================================================
 static void weights_to_probabilities(
         std::vector<float> &weights
         )
@@ -132,6 +158,17 @@ static void weights_to_probabilities(
 // ============================================================================
 static int positiveModulo(int i, int n) {
     return (i % n + n) % n;
+}
+
+// ============================================================================
+static float clamp(float x, float min, float max) {
+    if (x < min) {
+        return min;
+    }
+    if (x > max) {
+        return max;
+    }
+    return x;
 }
 
 } // namespace iispt

@@ -519,7 +519,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 // Compute weights and probabilities for neighbours
                 std::vector<float> hemi_sampling_weights (4);
-                compute_fpixel_weights(
+                compute_fpixel_weights_3d(
                             neighbour_points,
                             hemi_sampling_cameras,
                             f_pixel,
@@ -1092,6 +1092,63 @@ void IisptRenderRunner::compute_fpixel_weights(
     iispt::weights_to_probabilities(out_probabilities);
 }
 
+void IisptRenderRunner::compute_fpixel_weights_3d(
+        std::vector<Point2i> &neighbour_points,
+        std::vector<HemisphericCamera*> &hemi_sampling_cameras,
+        Point2i f_pixel,
+        SurfaceInteraction &f_isect,
+        int tilesize,
+        RayDifferential &f_ray,
+        std::vector<float> &out_probabilities
+        )
+{
+    int len = neighbour_points.size();
+
+    // Invert surface normal if pointing inwards
+    Normal3f surface_normal = f_isect.n;
+    Vector3f sf_norm_vec = Vector3f(f_isect.n.x, f_isect.n.y, f_isect.n.z);
+    Vector3f ray_vec = Vector3f(f_ray.d.x, f_ray.d.y, f_ray.d.z);
+    if (Dot(sf_norm_vec, ray_vec) > 0.0) {
+        surface_normal = Normal3f(
+                    -f_isect.n.x,
+                    -f_isect.n.y,
+                    -f_isect.n.z
+                    );
+    }
+    // Aux ray
+    Ray aux_ray = f_isect.SpawnRay(Vector3f(surface_normal));
+
+    // Compute weights for 3D positions
+    std::vector<float> positionWeights (len);
+    // Compute tile to tile distance
+    float tileToTileDistance = tileToTileMinimumDistance(hemi_sampling_cameras);
+    // Convert distances to weights
+    for (int i = 0; i < len; i++) {
+        if (tileToTileDistance <= 0.0) {
+            positionWeights[i] = 0.0001;
+        } else {
+            float dist = Distance(aux_ray.o, hemi_sampling_cameras[i]->getOriginPosition());
+            positionWeights[i] = std::max(0.0f, (tileToTileDistance - dist))
+                    / (tileToTileDistance);
+        }
+    }
+
+    // Compute weights for 3D normals
+    std::vector<float> normalWeights (len);
+    for (int i = 0; i < len; i++) {
+        normalWeights[i] = iispt::weighting_normals(aux_ray.d, hemi_sampling_cameras[i]->get_look_direction());
+    }
+
+    // Final weights
+    for (int i = 0; i < len; i++) {
+        out_probabilities[i] = positionWeights[i] * normalWeights[i] + 0.0001;
+    }
+
+    // Weights to probabilities
+    iispt::weights_to_probabilities(out_probabilities);
+
+}
+
 // ============================================================================
 void IisptRenderRunner::compute_fpixel_weights_simple(
         std::vector<Point2i> &neighbour_points,
@@ -1209,6 +1266,27 @@ void IisptRenderRunner::transformMapsUpstream(
 
     // Multiply by 10*mean
     intensityFilm->multiply(multiplier);
+}
+
+// ============================================================================
+float IisptRenderRunner::tileToTileMinimumDistance(
+        std::vector<HemisphericCamera*> &hemiSamplingCameras
+        )
+{
+    float minDistance = -1.0;
+    int len = hemiSamplingCameras.size();
+    for (int i = 0; i < len; i++) {
+        for (int j = i + 1; j < len; j++) {
+            float aDistance = Distance(
+                        hemiSamplingCameras[i]->getOriginPosition(),
+                        hemiSamplingCameras[j]->getOriginPosition()
+                        );
+            if (minDistance < 0.0 || aDistance < minDistance) {
+                minDistance = aDistance;
+            }
+        }
+    }
+    return minDistance;
 }
 
 }

@@ -304,6 +304,24 @@ When dot product is 1, distance is 0
 
 When dot product is negative, distance is maximal
 
+## New weight 2
+
+Position weight value is computed as the inverse ratio of the distance among the four points
+
+```
+wi = (dtt - di) / dtt
+```
+
+Where di is one individual distance. dtt is the tile-to-tile minimum distance in world positions. Taken the 4 influence points, calculate the smallest 3D distance among any pair.
+
+Normals weight are computed using the dot product. If the dot product is negative, 0 is used as weight.
+
+The final weight is
+
+```
+Weight_i = DistanceWeight_i * NormalWeight_i + eps
+```
+
 # TODO
 
 Report: net structure for model 7.
@@ -315,5 +333,3 @@ Prevent overfitting: dropout and recording loss on test data
 Rewrite the main_stdio python system. Move the normalization stuff to C++ entirely for efficiency.
 
 Test the 2 interpolation methods.
-
-Fix issue with directly visible area lights being black in both direct and indirect passes.
