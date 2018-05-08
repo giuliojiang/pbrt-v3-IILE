@@ -40,14 +40,27 @@
 
 // samplers/sobol.h*
 #include "sampler.h"
+#include "tools/iisptrng.h"
 
 namespace pbrt {
 
 // SobolSampler Declarations
 class SobolSampler : public GlobalSampler {
-  public:
+
+private:
+
+  // SobolSampler Private Data
+  const Bounds2i sampleBounds;
+  int resolution, log2Resolution;
+
+  std::shared_ptr<IisptRng> rng;
+
+public:
+
     // SobolSampler Public Methods
+
     std::unique_ptr<Sampler> Clone(int seed);
+
     SobolSampler(int64_t samplesPerPixel, const Bounds2i &sampleBounds)
         : GlobalSampler(RoundUpPow2(samplesPerPixel)),
           sampleBounds(sampleBounds) {
@@ -59,14 +72,17 @@ class SobolSampler : public GlobalSampler {
             std::max(sampleBounds.Diagonal().x, sampleBounds.Diagonal().y));
         log2Resolution = Log2Int(resolution);
         if (resolution > 0) CHECK_EQ(1 << log2Resolution, resolution);
+
+        this->rng = std::shared_ptr<IisptRng>(
+                    new IisptRng()
+                    );
     }
+
     int64_t GetIndexForSample(int64_t sampleNum) const;
+
     Float SampleDimension(int64_t index, int dimension) const;
 
-  private:
-    // SobolSampler Private Data
-    const Bounds2i sampleBounds;
-    int resolution, log2Resolution;
+
 };
 
 SobolSampler *CreateSobolSampler(const ParamSet &params,

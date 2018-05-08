@@ -19,6 +19,7 @@ IisptRng::IisptRng(uint64_t seed)
                 );
 }
 
+// upper bound <bound> is exclusive
 uint32_t IisptRng::uniform_uint32(
         uint32_t bound
         )
