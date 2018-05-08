@@ -74,6 +74,38 @@ void IisptFilmMonitor::add_n_samples(
 
 // ============================================================================
 
+void IisptFilmMonitor::addFromIntensityFilm(
+        IntensityFilm* intensityFilm
+        )
+{
+    // The intensity film is straight up while the film monitor
+    // data is in camera format
+
+    lock.lock();
+
+    std::shared_ptr<ImageFilm> imageFilm = intensityFilm->get_image_film();
+    int height = imageFilm->get_height();
+    int width = imageFilm->get_width();
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            PfmItem item = imageFilm->get(x, height - 1 - y);
+            IisptPixel pix = (pixels[y])[x];
+            pix.weight += 1.0;
+            float r, g, b;
+            item.get_triple_component(r, g, b);
+            pix.r += r;
+            pix.g += g;
+            pix.b += b;
+
+            (pixels[y])[x] = pix;
+        }
+    }
+
+    lock.unlock();
+}
+
+// ============================================================================
+
 Bounds2i IisptFilmMonitor::get_film_bounds()
 {
     return film_bounds;

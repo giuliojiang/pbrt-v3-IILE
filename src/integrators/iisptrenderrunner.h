@@ -9,6 +9,7 @@
 #include "integrators/iisptnnconnector.h"
 #include "integrators/iisptschedulemonitor.h"
 #include "integrators/iispt_d.h"
+#include "integrators/directlighting.h"
 #include "rng.h"
 #include "sampler.h"
 #include "camera.h"

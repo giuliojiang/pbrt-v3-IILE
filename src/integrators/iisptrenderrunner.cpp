@@ -585,125 +585,23 @@ void IisptRenderRunner::run_direct(const Scene &scene)
 {
     std::cerr << "iisptrenderrunner.cpp: starting direct illumination pass\n";
 
-    if (lightDistribution == nullptr) {
-        std::cerr << "iisptrenderrunner.cpp::run_direct ERROR lightDistribution is null\n";
-        std::raise(SIGKILL);
-    }
+    std::unique_ptr<DirectLightingIntegrator> directIntegrator (
+                new DirectLightingIntegrator(
+                    LightStrategy::UniformSampleAll,
+                    5,
+                    main_camera,
+                    sampler->Clone(0),
+                    film_monitor_indirect->get_film_bounds()
+                    )
+                );
 
-    Bounds2i bounds = film_monitor_indirect->get_film_bounds();
+    directIntegrator->Render(scene, false);
 
-    // Collect vectors for new additions
-    std::vector<Point2i> additions_pt;
-    std::vector<Spectrum> additions_spectrum;
-    std::vector<double> additions_weights;
-
-    // Loop for each pixel
-    for (int fy = bounds.pMin.y; fy < bounds.pMax.y; fy++) {
-        for (int fx = bounds.pMin.x; fx < bounds.pMax.x; fx++) {
-
-            MemoryArena arena;
-
-            Point2i f_pixel (fx, fy);
-
-            sampler->StartPixel(f_pixel);
-
-            // Loop _pixelsample_ times
-            do {
-
-                CameraSample f_camera_sample =
-                        sampler->GetCameraSample(f_pixel);
-
-                RayDifferential f_r;
-                main_camera->GenerateRayDifferential(
-                    f_camera_sample,
-                    &f_r
-                    );
-                f_r.ScaleDifferentials(1.0);
-
-                SurfaceInteraction f_isect;
-                Spectrum f_beta;
-                Spectrum f_background;
-                RayDifferential f_ray;
-                Spectrum area_out;
-
-                // Find intersection point
-                bool f_intersection_found = find_intersection(
-                            f_r,
-                            scene,
-                            arena,
-                            &f_isect,
-                            &f_ray,
-                            &f_beta,
-                            &f_background,
-                            &area_out
-                            );
-
-                Spectrum L (0.0);
-                L += area_out;
-
-                if (!f_intersection_found) {
-                    // No intersection found, record background
-                    additions_pt.push_back(f_pixel);
-                    L += f_background;
-                    additions_spectrum.push_back(L);
-                    additions_weights.push_back(1.0);
-                    continue;
-                } else if (f_intersection_found && f_beta.y() <= 0.0) {
-                    // Intersection found but black pixel
-                    // Nothing to do
-                    additions_pt.push_back(f_pixel);
-                    additions_spectrum.push_back(L);
-                    additions_weights.push_back(1.0);
-                    continue;
-                }
-
-                // Compute scattering functions for surface interaction
-                f_isect.ComputeScatteringFunctions(f_ray, arena);
-                if (!f_isect.bsdf) {
-                    // This should not be possible, because find_intersection()
-                    // would have skipped the intersection
-                    // so do nothing
-                    continue;
-                }
-
-                // wo is vector towards viewer, from intersection
-                Vector3f wo = f_isect.wo;
-                Float wo_length = Dot(wo, wo);
-                if (wo_length == 0) {
-                    std::cerr << "iisptrenderrunner.cpp: Detected a 0 length wo" << std::endl;
-                    raise(SIGKILL);
-                    exit(1);
-                }
-
-
-
-                // Sample one direct lighting
-                const Distribution1D* distribution = lightDistribution->Lookup(f_isect.p);
-                L += path_uniform_sample_one_light(
-                            f_isect,
-                            scene,
-                            arena,
-                            false,
-                            distribution
-                            );
-
-                // Record sample
-                additions_pt.push_back(f_pixel);
-                additions_spectrum.push_back(f_beta * L);
-                additions_weights.push_back(1.0);
-
-            } while (sampler->StartNextSample());
-
-        }
-    }
+    std::unique_ptr<IntensityFilm> directFilm = main_camera->film->to_intensity_film();
 
     std::cerr << "iisptrenderrunner.cpp: Completed direct pass loop\n";
 
-    film_monitor_direct->add_n_samples(
-                additions_pt,
-                additions_spectrum,
-                additions_weights
-                );
+    film_monitor_direct->addFromIntensityFilm(directFilm.get());
 
     std::cerr << "iisptrenderrunner.cpp: Completed direct pass add_n_samples\n";
 }
