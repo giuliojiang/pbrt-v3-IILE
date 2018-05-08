@@ -521,7 +521,6 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 // Compute weights and probabilities for neighbours
                 std::vector<float> hemi_sampling_weights (4);
-                std::cerr << "iisptrenderrunner: cweights in\n";
                 compute_fpixel_weights(
                             neighbour_points,
                             hemi_sampling_cameras,
@@ -531,7 +530,6 @@ void IisptRenderRunner::run(const Scene &scene)
                             f_ray,
                             hemi_sampling_weights // << output
                             );
-                std::cerr << "iisptrenderrunner: cweights out\n";
 
                 // Compute scattering functions for surface interaction
                 f_isect.ComputeScatteringFunctions(f_ray, arena);
