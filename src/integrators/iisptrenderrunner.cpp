@@ -416,14 +416,19 @@ void IisptRenderRunner::run(const Scene &scene)
 
         std::cerr << "iisptrenderrunner.cpp: Start hemi evaluation\n";
 
-        ThreadPool threadPool (iile::cpusCount());
+        ThreadPool threadPool (1);
         std::vector<std::future<void>> threadFutures;
+        std::mutex mutex;
+        int tno = 0;
 
         for (int fy = sm_task.y0; fy < sm_task.y1; fy++) {
 
             threadFutures.push_back(threadPool.enqueue([&, fy]() {
 
                 for (int fx = sm_task.x0; fx < sm_task.x1; fx++) {
+
+                    std::unique_ptr<Sampler> tSampler = sampler->Clone(tno++);
+                    MemoryArena arena2;
 
                     Point2i f_pixel (fx, fy);
 
@@ -462,6 +467,7 @@ void IisptRenderRunner::run(const Scene &scene)
                     std::vector<HemisphericCamera*> hemi_sampling_cameras (4);
 
                     auto hemi_point_get = [&](Point2i pt) {
+                        std::unique_lock<std::mutex> lock (mutex);
                         IisptPoint2i pt_key;
                         pt_key.x = pt.x;
                         pt_key.y = pt.y;
@@ -485,7 +491,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
                     sampler_next_pixel();
                     CameraSample f_camera_sample =
-                            sampler->GetCameraSample(f_pixel);
+                            tSampler->GetCameraSample(f_pixel);
 
                     RayDifferential f_r;
                     main_camera->GenerateRayDifferential(
@@ -504,7 +510,7 @@ void IisptRenderRunner::run(const Scene &scene)
                     bool f_intersection_found = find_intersection(
                                 f_r,
                                 scene,
-                                arena,
+                                arena2,
                                 &f_isect,
                                 &f_ray,
                                 &f_beta,
@@ -538,7 +544,7 @@ void IisptRenderRunner::run(const Scene &scene)
                                 );
 
                     // Compute scattering functions for surface interaction
-                    f_isect.ComputeScatteringFunctions(f_ray, arena);
+                    f_isect.ComputeScatteringFunctions(f_ray, arena2);
                     if (!f_isect.bsdf) {
                         // This should not be possible, because find_intersection()
                         // would have skipped the intersection
@@ -565,15 +571,19 @@ void IisptRenderRunner::run(const Scene &scene)
                                 );
 
                     // Record sample
+                    mutex.lock();
                     additions_pt.push_back(f_pixel);
                     additions_spectrum.push_back(f_beta * L);
                     additions_weights.push_back(1.0);
+                    mutex.unlock();
 
                 }
 
             }));
 
         }
+
+        std::cerr << "iisptrenderrunner.cpp: All rows queued\n";
 
         for (int i = 0; i < threadFutures.size(); i++) {
             threadFutures[i].get();
@@ -1235,5 +1245,6 @@ float IisptRenderRunner::tileToTileMinimumDistance(
     }
     return minDistance;
 }
+
 
 }
