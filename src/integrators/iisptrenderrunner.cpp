@@ -404,10 +404,10 @@ void IisptRenderRunner::run(const Scene &scene)
         // to a film pixel
 
         // Neigh:
-        //     S - top left
-        //     R - top right
-        //     B - bottom left
-        //     E - bottom right
+        //     0 S - top left
+        //     1 R - top right
+        //     2 B - bottom left
+        //     3 E - bottom right
 
         // Collect vectors for new additions
         std::vector<Point2i> additions_pt;
@@ -1118,20 +1118,46 @@ void IisptRenderRunner::compute_fpixel_weights_3d(
     // Aux ray
     Ray aux_ray = f_isect.SpawnRay(Vector3f(surface_normal));
 
-    // Compute weights for 3D positions
+    // Compute weights for 3D positions using bilinear interpolation
+
+    // Left side interpolation
+    Point2i leftSideFPixel (neighbour_points[0].x, f_pixel.y);
+    Point2i interpolationLeftPoint;
+    float interpolationS = iispt::linearRatioDistance(
+                leftSideFPixel,
+                neighbour_points[0],
+                neighbour_points[2],
+                interpolationLeftPoint
+                );
+    float interpolationB = 1.0f - interpolationS;
+
+    // Right side interpolation
+    Point2i rightSideFPixel (neighbour_points[1].x, f_pixel.y);
+    Point2i interpolationRightPoint;
+    float interpolationR = iispt::linearRatioDistance(
+                rightSideFPixel,
+                neighbour_points[1],
+                neighbour_points[3],
+                interpolationRightPoint
+                );
+    float interpolationE = 1.0f - interpolationR;
+
+    // Horizontal interpolation
+    Point2i interpolationCentral;
+    float interpolationHL = iispt::linearRatioDistance(
+                f_pixel,
+                interpolationLeftPoint,
+                interpolationRightPoint,
+                interpolationCentral
+                );
+    float interpolationHR = 1.0f - interpolationHL;
+
+    // Compute final interpolation values
     std::vector<float> positionWeights (len);
-    // Compute tile to tile distance
-    float tileToTileDistance = tileToTileMinimumDistance(hemi_sampling_cameras);
-    // Convert distances to weights
-    for (int i = 0; i < len; i++) {
-        if (tileToTileDistance <= 0.0) {
-            positionWeights[i] = 0.0001;
-        } else {
-            float dist = Distance(aux_ray.o, hemi_sampling_cameras[i]->getOriginPosition());
-            positionWeights[i] = std::max(0.0f, (tileToTileDistance - dist))
-                    / (tileToTileDistance);
-        }
-    }
+    positionWeights[0] = interpolationHL * interpolationS;
+    positionWeights[1] = interpolationHR * interpolationR;
+    positionWeights[2] = interpolationHL * interpolationB;
+    positionWeights[3] = interpolationHR * interpolationE;
 
     // Compute weights for 3D normals
     std::vector<float> normalWeights (len);

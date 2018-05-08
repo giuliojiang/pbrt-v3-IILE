@@ -171,6 +171,25 @@ static float clamp(float x, float min, float max) {
     return x;
 }
 
+// ============================================================================
+// Returns the importance of the left side
+static float linearRatio(float left, float right) {
+    if (left + right <= 0.0) {
+        return 0.5;
+    }
+    return right / (left + right);
+}
+
+// ============================================================================
+// Returns the importance for point A
+static float linearRatioDistance(Point2i x, Point2i a, Point2i b, Point2i &out) {
+    float left = Distance(a, x);
+    float right = Distance(b, x);
+    float leftRatio = linearRatio(left, right);
+    out = (a * leftRatio) + (b * (1.0 - leftRatio));
+    return leftRatio;
+}
+
 } // namespace iispt
 
 } // namespace pbrt
