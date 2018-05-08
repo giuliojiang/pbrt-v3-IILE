@@ -3,8 +3,8 @@
 namespace pbrt {
 
 // ============================================================================
-void DistanceFilm::set(int x, int y, float val) {
-    film->set(x, y, PfmItem(val));
+void DistanceFilm::set_camera_coord(int x, int y, float val) {
+    film->set_camera_coord(x, y, PfmItem(val));
 }
 
 // ============================================================================

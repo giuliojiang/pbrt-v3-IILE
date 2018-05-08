@@ -5,6 +5,8 @@
 #include <vector>
 #include <iostream>
 #include <cstdlib>
+#include <functional>
+#include <cmath>
 
 #include "pfmitem.h"
 
@@ -22,6 +24,11 @@ private:
     int num_components;
 
     std::vector<PfmItem> data;
+
+    // ========================================================================
+    // Private methods
+
+    void map(std::function<float(float)> func);
 
 public:
 
@@ -51,6 +58,8 @@ public:
 
     // Set ====================================================================
     void set(int x, int y, PfmItem pixel);
+
+    void set_camera_coord(int x, int y, PfmItem pixel);
 
     // Get ====================================================================
     PfmItem get(int x, int y);
@@ -86,6 +95,34 @@ public:
     // ========================================================================
     // Populate from float array
     void populate_from_float_array(float* floats);
+
+    // ========================================================================
+    // Compute mean
+    float computeMean();
+
+    // ========================================================================
+    // Multiply
+    void multiply(float ratio);
+
+    // ========================================================================
+    // Log
+    void positiveLog();
+
+    // ========================================================================
+    // Add
+    void add(float amount);
+
+    // ========================================================================
+    // Normalize
+    void normalize(float minVal, float maxVal);
+
+    // ========================================================================
+    // LogInverse
+    void positiveLogInverse();
+
+    // ========================================================================
+    // Print samples
+    void testPrintValueSamples();
 
 };
 

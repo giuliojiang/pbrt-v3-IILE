@@ -3,35 +3,42 @@ import os
 import subprocess
 
 import torch
+from torch import nn
 from torch.autograd.variable import Variable
 import numpy
 
 import config
 import iispt_dataset
 import pfm
+import iispt_net
 
 pydir = os.path.dirname(os.path.abspath(__file__)) # root/ml
 rootdir = os.path.dirname(pydir)
 os.chdir(rootdir)
+
+pfmExecutable = os.path.join(rootdir, "tools", "pfm.js")
 
 def print_force(s):
     print(s)
     sys.stdout.flush()
 
 def convert_image(pfm_path, output_path, png_path):
-    subprocess.call(["pfm", pfm_path, "--out=" + output_path])
+    subprocess.call([pfmExecutable, pfm_path, "--out=" + output_path])
     subprocess.call(["convert", output_path, png_path])
 
 def main():
 
     # Load dataset
-    trainset, testset = iispt_dataset.load_dataset(config.testset, 0.0)
+    trainset, testset = iispt_dataset.load_dataset(config.testset, 1.0)
 
     selected_set = testset
     selected_set_len = testset.__len__()
 
     # Load model
-    net = torch.load(config.model_path)
+    net = iispt_net.IISPTNet()
+    net.load_state_dict(torch.load(config.model_path))
+    # Put in eval mode
+    net.eval()
     print_force("#LOADCOMPLETE {}".format(selected_set_len))
 
 
@@ -49,19 +56,21 @@ def main():
             continue
         item = selected_set.__getitem__(idx)
         item_input = item["t"]
+        item_input = item_input.unsqueeze(0)
         item_expected = item["p"]
 
         # Run the network on the data
         input_variable = Variable(item_input)
         print_force("Input variable.data is {}".format(input_variable.data))
         result = net(input_variable)
+        
         print_force("Result.data is {}".format(result.data))
         print_force("Expected is {}".format(item_expected))
 
         # TODO inverse log transform
 
         # Save the created result
-        result_image = pfm.load_from_flat_numpy(result.data.numpy())
+        result_image = pfm.loadFromConvOutNpArray(result.data.numpy()[0])
         # Upstream processing
         result_image.normalize_intensity_upstream(item["mean"])
         result_image.save_pfm("created.pfm")

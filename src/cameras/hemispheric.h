@@ -22,7 +22,9 @@ private:
     // Fields -----------------------------------------------------------------
     std::shared_ptr<IntensityFilm> nn_film = nullptr;
 
+    // Location and direction of this camera
     Vector3f look_direction;
+    Point3f originPosition;
 
 public:
 
@@ -34,12 +36,14 @@ public:
             Film* film,
             const Medium* medium,
             Vector3f look_direction,
+            Point3f originPosition,
             std::unique_ptr<Transform> WorldToCamera
             ) :
         Camera(CameraToWorld, shutterOpen, shutterClose, film, medium)
     {
 
         this->look_direction = look_direction;
+        this->originPosition = originPosition;
         this->WorldToCamera = std::move(WorldToCamera);
 
     }
@@ -78,6 +82,10 @@ public:
 
     Vector3f get_look_direction() {
         return this->look_direction;
+    }
+
+    Point3f getOriginPosition() {
+        return this->originPosition;
     }
 
 };

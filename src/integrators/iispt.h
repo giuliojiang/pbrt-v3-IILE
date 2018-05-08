@@ -49,8 +49,6 @@
 
 namespace pbrt {
 
-const int IISPT_NORMALIZATION_ESTIMATION_SAMPLES = 10000;
-
 // IISPTIntegrator Declarations
 class IISPTIntegrator : public SamplerIntegrator {
 public:
@@ -87,22 +85,6 @@ public:
 
     void render_reference(const Scene &scene);
 
-    Float get_normalization_intensity() {
-        if (max_intensity == -1) {
-            std::cerr << "iispt.h: max_intensity was not populated";
-            raise(SIGKILL);
-        }
-        return max_intensity;
-    }
-
-    Float get_normalization_distance() {
-        if (max_distance == -1) {
-            std::cerr << "iispt.h: max_distance was not populated";
-            raise(SIGKILL);
-        }
-        return max_distance;
-    }
-
 private:
     // IISPTIntegrator Private Data -------------------------------------------
     const int maxDepth;
@@ -113,9 +95,6 @@ private:
 
     std::shared_ptr<Camera> dcamera;
     std::shared_ptr<IISPTdIntegrator> dintegrator;
-
-    Float max_intensity = -1;
-    Float max_distance = -1;
 
     // Private methods --------------------------------------------------------
 
@@ -147,13 +126,6 @@ private:
             int depth,
             Point2i pixel
             ) const;
-
-    void estimate_normalization(const Scene &scene);
-
-    void estimate_normalization_values(
-            const Scene &scene,
-            Vector2i sample_extent
-            );
 
     void write_info_file(std::string out_filename);
 

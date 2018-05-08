@@ -100,15 +100,15 @@ Spectrum IISPTdIntegrator::Li(const RayDifferential &r,
                 Vector3f connecting_vector = isect.p - ray.o;
                 float d2 = Dot(connecting_vector, connecting_vector);
                 float d = sqrt(d2);
-                distance_film->set(x, y, d);
+                distance_film->set_camera_coord(x, y, d);
 
                 // Compute camera-relative normal film
                 Normal3f cameraNormal = camera->WorldToCamera
                         ->operator()(isect.n);
-                normal_film->set(x, y, cameraNormal);
+                normal_film->set_camera_coord(x, y, cameraNormal);
             } else {
-                distance_film->set(x, y, NO_INTERSECTION_DISTANCE);
-                normal_film->set(x, y, Normal3f(0.0, 0.0, 0.0));
+                distance_film->set_camera_coord(x, y, NO_INTERSECTION_DISTANCE);
+                normal_film->set_camera_coord(x, y, Normal3f(0.0, 0.0, 0.0));
             }
         }
 

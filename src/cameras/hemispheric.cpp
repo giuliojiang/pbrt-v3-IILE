@@ -158,7 +158,7 @@ HemisphericCamera* CreateHemisphericCamera(
     Float shutterclose = 1.f;
 
     return new HemisphericCamera(cam2world, shutteropen, shutterclose,
-                                 film, medium, dir, std::move(worldToCamera));
+                                 film, medium, dir, pos, std::move(worldToCamera));
 
 }
 

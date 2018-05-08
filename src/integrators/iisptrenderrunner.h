@@ -67,15 +67,14 @@ private:
 
     void generate_random_pixel(int* x, int* y);
 
-    bool find_intersection(
-            RayDifferential r,
+    bool find_intersection(RayDifferential r,
             const Scene &scene,
             MemoryArena &arena,
             SurfaceInteraction* isect_out,
             RayDifferential* ray_out,
             Spectrum* beta_out,
             Spectrum* background_out
-            );
+            , Spectrum *emitted_out);
 
     double compute_filter_weight(
             int cx, // Centre sampling pixel
@@ -126,6 +125,16 @@ private:
             std::vector<float> &out_probabilities
             );
 
+    void compute_fpixel_weights_3d(
+            std::vector<Point2i> &neighbour_points,
+            std::vector<HemisphericCamera*> &hemi_sampling_cameras,
+            Point2i f_pixel,
+            SurfaceInteraction &f_isect,
+            int tilesize,
+            RayDifferential &f_ray,
+            std::vector<float> &out_probabilities
+            );
+
     void compute_fpixel_weights_simple(
             std::vector<Point2i> &neighbour_points,
             std::vector<HemisphericCamera*> &hemi_sampling_cameras,
@@ -134,6 +143,21 @@ private:
             int tilesize,
             RayDifferential &f_ray,
             std::vector<float> &out_probabilities
+            );
+
+    float normalizeMapsDownstream(
+            IntensityFilm* intensity,
+            NormalFilm* normals,
+            DistanceFilm* distance
+            );
+
+    void transformMapsUpstream(
+            IntensityFilm* intensity,
+            float targetMean
+            );
+
+    float tileToTileMinimumDistance(
+            std::vector<HemisphericCamera*> &hemiSamplingCameras
             );
 
 public:

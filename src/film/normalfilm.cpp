@@ -3,8 +3,8 @@
 namespace pbrt {
 
 // ============================================================================
-void NormalFilm::set(int x, int y, Normal3f n) {
-    film->set(x, y, PfmItem(n.x, n.y, n.z));
+void NormalFilm::set_camera_coord(int x, int y, Normal3f n) {
+    film->set_camera_coord(x, y, PfmItem(n.x, n.y, n.z));
 }
 
 // ============================================================================

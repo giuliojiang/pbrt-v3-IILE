@@ -23,6 +23,13 @@ void ImageFilm::set(int x, int y, PfmItem pixel) {
 
 }
 
+void ImageFilm::set_camera_coord(int xx, int yy, PfmItem pixel)
+{
+    int x = xx;
+    int y = height - 1 - yy;
+    set(x, y, pixel);
+}
+
 // ============================================================================
 PfmItem ImageFilm::get(int x, int y) {
 
@@ -150,6 +157,132 @@ void ImageFilm::populate_from_float_array(float* floats) {
             data[i] = PfmItem(r, g, b);
         }
     }
+}
+
+// ============================================================================
+// Compute mean
+
+float ImageFilm::computeMean()
+{
+    double sum = 0.0;
+    int count = 0;
+
+    for (int i = 0; i < data.size(); i++) {
+        PfmItem item = data[i];
+        if (num_components == 1) {
+            sum += item.get_single_component();
+            count += 1;
+        } else {
+            float r, g, b;
+            item.get_triple_component(r, g, b);
+            sum += (r + g + b);
+            count += 3;
+        }
+    }
+
+    return sum / count;
+}
+
+// ============================================================================
+// Map
+
+void ImageFilm::map(std::function<float(float)> func)
+{
+    for (int i = 0; i < data.size(); i++) {
+        PfmItem item = data[i];
+        if (num_components == 1) {
+            item.r = func(item.r);
+        } else {
+            item.r = func(item.r);
+            item.g = func(item.g);
+            item.b = func(item.b);
+        }
+        data[i] = item;
+    }
+}
+
+// ============================================================================
+// Multiply
+void ImageFilm::multiply(float ratio)
+{
+    map([&](float v) {
+        return v * ratio;
+    });
+}
+
+// ============================================================================
+// Log
+void ImageFilm::positiveLog()
+{
+    map([&](float v) {
+        float vv = v;
+        if (vv <= 0.0) {
+            vv = 0.0;
+        }
+        return std::log(1.0 + vv);
+    });
+}
+
+// ============================================================================
+// PositiveLogInverse
+void ImageFilm::positiveLogInverse()
+{
+    map([&](float v) {
+        float y = v;
+        if (y < 0.0) {
+            y = 0.0;
+        }
+        return std::exp(y) - 1.0;
+    });
+}
+
+// ============================================================================
+// Add
+void ImageFilm::add(float amount)
+{
+    map([&](float v) {
+        return v + amount;
+    });
+}
+
+// ============================================================================
+// Normalize
+void ImageFilm::normalize(float minVal, float maxVal)
+{
+    float mid = (minVal + maxVal) / 2.0;
+    float r = maxVal - mid;
+    if (r == 0) {
+        r = 1.0;
+    }
+
+    map([&](float v) {
+        float x = v;
+        x = x - mid;
+        x = x / r;
+        if (x < -1.0) {
+            return -1.0f;
+        } else if (x > 1.0) {
+            return 1.0f;
+        } else {
+            return x;
+        }
+    });
+}
+
+// ============================================================================
+void ImageFilm::testPrintValueSamples()
+{
+    for (int i = 0; i < data.size(); i += 51) {
+        if (num_components == 1) {
+            float val = data[i].get_single_component();
+            std::cerr << " " << val;
+        } else {
+            float r, g, b;
+            data[i].get_triple_component(r, g, b);
+            std::cerr << " ["<< r <<"]["<< g <<"]["<< b <<"]";
+        }
+    }
+    std::cerr << std::endl;
 }
 
 } // namespace pbrt

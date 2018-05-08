@@ -190,7 +190,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
     // Read number of passes environment variable
     char* num_passes_env = std::getenv("IISPT_INDIRECT_PASSES");
-    int num_passes = 3;
+    int num_passes = 2;
     if (num_passes_env != NULL) {
         num_passes = std::stoi(std::string(num_passes_env));
     }
@@ -256,6 +256,7 @@ void IisptRenderRunner::run(const Scene &scene)
             Spectrum beta;
             Spectrum background;
             RayDifferential ray;
+            Spectrum area_out;
 
             bool intersection_found = find_intersection(
                         r,
@@ -264,7 +265,8 @@ void IisptRenderRunner::run(const Scene &scene)
                         &isect,
                         &ray,
                         &beta,
-                        &background
+                        &background,
+                        &area_out
                         );
 
             if (!intersection_found || beta.y() <= 0.0) {
@@ -334,16 +336,24 @@ void IisptRenderRunner::run(const Scene &scene)
                 DistanceFilm* aux_distance =
                         d_integrator->get_distance_film();
 
+                // Normalize the maps
+                float intensityMean = normalizeMapsDownstream(
+                            aux_intensity.get(),
+                            aux_normals,
+                            aux_distance
+                            );
+
                 int communicate_status = -1;
                 std::shared_ptr<IntensityFilm> nn_film =
                         nn_connector->communicate(
                             aux_intensity.get(),
                             aux_distance,
                             aux_normals,
-                            iispt_integrator->get_normalization_intensity(),
-                            iispt_integrator->get_normalization_distance(),
                             communicate_status
                             );
+
+                // Upstream transforms on returned intensity
+                transformMapsUpstream(nn_film.get(), intensityMean);
 
                 if (communicate_status) {
                     std::cerr << "NN communication issue" << std::endl;
@@ -394,15 +404,17 @@ void IisptRenderRunner::run(const Scene &scene)
         // to a film pixel
 
         // Neigh:
-        //     S - top left
-        //     R - top right
-        //     B - bottom left
-        //     E - bottom right
+        //     0 S - top left
+        //     1 R - top right
+        //     2 B - bottom left
+        //     3 E - bottom right
 
         // Collect vectors for new additions
         std::vector<Point2i> additions_pt;
         std::vector<Spectrum> additions_spectrum;
         std::vector<double> additions_weights;
+
+        std::cerr << "iisptrenderrunner.cpp: Start hemi evaluation\n";
 
         for (int fy = sm_task.y0; fy < sm_task.y1; fy++) {
             for (int fx = sm_task.x0; fx < sm_task.x1; fx++) {
@@ -410,10 +422,9 @@ void IisptRenderRunner::run(const Scene &scene)
                 Point2i f_pixel (fx, fy);
 
                 Point2i neigh_s (
-                            fx - (fx % sm_task.tilesize),
-                            fy - (fy % sm_task.tilesize)
+                            fx - (iispt::positiveModulo(fx - sm_task.x0, sm_task.tilesize)),
+                            fy - (iispt::positiveModulo(fy - sm_task.y0, sm_task.tilesize))
                             );
-
 
                 Point2i neigh_e (
                             std::min(
@@ -448,6 +459,10 @@ void IisptRenderRunner::run(const Scene &scene)
                     IisptPoint2i pt_key;
                     pt_key.x = pt.x;
                     pt_key.y = pt.y;
+                    if (hemi_points.count(pt_key) <= 0) {
+                        std::cerr << "iisptrenderrunner.cpp: hemi_points does not have key ["<< pt.x <<"]["<< pt.y <<"]\n";
+                        std::raise(SIGKILL);
+                    }
                     std::shared_ptr<HemisphericCamera> a_cmr =
                             hemi_points.at(pt_key);
                     if (a_cmr == nullptr) {
@@ -477,6 +492,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 Spectrum f_beta;
                 Spectrum f_background;
                 RayDifferential f_ray;
+                Spectrum area_out;
 
                 // Find intersection point
                 bool f_intersection_found = find_intersection(
@@ -486,7 +502,8 @@ void IisptRenderRunner::run(const Scene &scene)
                             &f_isect,
                             &f_ray,
                             &f_beta,
-                            &f_background
+                            &f_background,
+                            &area_out
                             );
 
                 if (!f_intersection_found) {
@@ -504,7 +521,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 // Compute weights and probabilities for neighbours
                 std::vector<float> hemi_sampling_weights (4);
-                compute_fpixel_weights_simple(
+                compute_fpixel_weights(
                             neighbour_points,
                             hemi_sampling_cameras,
                             f_pixel,
@@ -547,6 +564,8 @@ void IisptRenderRunner::run(const Scene &scene)
                 additions_weights.push_back(1.0);
             }
         }
+
+        std::cerr << "iisptrenderrunner.cpp: End hemi evaluation\n";
 
         film_monitor_indirect->add_n_samples(
                     additions_pt,
@@ -605,6 +624,7 @@ void IisptRenderRunner::run_direct(const Scene &scene)
                 Spectrum f_beta;
                 Spectrum f_background;
                 RayDifferential f_ray;
+                Spectrum area_out;
 
                 // Find intersection point
                 bool f_intersection_found = find_intersection(
@@ -614,18 +634,26 @@ void IisptRenderRunner::run_direct(const Scene &scene)
                             &f_isect,
                             &f_ray,
                             &f_beta,
-                            &f_background
+                            &f_background,
+                            &area_out
                             );
+
+                Spectrum L (0.0);
+                L += area_out;
 
                 if (!f_intersection_found) {
                     // No intersection found, record background
                     additions_pt.push_back(f_pixel);
-                    additions_spectrum.push_back(f_background);
+                    L += f_background;
+                    additions_spectrum.push_back(L);
                     additions_weights.push_back(1.0);
                     continue;
                 } else if (f_intersection_found && f_beta.y() <= 0.0) {
                     // Intersection found but black pixel
                     // Nothing to do
+                    additions_pt.push_back(f_pixel);
+                    additions_spectrum.push_back(L);
+                    additions_weights.push_back(1.0);
                     continue;
                 }
 
@@ -647,7 +675,7 @@ void IisptRenderRunner::run_direct(const Scene &scene)
                     exit(1);
                 }
 
-                Spectrum L (0.0);
+
 
                 // Sample one direct lighting
                 const Distribution1D* distribution = lightDistribution->Lookup(f_isect.p);
@@ -659,9 +687,6 @@ void IisptRenderRunner::run_direct(const Scene &scene)
                             distribution
                             );
 
-                // Compute emitted light if ray hit an area light source
-                L += f_isect.Le(wo);
-
                 // Record sample
                 additions_pt.push_back(f_pixel);
                 additions_spectrum.push_back(f_beta * L);
@@ -672,11 +697,15 @@ void IisptRenderRunner::run_direct(const Scene &scene)
         }
     }
 
+    std::cerr << "iisptrenderrunner.cpp: Completed direct pass loop\n";
+
     film_monitor_direct->add_n_samples(
                 additions_pt,
                 additions_spectrum,
                 additions_weights
                 );
+
+    std::cerr << "iisptrenderrunner.cpp: Completed direct pass add_n_samples\n";
 }
 
 // ============================================================================
@@ -710,7 +739,8 @@ bool IisptRenderRunner::find_intersection(
         SurfaceInteraction* isect_out,
         RayDifferential* ray_out,
         Spectrum* beta_out,
-        Spectrum* background_out
+        Spectrum* background_out,
+        Spectrum* emitted_out
         )
 {
 
@@ -732,6 +762,13 @@ bool IisptRenderRunner::find_intersection(
             }
             *background_out = L;
             return false;
+        }
+
+        // Possibly add emitted light at intersection
+        // It's always a specular bounce
+        if (found_intersection) {
+            Spectrum emittedOutUpdated = *emitted_out + (beta * isect.Le(-ray.d));
+            *emitted_out = emittedOutUpdated;
         }
 
         // Compute scattering functions
@@ -1009,6 +1046,7 @@ void IisptRenderRunner::compute_fpixel_weights(
         std::vector<float> &out_probabilities
         )
 {
+
     int len = neighbour_points.size();
 
     // Invert surface normal if pointing inwards
@@ -1038,10 +1076,14 @@ void IisptRenderRunner::compute_fpixel_weights(
     // Weighting distance for normals
     std::vector<float> wdnor (len);
     for (int i = 0; i < len; i++) {
-        wdnor[i] = iispt::weighting_distance_normals(
-                    aux_ray.d,
-                    hemi_sampling_cameras[i]->get_look_direction()
-                    );
+        if (!hemi_sampling_cameras[i]) {
+            wdnor[i] = 0.0f;
+        } else {
+            wdnor[i] = iispt::weighting_distance_normals(
+                        aux_ray.d,
+                        hemi_sampling_cameras[i]->get_look_direction()
+                        );
+        }
     }
 
     // Weighting overall distance
@@ -1057,6 +1099,89 @@ void IisptRenderRunner::compute_fpixel_weights(
 
     // Weights to probabilities
     iispt::weights_to_probabilities(out_probabilities);
+}
+
+void IisptRenderRunner::compute_fpixel_weights_3d(
+        std::vector<Point2i> &neighbour_points,
+        std::vector<HemisphericCamera*> &hemi_sampling_cameras,
+        Point2i f_pixel,
+        SurfaceInteraction &f_isect,
+        int tilesize,
+        RayDifferential &f_ray,
+        std::vector<float> &out_probabilities
+        )
+{
+    int len = neighbour_points.size();
+
+    // Invert surface normal if pointing inwards
+    Normal3f surface_normal = f_isect.n;
+    Vector3f sf_norm_vec = Vector3f(f_isect.n.x, f_isect.n.y, f_isect.n.z);
+    Vector3f ray_vec = Vector3f(f_ray.d.x, f_ray.d.y, f_ray.d.z);
+    if (Dot(sf_norm_vec, ray_vec) > 0.0) {
+        surface_normal = Normal3f(
+                    -f_isect.n.x,
+                    -f_isect.n.y,
+                    -f_isect.n.z
+                    );
+    }
+    // Aux ray
+    Ray aux_ray = f_isect.SpawnRay(Vector3f(surface_normal));
+
+    // Compute weights for 3D positions using bilinear interpolation
+
+    // Left side interpolation
+    Point2i leftSideFPixel (neighbour_points[0].x, f_pixel.y);
+    Point2i interpolationLeftPoint;
+    float interpolationS = iispt::linearRatioDistance(
+                leftSideFPixel,
+                neighbour_points[0],
+                neighbour_points[2],
+                interpolationLeftPoint
+                );
+    float interpolationB = 1.0f - interpolationS;
+
+    // Right side interpolation
+    Point2i rightSideFPixel (neighbour_points[1].x, f_pixel.y);
+    Point2i interpolationRightPoint;
+    float interpolationR = iispt::linearRatioDistance(
+                rightSideFPixel,
+                neighbour_points[1],
+                neighbour_points[3],
+                interpolationRightPoint
+                );
+    float interpolationE = 1.0f - interpolationR;
+
+    // Horizontal interpolation
+    Point2i interpolationCentral;
+    float interpolationHL = iispt::linearRatioDistance(
+                f_pixel,
+                interpolationLeftPoint,
+                interpolationRightPoint,
+                interpolationCentral
+                );
+    float interpolationHR = 1.0f - interpolationHL;
+
+    // Compute final interpolation values
+    std::vector<float> positionWeights (len);
+    positionWeights[0] = interpolationHL * interpolationS;
+    positionWeights[1] = interpolationHR * interpolationR;
+    positionWeights[2] = interpolationHL * interpolationB;
+    positionWeights[3] = interpolationHR * interpolationE;
+
+    // Compute weights for 3D normals
+    std::vector<float> normalWeights (len);
+    for (int i = 0; i < len; i++) {
+        normalWeights[i] = iispt::weighting_normals(aux_ray.d, hemi_sampling_cameras[i]->get_look_direction());
+    }
+
+    // Final weights
+    for (int i = 0; i < len; i++) {
+        out_probabilities[i] = positionWeights[i] * normalWeights[i] + 0.0001;
+    }
+
+    // Weights to probabilities
+    iispt::weights_to_probabilities(out_probabilities);
+
 }
 
 // ============================================================================
@@ -1096,6 +1221,107 @@ void IisptRenderRunner::compute_fpixel_weights_simple(
 
     // To probabilities
     iispt::weights_to_probabilities(out_probabilities);
+}
+
+// ============================================================================
+// <return> the mean value of the Intensity Film
+float IisptRenderRunner::normalizeMapsDownstream(
+        IntensityFilm* intensity,
+        NormalFilm* normals,
+        DistanceFilm* distance
+        )
+{
+    // Intensity --------------------------------------------------------------
+
+    // Compute mean of intensity
+    std::shared_ptr<ImageFilm> intensityFilm = intensity->get_image_film();
+    float intensityMean = intensityFilm->computeMean();
+
+    // Divide by 10*mean
+    float multRatio = intensityMean == 0.0 ?
+                0.0 :
+                (1.0 / (10.0 * intensityMean));
+    intensityFilm->multiply(multRatio);
+
+    // Log
+    intensityFilm->positiveLog();
+
+    // Subtract 0.1
+    intensityFilm->add(-0.1);
+
+    // Normals ----------------------------------------------------------------
+
+    normals->get_image_film()->normalize(-1.0, 1.0);
+
+    // Distance ---------------------------------------------------------------
+
+    std::shared_ptr<ImageFilm> distanceFilm = distance->get_image_film();
+
+    float zMean = distanceFilm->computeMean();
+
+    // Add 1
+    distanceFilm->add(1.0);
+
+    // Divide by 10 * (mean + 1)
+    float distanceDiv = 10.0 * (zMean + 1.0);
+    if (distanceDiv == 0) {
+        distanceDiv = 1.0;
+    }
+    distanceFilm->multiply(1.0 / distanceDiv);
+
+    // Log
+    distanceFilm->positiveLog();
+
+    // Subtract 0.1
+    distanceFilm->add(-0.1);
+
+    return intensityMean;
+}
+
+// ============================================================================
+void IisptRenderRunner::transformMapsUpstream(
+        IntensityFilm* intensity,
+        float targetMean
+        )
+{
+    std::shared_ptr<ImageFilm> intensityFilm = intensity->get_image_film();
+
+    // Log inverse
+    intensityFilm->positiveLogInverse();
+
+    // Compute actual mean
+    float actualMean = intensityFilm->computeMean();
+
+    float multiplier;
+    if (actualMean > 0.0) {
+        multiplier = targetMean / actualMean;
+    } else {
+        multiplier = 1.0;
+    }
+
+    // Multiply by 10*mean
+    intensityFilm->multiply(multiplier);
+}
+
+// ============================================================================
+float IisptRenderRunner::tileToTileMinimumDistance(
+        std::vector<HemisphericCamera*> &hemiSamplingCameras
+        )
+{
+    float minDistance = -1.0;
+    int len = hemiSamplingCameras.size();
+    for (int i = 0; i < len; i++) {
+        for (int j = i + 1; j < len; j++) {
+            float aDistance = Distance(
+                        hemiSamplingCameras[i]->getOriginPosition(),
+                        hemiSamplingCameras[j]->getOriginPosition()
+                        );
+            if (minDistance < 0.0 || aDistance < minDistance) {
+                minDistance = aDistance;
+            }
+        }
+    }
+    return minDistance;
 }
 
 }

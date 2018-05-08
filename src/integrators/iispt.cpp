@@ -389,12 +389,12 @@ void IISPTIntegrator::write_info_file(std::string out_filename) {
 
     jd.AddMember(
                 rapidjson::Value("normalization_intensity", allocator).Move(),
-                rapidjson::Value().SetDouble(max_intensity),
+                rapidjson::Value().SetDouble(0.0),
             allocator);
 
     jd.AddMember(
                 rapidjson::Value("normalization_distance", allocator).Move(),
-                rapidjson::Value().SetDouble(max_distance),
+                rapidjson::Value().SetDouble(0.0),
                 allocator
                 );
 
@@ -407,63 +407,6 @@ void IISPTIntegrator::write_info_file(std::string out_filename) {
     out_file.close();
 }
 
-// Estimate intensity normalization ===========================================
-void IISPTIntegrator::estimate_normalization_values(
-        const Scene &scene,
-        Vector2i sample_extent
-        )
-{
-    // Create RNG
-    std::unique_ptr<IisptRng> rng (
-                new IisptRng()
-                );
-
-    // Create auxiliary estimation path tracer
-    std::shared_ptr<VolPathIntegrator> aux_volpath =
-            create_aux_volpath_integrator_perspective(
-                camera
-                );
-
-    std::shared_ptr<IISPTEstimatorIntegrator> estimator_integrator (
-                new IISPTEstimatorIntegrator(
-                    aux_volpath,
-                    camera,
-                    scene,
-                    sampler
-                    )
-                );
-
-    // Loop to get the samples
-    for (int i = 0; i < IISPT_NORMALIZATION_ESTIMATION_SAMPLES; i++) {
-        int x = rng->uniform_uint32(sample_extent.x);
-        int y = rng->uniform_uint32(sample_extent.y);
-        estimator_integrator->estimate_intensity(
-                    scene,
-                    Point2i(x, y),
-                    sampler
-                    );
-        estimator_integrator->estimate_distance(
-                    scene,
-                    Point2i(x, y),
-                    sampler
-                    );
-    }
-
-    // Print statistics
-    max_intensity = estimator_integrator->get_max_intensity();
-    max_distance = estimator_integrator->get_max_distance();
-    std::cerr << "Max intensity ["<< max_intensity <<"] Max distance ["<< max_distance <<"]" << std::endl;
-
-    // Write info file
-    write_info_file(IISPT_REFERENCE_DIRECTORY + IISPT_REFERENCE_TRAIN_INFO);
-}
-
-// Estimate normalization values ==============================================
-void IISPTIntegrator::estimate_normalization(const Scene &scene) {
-    std::cerr << "Start estimate_normalization" << std::endl;
-    Vector2i sample_extent = get_sample_extent(camera);
-    estimate_normalization_values(scene, sample_extent);
-}
 
 // Render =====================================================================
 void IISPTIntegrator::Render(const Scene &scene) {
@@ -484,8 +427,6 @@ void IISPTIntegrator::Render(const Scene &scene) {
 void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     Preprocess(scene);
-
-    estimate_normalization(scene);
 
     // Create: IisptScheduleMonitor, IisptFilmMonitor,
     // IisptRenderRunner
@@ -522,11 +463,23 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     render_runner->run(scene);
 
+    std::cerr << "iispt.cpp: saving indirect EXR\n";
+
     film_monitor_indirect->to_intensity_film()->pbrt_write("/tmp/iispt_indirect.exr");
+
+    std::cerr << "iispt.cpp: saving direct EXR\n";
+
     film_monitor_direct->to_intensity_film()->pbrt_write("/tmp/iispt_direct.exr");
 
+    std::cerr << "iispt.cpp: merging...\n";
+
     film_monitor_direct->merge_from(film_monitor_indirect.get());
+
+    std::cerr << "iispt.cpp: saving combined EXR\n";
+
     film_monitor_direct->to_intensity_film()->pbrt_write("/tmp/iispt_combined.exr");
+
+    std::cerr << "iispt.cpp: render normal 2 end\n";
 }
 
 // Render reference ===========================================================
@@ -534,7 +487,7 @@ void IISPTIntegrator::render_reference(const Scene &scene) {
 
     Preprocess(scene);
 
-    estimate_normalization(scene);
+    write_info_file(IISPT_REFERENCE_DIRECTORY + IISPT_REFERENCE_TRAIN_INFO);
 
     // Create the auxiliary integrator for intersection-view
     this->dintegrator = std::shared_ptr<IISPTdIntegrator>(CreateIISPTdIntegrator(dcamera));
@@ -862,16 +815,16 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
 
     std::cerr << "iispt.cpp: CreateIISPTIntegrator end\n";
 
-    char* indirect_samples_env = std::getenv("IISPT_DIRECT_SAMPLES");
-    int indirect_samples = 8;
-    if (indirect_samples_env != NULL) {
-        indirect_samples = std::stoi(std::string(indirect_samples_env));
+    char* direct_samples_env = std::getenv("IISPT_DIRECT_SAMPLES");
+    int direct_samples = 2;
+    if (direct_samples_env != NULL) {
+        direct_samples = std::stoi(std::string(direct_samples_env));
     }
 
     std::shared_ptr<Sampler> sampler (
                 CreateSobolSampler(
                 pixelBounds,
-                indirect_samples
+                direct_samples
                 ));
 
     return new IISPTIntegrator(maxDepth, camera, pixelBounds,

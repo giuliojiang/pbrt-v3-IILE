@@ -33,7 +33,7 @@ public:
     }
 
     // Set pixel ==============================================================
-    void set(int x, int y, Normal3f n);
+    void set_camera_coord(int x, int y, Normal3f n);
 
     // Write image ============================================================
     void write(std::string filename);

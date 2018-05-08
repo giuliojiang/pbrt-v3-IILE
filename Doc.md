@@ -15,6 +15,34 @@ Expected stdout format:
 * Intensity raster: 32x32x3 = 3072 float (each 4 bytes)
 * Magic characters sequence: 'x' '\n'
 
+## New format
+
+Expected stdin format:
+
+* Intensity raster: 32x32x3 = 3072 float (each 4 bytes)
+* Normals raster: 32x32x3 = 3072 float (each 4 bytes)
+* Distance raster: 32x32x1 = 1024 float (each 4 bytes)
+
+The order of each raster is a 2D array (height, width)
+
+## ML data loader array format
+
+Each data is a numpy array with shape (channels, height, width), so typically it would be (7, 32, 32).
+
+The channels order is
+
+* Intensity R
+* Intensity G
+* Intensity B
+* Normals X
+* Normals Y
+* Normals Z
+* Distance
+
+The data that the C++ process sends to main_stdio_net is already transformed and normalized and does not require additional processing.
+
+The output of the main_stdio process does not apply the upstream transformations, as those are handled by the C++ process.
+
 ## Performance
 
 ```
@@ -200,6 +228,31 @@ Dropout
 
 Paper on ELU: https://arxiv.org/abs/1706.02515
 
+## 09
+
+Convolutional NN
+
+Input data format: Numpy array of shape (depth, height, width)
+
+Input depth is 7: Intensity RGB, Normals RGB, Distance.
+
+```
+Channels:
+0 R
+1 G
+2 B
+3 n.X
+4 n.Y
+5 n.Z
+6 D
+```
+
+Output depth is 3: Intensity RGB
+
+This data type is called ConvNpArray
+
+The corresponding output version with 3 channels is a ConvOutNpArray
+
 # Tiling and interpolation
 
 ## New weight
@@ -250,6 +303,24 @@ N(a, b) =
 When dot product is 1, distance is 0
 
 When dot product is negative, distance is maximal
+
+## New weight 2
+
+Position weight value is computed as the inverse ratio of the distance among the four points
+
+```
+wi = (dtt - di) / dtt
+```
+
+Where di is one individual distance. dtt is the tile-to-tile minimum distance in world positions. Taken the 4 influence points, calculate the smallest 3D distance among any pair.
+
+Normals weight are computed using the dot product. If the dot product is negative, 0 is used as weight.
+
+The final weight is
+
+```
+Weight_i = DistanceWeight_i * NormalWeight_i + eps
+```
 
 # TODO
 
