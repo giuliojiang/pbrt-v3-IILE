@@ -414,6 +414,8 @@ void IisptRenderRunner::run(const Scene &scene)
         std::vector<Spectrum> additions_spectrum;
         std::vector<double> additions_weights;
 
+        std::cerr << "iisptrenderrunner.cpp: Start hemi evaluation\n";
+
         for (int fy = sm_task.y0; fy < sm_task.y1; fy++) {
             for (int fx = sm_task.x0; fx < sm_task.x1; fx++) {
 
@@ -519,6 +521,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 // Compute weights and probabilities for neighbours
                 std::vector<float> hemi_sampling_weights (4);
+                std::cerr << "iisptrenderrunner: cweights in\n";
                 compute_fpixel_weights(
                             neighbour_points,
                             hemi_sampling_cameras,
@@ -528,6 +531,7 @@ void IisptRenderRunner::run(const Scene &scene)
                             f_ray,
                             hemi_sampling_weights // << output
                             );
+                std::cerr << "iisptrenderrunner: cweights out\n";
 
                 // Compute scattering functions for surface interaction
                 f_isect.ComputeScatteringFunctions(f_ray, arena);
@@ -562,6 +566,8 @@ void IisptRenderRunner::run(const Scene &scene)
                 additions_weights.push_back(1.0);
             }
         }
+
+        std::cerr << "iisptrenderrunner.cpp: End hemi evaluation\n";
 
         film_monitor_indirect->add_n_samples(
                     additions_pt,
@@ -1042,6 +1048,7 @@ void IisptRenderRunner::compute_fpixel_weights(
         std::vector<float> &out_probabilities
         )
 {
+
     int len = neighbour_points.size();
 
     // Invert surface normal if pointing inwards
@@ -1071,10 +1078,14 @@ void IisptRenderRunner::compute_fpixel_weights(
     // Weighting distance for normals
     std::vector<float> wdnor (len);
     for (int i = 0; i < len; i++) {
-        wdnor[i] = iispt::weighting_distance_normals(
-                    aux_ray.d,
-                    hemi_sampling_cameras[i]->get_look_direction()
-                    );
+        if (!hemi_sampling_cameras[i]) {
+            wdnor[i] = 0.0f;
+        } else {
+            wdnor[i] = iispt::weighting_distance_normals(
+                        aux_ray.d,
+                        hemi_sampling_cameras[i]->get_look_direction()
+                        );
+        }
     }
 
     // Weighting overall distance
