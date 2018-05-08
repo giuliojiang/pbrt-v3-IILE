@@ -59,7 +59,7 @@ def main():
 
         run_required(["wget", "-O", "anaconda.sh", "https://repo.anaconda.com/archive/Anaconda3-5.1.0-Linux-x86_64.sh"])
         run_required(["chmod", "+x", "anaconda.sh"])
-        run_required([os.path.join(targetDir, "anaconda.sh")]
+        run_required([os.path.join(targetDir, "anaconda.sh")])
         os.remove("anaconda.sh")
 
         # Install pytorch
