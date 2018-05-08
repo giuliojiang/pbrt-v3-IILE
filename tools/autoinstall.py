@@ -37,7 +37,7 @@ def main():
     run_required(["apt", "update"])
 
     # Install dependencies
-    run_required(["apt", "install", "doxygen", "zlib1g-dev", "cmake", "build-essential"])
+    run_required(["apt-get", "-y", "install", "doxygen", "zlib1g-dev", "cmake", "build-essential", "git"])
 
     # Download pbrt-IILE
     # git clone --recursive https://github.com/giuliojiang/pbrt-v3-IISPT/
