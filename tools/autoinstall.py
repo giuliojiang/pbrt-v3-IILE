@@ -37,7 +37,7 @@ def main():
     run_required(["apt", "update"])
 
     # Install dependencies
-    run_required(["apt", "install", "doxygen", "zlib1g-dev", "cmake", "build-essential"])
+    run_required(["apt-get", "-y", "install", "git", "doxygen", "zlib1g-dev", "cmake", "build-essential"])
 
     # Download pbrt-IILE
     # git clone --recursive https://github.com/giuliojiang/pbrt-v3-IISPT/
@@ -62,28 +62,31 @@ def main():
         run_required([os.path.join(targetDir, "anaconda.sh")])
         os.remove("anaconda.sh")
 
-        # Install pytorch
-        run_required(["conda", "install", "pytorch", "torchvision", "-c", "pytorch"])
-
-        # Install tensorboardX, tensorboard, tensorflow
-        run_required(["pip", "install", "tensorboardX", "tensorboard", "tensorflow"])
-
+        homeDir = os.path.expanduser("~")
+        bashrcPath = os.path.join(homeDir, ".bashrc")
+        tFilePath = os.path.join(targetDir, "t.sh")
+        tFile = open(tFilePath, "w")
+        tFile.write(". {}\n".format(bashrcPath))
+        tFile.write("conda install pytorch torchvision -c pytorch\n")
+        tFile.write("pip install tensorboardX tensorboard tensorflow\n")
+        tFile.write("exit\n")
+        tFile.close()
+        subprocess.call('bash --init-file {}'.format(tFilePath), shell=True)
+        
     # Download and install Node
     nodeChoice = input("Would you like the installer to download and install NodeJS? [y/n]")
     if nodeChoice == "y":
 
-        run_required(["apt", "install", "curl"])
+        run_required(["apt-get", "-y", "install", "curl"])
         subprocess.call("curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -", shell=True)
-        run_required(["apt", "install", "nodejs"])
+        run_required(["apt-get", "-y", "install", "nodejs"])
 
         # Install node modules
-        os.chdir(os.path.join(targetDir, "bin"))
+        os.chdir(os.path.join(targetDir, "pbrt-v3-IISPT", "bin"))
         run_required(["npm", "install"])
 
-        os.chdir(os.path.join(targetDir, "tools"))
+        os.chdir(os.path.join(targetDir, "pbrt-v3-IISPT", "tools"))
         run_required(["npm", "install"])
-
-    
 
 # -----------------------------------------------------------------------------
 main()

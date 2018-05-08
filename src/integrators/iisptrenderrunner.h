@@ -18,6 +18,8 @@
 #include "tools/iisptrng.h"
 #include "tools/iisptpoint2i.h"
 #include "samplers/sobol.h"
+#include "tools/threadpool.h"
+#include "tools/generalutils.h"
 
 namespace pbrt {
 
