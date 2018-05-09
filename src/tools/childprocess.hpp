@@ -25,9 +25,12 @@ public: // ====================================================================
             char *const argv[]
             )
     {
+        std::cerr << "childprocess.hpp: constructor\n";
         pipe(stdout_pipe);
         pipe(stdin_pipe);
+        std::cerr << "childprocess.hpp: forking\n";
         child_pid = fork();
+        std::cerr << "childprocess.hpp: forked\n";
 
         if (child_pid == -1) {
             std::cerr << "fork() failed" << std::endl;
@@ -41,16 +44,13 @@ public: // ====================================================================
             // Child receives read end of stdin pipe
             dup2(stdin_pipe[0], STDIN_FILENO);
 
-            close(stdout_pipe[0]);
-            close(stdout_pipe[1]);
-            close(stdin_pipe[0]);
-            close(stdin_pipe[1]);
-
             execvp(process_path.c_str(), argv);
 
             std::cerr << "execvp() failed" << std::endl;
             exit(1);
         }
+
+        std::cerr << "childprocess.hpp: This is the original process\n";
 
         // Original process
         // Close unused ends

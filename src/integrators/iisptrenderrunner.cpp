@@ -135,16 +135,15 @@ Spectrum IisptRenderRunner::sample_hemisphere(
 }
 
 // ============================================================================
-IisptRenderRunner::IisptRenderRunner(
-        std::shared_ptr<IisptScheduleMonitor> schedule_monitor,
+IisptRenderRunner::IisptRenderRunner(std::shared_ptr<IisptScheduleMonitor> schedule_monitor,
         std::shared_ptr<IisptFilmMonitor> film_monitor_indirect,
         std::shared_ptr<IisptFilmMonitor> film_monitor_direct,
         std::shared_ptr<const Camera> main_camera,
         std::shared_ptr<Camera> dcamera,
         std::shared_ptr<Sampler> sampler,
         int thread_no,
-        Bounds2i pixel_bounds
-        )
+        Bounds2i pixel_bounds,
+        std::shared_ptr<IisptNnConnector> nnConnector)
 {
     this->schedule_monitor = schedule_monitor;
 
@@ -156,7 +155,8 @@ IisptRenderRunner::IisptRenderRunner(
 
     this->pixel_bounds = pixel_bounds;
 
-    // TODO remove fixed seed
+    this->nn_connector = std::move(nnConnector);
+
     this->rng = std::unique_ptr<IisptRng>(
                 new IisptRng(thread_no)
                 );
@@ -178,11 +178,6 @@ void IisptRenderRunner::run(const Scene &scene)
 
     // dintegrator
     std::shared_ptr<IISPTdIntegrator> d_integrator = CreateIISPTdIntegrator(this->dcamera);
-
-    // NN connector
-    std::unique_ptr<IisptNnConnector> nn_connector (
-                new IisptNnConnector()
-                );
 
     // Read number of passes environment variable
     char* num_passes_env = std::getenv("IISPT_INDIRECT_PASSES");

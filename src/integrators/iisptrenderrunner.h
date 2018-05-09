@@ -30,7 +30,7 @@ private:
     // Fields -----------------------------------------------------------------
 
     double HEMI_IMPORTANCE = 10.0;
-    int HEMISPHERIC_IMPORTANCE_SAMPLES = 16;
+    int HEMISPHERIC_IMPORTANCE_SAMPLES = 32;
 
     int thread_no;
 
@@ -51,6 +51,8 @@ private:
     std::shared_ptr<const Camera> main_camera;
 
     // Single objects
+
+    std::shared_ptr<IisptNnConnector> nn_connector;
 
     std::unique_ptr<IisptRng> rng;
 
@@ -166,7 +168,8 @@ public:
             std::shared_ptr<Camera> dcamera,
             std::shared_ptr<Sampler> sampler,
             int thread_no,
-            Bounds2i pixel_bounds
+            Bounds2i pixel_bounds,
+            std::shared_ptr<IisptNnConnector> nnConnector
             );
 
     // Public methods ---------------------------------------------------------

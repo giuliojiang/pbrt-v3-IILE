@@ -449,13 +449,26 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     // Create thread pool for indirect pass
     unsigned noCpus = iile::cpusCount();
+    // noCpus = 1;
     ThreadPool threadPool (noCpus);
     std::vector<std::future<void>> futures;
     std::shared_ptr<IisptRenderRunner> runner0 = nullptr;
 
+    std::vector<std::shared_ptr<IisptNnConnector>> nnConnectors;
+    for (int i = 0; i < noCpus; i++) {
+        std::cerr << "iispt.cpp: Starting nnConnector " << i << std::endl;
+        nnConnectors.push_back(
+                    std::shared_ptr<IisptNnConnector>(
+                        new IisptNnConnector()
+                        )
+                    );
+    }
+
     // Start threads
     for (int i = 0; i < noCpus; i++) {
-        futures.push_back(threadPool.enqueue([&, i]() {
+        std::shared_ptr<IisptNnConnector> nnConnector = nnConnectors[i];
+
+        futures.push_back(threadPool.enqueue([i, &runner0, schedule_monitor, film_monitor_indirect, film_monitor_direct, this, &scene, nnConnector]() {
             std::shared_ptr<IisptRenderRunner> runner (
                         new IisptRenderRunner(
                             schedule_monitor,
@@ -465,7 +478,8 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
                             dcamera,
                             sampler,
                             i,
-                            camera->film->GetSampleBounds()
+                            camera->film->GetSampleBounds(),
+                            nnConnector
                             )
                         );
             if (i == 0) {
@@ -474,6 +488,10 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
             runner->run(scene);
         }));
     }
+
+    std::cerr << "iispt.cpp: All threads started\n";
+
+    std::cerr << "iispt.cpp THREAD count is " << futures.size() << std::endl;
 
     // Wait for threads to finish
     for (int i = 0; i < noCpus; i++) {
