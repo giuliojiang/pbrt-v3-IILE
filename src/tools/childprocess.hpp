@@ -25,12 +25,10 @@ public: // ====================================================================
             char *const argv[]
             )
     {
-        std::cerr << "childprocess.hpp: constructor\n";
         pipe(stdout_pipe);
         pipe(stdin_pipe);
-        std::cerr << "childprocess.hpp: forking\n";
+
         child_pid = fork();
-        std::cerr << "childprocess.hpp: forked\n";
 
         if (child_pid == -1) {
             std::cerr << "fork() failed" << std::endl;
@@ -49,8 +47,6 @@ public: // ====================================================================
             std::cerr << "execvp() failed" << std::endl;
             exit(1);
         }
-
-        std::cerr << "childprocess.hpp: This is the original process\n";
 
         // Original process
         // Close unused ends
