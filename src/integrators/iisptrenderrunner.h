@@ -112,8 +112,6 @@ private:
 
     void sampler_next_pixel();
 
-    void run_direct(const Scene &scene);
-
     void compute_fpixel_weights(
             std::vector<Point2i> &neighbour_points,
             std::vector<HemisphericCamera*> &hemi_sampling_cameras,
@@ -176,6 +174,8 @@ public:
     // Public methods ---------------------------------------------------------
 
     virtual void run(const Scene &scene);
+
+    void run_direct(const Scene &scene);
 
 };
 

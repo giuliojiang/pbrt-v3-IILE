@@ -170,8 +170,6 @@ IisptRenderRunner::IisptRenderRunner(
 
     this->thread_no = thread_no;
 
-
-
     this->main_camera = main_camera;
 }
 
@@ -576,7 +574,6 @@ void IisptRenderRunner::run(const Scene &scene)
 
     }
 
-    run_direct(scene);
 }
 
 // ============================================================================

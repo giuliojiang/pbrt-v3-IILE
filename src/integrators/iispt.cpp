@@ -463,6 +463,8 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     render_runner->run(scene);
 
+    render_runner->run_direct(scene);
+
     std::cerr << "iispt.cpp: saving indirect EXR\n";
 
     film_monitor_indirect->to_intensity_film()->pbrt_write("/tmp/iispt_indirect.exr");
