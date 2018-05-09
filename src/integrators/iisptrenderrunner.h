@@ -54,10 +54,6 @@ private:
 
     // Single objects
 
-    std::shared_ptr<IISPTdIntegrator> d_integrator;
-
-    std::unique_ptr<IisptNnConnector> nn_connector;
-
     std::unique_ptr<IisptRng> rng;
 
     std::unique_ptr<Sampler> sampler;

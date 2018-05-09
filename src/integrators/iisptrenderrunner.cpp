@@ -155,14 +155,9 @@ IisptRenderRunner::IisptRenderRunner(
 
     this->film_monitor_direct = film_monitor_direct;
 
-    this->d_integrator = CreateIISPTdIntegrator(dcamera);
-    // Preprocess is called on run()
+    this->dcamera = dcamera;
 
-    std::cerr << "iisptrenderrunner.cpp: Creating NN connector\n";
-    this->nn_connector = std::unique_ptr<IisptNnConnector>(
-                new IisptNnConnector()
-                );
-    std::cerr << "iisptrenderrunner.cpp: NN connector created\n";
+    this->pixel_bounds = pixel_bounds;
 
     // TODO remove fixed seed
     this->rng = std::unique_ptr<IisptRng>(
@@ -173,11 +168,9 @@ IisptRenderRunner::IisptRenderRunner(
                 sampler->Clone(thread_no)
                 );
 
-    this->dcamera = dcamera;
-
     this->thread_no = thread_no;
 
-    this->pixel_bounds = pixel_bounds;
+
 
     this->main_camera = main_camera;
 }
@@ -186,7 +179,15 @@ IisptRenderRunner::IisptRenderRunner(
 
 void IisptRenderRunner::run(const Scene &scene)
 {
-    std::cerr << "iisptrenderrunner.cpp: New tiled renderer\n";
+    std::cerr << "iisptrenderrunner.cpp: New tiled renderer thread " << this->thread_no << std::endl;;
+
+    // dintegrator
+    std::shared_ptr<IISPTdIntegrator> d_integrator = CreateIISPTdIntegrator(this->dcamera);
+
+    // NN connector
+    std::unique_ptr<IisptNnConnector> nn_connector (
+                new IisptNnConnector()
+                );
 
     // Read number of passes environment variable
     char* num_passes_env = std::getenv("IISPT_INDIRECT_PASSES");
