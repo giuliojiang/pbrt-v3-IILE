@@ -174,7 +174,7 @@ IisptRenderRunner::IisptRenderRunner(
 
 void IisptRenderRunner::run(const Scene &scene)
 {
-    std::cerr << "iisptrenderrunner.cpp: New tiled renderer thread " << this->thread_no << std::endl;;
+    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: New tiled renderer thread " << this->thread_no << std::endl;;
 
     // dintegrator
     std::shared_ptr<IISPTdIntegrator> d_integrator = CreateIISPTdIntegrator(this->dcamera);
@@ -195,7 +195,7 @@ void IisptRenderRunner::run(const Scene &scene)
     lightDistribution =
             CreateLightSampleDistribution(std::string("spatial"), scene);
 
-    std::cerr << "iisptrenderrunner.cpp: start render loop\n";
+    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: start render loop\n";
 
     while (1) {
 
@@ -207,12 +207,12 @@ void IisptRenderRunner::run(const Scene &scene)
             break;
         }
 
-        std::cerr << "iisptrenderrunner.cpp PASS " << sm_task.pass << std::endl;
+        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp PASS " << sm_task.pass << std::endl;
 
         MemoryArena arena;
 
         // sm_task end points are exclusive
-        std::cerr << "Obtained new task: ["<< sm_task.x0 <<"]["<< sm_task.y0 <<"]-["<< sm_task.x1 <<"]["<< sm_task.y1 <<"] tilesize ["<< sm_task.tilesize <<"]\n";
+        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Obtained new task: ["<< sm_task.x0 <<"]["<< sm_task.y0 <<"]-["<< sm_task.x1 <<"]["<< sm_task.y1 <<"] tilesize ["<< sm_task.tilesize <<"]\n";
 
         // Use a HashMap to store the hemi points
         std::unordered_map<
@@ -225,7 +225,7 @@ void IisptRenderRunner::run(const Scene &scene)
         int tile_y = sm_task.y0;
         while (1) {
             // Process current tile
-            std::cerr << "Hemi point ["<< tile_x <<"] ["<< tile_y <<"]\n";
+            std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Hemi point ["<< tile_x <<"] ["<< tile_y <<"]\n";
             IisptPoint2i hemi_key;
             hemi_key.x = tile_x;
             hemi_key.y = tile_y;
@@ -352,7 +352,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 transformMapsUpstream(nn_film.get(), intensityMean);
 
                 if (communicate_status) {
-                    std::cerr << "NN communication issue" << std::endl;
+                    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "NN communication issue" << std::endl;
                     raise(SIGKILL);
                 }
 
@@ -369,7 +369,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 tile_x = sm_task.x0;
                 advance_tile_y = true;
             } else if (tile_x >= sm_task.x1) {
-                std::cerr << "iisptrenderrunner: ERROR tile has gone past the end\n";
+                std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner: ERROR tile has gone past the end\n";
                 std::raise(SIGKILL);
             } else {
                 // Advance x only
@@ -410,7 +410,7 @@ void IisptRenderRunner::run(const Scene &scene)
         std::vector<Spectrum> additions_spectrum;
         std::vector<double> additions_weights;
 
-        std::cerr << "iisptrenderrunner.cpp: Start hemi evaluation\n";
+        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Start hemi evaluation\n";
 
         for (int fy = sm_task.y0; fy < sm_task.y1; fy++) {
             for (int fx = sm_task.x0; fx < sm_task.x1; fx++) {
@@ -456,7 +456,7 @@ void IisptRenderRunner::run(const Scene &scene)
                     pt_key.x = pt.x;
                     pt_key.y = pt.y;
                     if (hemi_points.count(pt_key) <= 0) {
-                        std::cerr << "iisptrenderrunner.cpp: hemi_points does not have key ["<< pt.x <<"]["<< pt.y <<"]\n";
+                        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: hemi_points does not have key ["<< pt.x <<"]["<< pt.y <<"]\n";
                         std::raise(SIGKILL);
                     }
                     std::shared_ptr<HemisphericCamera> a_cmr =
@@ -540,7 +540,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 Vector3f wo = f_isect.wo;
                 Float wo_length = Dot(wo, wo);
                 if (wo_length == 0) {
-                    std::cerr << "iisptrenderrunner.cpp: Detected a 0 length wo" << std::endl;
+                    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Detected a 0 length wo" << std::endl;
                     raise(SIGKILL);
                     exit(1);
                 }
@@ -561,7 +561,7 @@ void IisptRenderRunner::run(const Scene &scene)
             }
         }
 
-        std::cerr << "iisptrenderrunner.cpp: End hemi evaluation\n";
+        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: End hemi evaluation\n";
 
         film_monitor_indirect->add_n_samples(
                     additions_pt,
@@ -578,7 +578,7 @@ void IisptRenderRunner::run(const Scene &scene)
 // Render direct illumination components
 void IisptRenderRunner::run_direct(const Scene &scene)
 {
-    std::cerr << "iisptrenderrunner.cpp: starting direct illumination pass\n";
+    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: starting direct illumination pass\n";
 
     std::unique_ptr<DirectLightingIntegrator> directIntegrator (
                 new DirectLightingIntegrator(
@@ -594,11 +594,11 @@ void IisptRenderRunner::run_direct(const Scene &scene)
 
     std::unique_ptr<IntensityFilm> directFilm = main_camera->film->to_intensity_film();
 
-    std::cerr << "iisptrenderrunner.cpp: Completed direct pass loop\n";
+    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Completed direct pass loop\n";
 
     film_monitor_direct->addFromIntensityFilm(directFilm.get());
 
-    std::cerr << "iisptrenderrunner.cpp: Completed direct pass add_n_samples\n";
+    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Completed direct pass add_n_samples\n";
 }
 
 // ============================================================================
