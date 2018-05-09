@@ -39,6 +39,8 @@ IisptScheduleMonitor::IisptScheduleMonitor(Bounds2i bounds) {
 // ============================================================================
 IisptScheduleMonitorTask IisptScheduleMonitor::next_task() {
 
+    std::unique_lock<std::mutex> lock (mutex);
+
     int effective_radius = std::floor(current_radius);
     if (effective_radius < 1) {
         effective_radius = 1;

@@ -25,7 +25,7 @@ IisptFilmMonitor::IisptFilmMonitor(
 
 void IisptFilmMonitor::add_sample(Point2i pt, Spectrum s, double weight)
 {
-    lock.lock();
+    std::unique_lock<std::recursive_mutex> lock (mutex);
 
     execute_on_pixel([&](int fx, int fy) {
         IisptPixel pix = (pixels[fy])[fx];
@@ -40,7 +40,6 @@ void IisptFilmMonitor::add_sample(Point2i pt, Spectrum s, double weight)
         (pixels[fy])[fx] = pix;
     }, pt.x, pt.y);
 
-    lock.unlock();
 }
 
 // ============================================================================
@@ -51,7 +50,7 @@ void IisptFilmMonitor::add_n_samples(
         std::vector<double> &weights
         )
 {
-    lock.lock();
+    std::unique_lock<std::recursive_mutex> lock (mutex);
 
     for (int i = 0; i < pts.size(); i++) {
         Point2i pt = pts[i];
@@ -69,7 +68,6 @@ void IisptFilmMonitor::add_n_samples(
         }, pt.x, pt.y);
     }
 
-    lock.unlock();
 }
 
 // ============================================================================
@@ -78,10 +76,10 @@ void IisptFilmMonitor::addFromIntensityFilm(
         IntensityFilm* intensityFilm
         )
 {
+    std::unique_lock<std::recursive_mutex> lock (mutex);
+
     // The intensity film is straight up while the film monitor
     // data is in camera format
-
-    lock.lock();
 
     std::shared_ptr<ImageFilm> imageFilm = intensityFilm->get_image_film();
     int height = imageFilm->get_height();
@@ -101,13 +99,14 @@ void IisptFilmMonitor::addFromIntensityFilm(
         }
     }
 
-    lock.unlock();
 }
 
 // ============================================================================
 
 Bounds2i IisptFilmMonitor::get_film_bounds()
 {
+    std::unique_lock<std::recursive_mutex> lock (mutex);
+
     return film_bounds;
 }
 
@@ -178,12 +177,10 @@ std::shared_ptr<IntensityFilm> IisptFilmMonitor::to_intensity_film_priv(
 
 std::shared_ptr<IntensityFilm> IisptFilmMonitor::to_intensity_film()
 {
-    lock.lock();
+    std::unique_lock<std::recursive_mutex> lock (mutex);
 
     std::shared_ptr<IntensityFilm> intensity_film =
             to_intensity_film_priv(false);
-
-    lock.unlock();
 
     return intensity_film;
 }
@@ -194,12 +191,10 @@ std::shared_ptr<IntensityFilm> IisptFilmMonitor::to_intensity_film()
 
 std::shared_ptr<IntensityFilm> IisptFilmMonitor::to_intensity_film_reversed()
 {
-    lock.lock();
+    std::unique_lock<std::recursive_mutex> lock (mutex);
 
     std::shared_ptr<IntensityFilm> intensity_film =
             to_intensity_film_priv(true);
-
-    lock.unlock();
 
     return intensity_film;
 }
@@ -210,6 +205,8 @@ void IisptFilmMonitor::merge_from(
         IisptFilmMonitor* other
         )
 {
+    std::unique_lock<std::recursive_mutex> lock (mutex);
+
     if (!iispt::bounds2i_equals(
                 this->film_bounds,
                 other->film_bounds

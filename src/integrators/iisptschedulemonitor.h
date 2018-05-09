@@ -26,6 +26,8 @@ private:
     // ------------------------------------------------------------------------
     // Members
 
+    std::mutex mutex;
+
     // Number of tiles per side in each task
     int NUMBER_TILES = 10;
 

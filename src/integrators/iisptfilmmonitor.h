@@ -21,7 +21,7 @@ private:
 
     // Fields -----------------------------------------------------------------
 
-    std::recursive_mutex lock;
+    std::recursive_mutex mutex;
 
     std::vector<std::vector<IisptPixel>> pixels;
 

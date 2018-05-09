@@ -136,7 +136,6 @@ Spectrum IisptRenderRunner::sample_hemisphere(
 
 // ============================================================================
 IisptRenderRunner::IisptRenderRunner(
-        IISPTIntegrator* iispt_integrator,
         std::shared_ptr<IisptScheduleMonitor> schedule_monitor,
         std::shared_ptr<IisptFilmMonitor> film_monitor_indirect,
         std::shared_ptr<IisptFilmMonitor> film_monitor_direct,
@@ -147,8 +146,6 @@ IisptRenderRunner::IisptRenderRunner(
         Bounds2i pixel_bounds
         )
 {
-    this->iispt_integrator = iispt_integrator;
-
     this->schedule_monitor = schedule_monitor;
 
     this->film_monitor_indirect = film_monitor_indirect;

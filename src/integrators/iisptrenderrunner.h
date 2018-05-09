@@ -40,8 +40,6 @@ private:
 
     // Shared objects
 
-    IISPTIntegrator* iispt_integrator;
-
     std::shared_ptr<IisptScheduleMonitor> schedule_monitor;
 
     std::shared_ptr<IisptFilmMonitor> film_monitor_indirect;
@@ -160,7 +158,7 @@ private:
 public:
 
     // Constructor ------------------------------------------------------------
-    IisptRenderRunner(IISPTIntegrator* iispt_integrator,
+    IisptRenderRunner(
             std::shared_ptr<IisptScheduleMonitor> schedule_monitor,
             std::shared_ptr<IisptFilmMonitor> film_monitor_indirect,
             std::shared_ptr<IisptFilmMonitor> film_monitor_direct,
