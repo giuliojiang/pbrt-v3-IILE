@@ -1083,6 +1083,11 @@ void pbrtAccelerator(const std::string &name, const ParamSet &params) {
 void pbrtIntegrator(const std::string &name, const ParamSet &params) {
     VERIFY_OPTIONS("Integrator");
     renderOptions->IntegratorName = name;
+    std::cerr << "api.cpp: pbrtIntegrator name is " << name << std::endl;
+    if (name == std::string("iispt")) {
+        // Initialize NN connectors
+        iile::NnConnectorManager::getInstance().start(iile::cpusCount());
+    }
     renderOptions->IntegratorParams = params;
     if (PbrtOptions.cat || PbrtOptions.toPly) {
         printf("%*sIntegrator \"%s\" ", catIndentCount, "", name.c_str());
@@ -1606,6 +1611,7 @@ void pbrtObjectInstance(const std::string &name) {
 }
 
 void pbrtWorldEnd() {
+    std::cerr << "api.cpp: pbrtWorldEnd()\n";
     VERIFY_WORLD("WorldEnd");
     // Ensure there are no pushed graphics states
     while (pushedGraphicsStates.size()) {
@@ -1710,6 +1716,7 @@ Integrator *RenderOptions::MakeIntegrator() const {
     } else if (IntegratorName == "sppm") {
         integrator = CreateSPPMIntegrator(IntegratorParams, camera);
     } else if (IntegratorName == "iispt") {
+        std::cerr << "api.cpp: Call CreateIISPTIntegrator\n";
         // Create aux camera
         std::shared_ptr<Camera> dcamera (MakeCamera(PbrtOptions.iisptHemiSize, PbrtOptions.iisptHemiSize));
         // Create integrator

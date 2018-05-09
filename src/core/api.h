@@ -40,6 +40,8 @@
 
 // core/api.h*
 #include "pbrt.h"
+#include "tools/nnconnectormanager.h"
+#include "tools/generalutils.h"
 
 namespace pbrt {
 

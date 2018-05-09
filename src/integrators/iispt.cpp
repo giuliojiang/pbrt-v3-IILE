@@ -454,19 +454,10 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
     std::vector<std::future<void>> futures;
     std::shared_ptr<IisptRenderRunner> runner0 = nullptr;
 
-    std::vector<std::shared_ptr<IisptNnConnector>> nnConnectors;
-    for (int i = 0; i < noCpus; i++) {
-        std::cerr << "iispt.cpp: Starting nnConnector " << i << std::endl;
-        nnConnectors.push_back(
-                    std::shared_ptr<IisptNnConnector>(
-                        new IisptNnConnector()
-                        )
-                    );
-    }
-
     // Start threads
     for (int i = 0; i < noCpus; i++) {
-        std::shared_ptr<IisptNnConnector> nnConnector = nnConnectors[i];
+        std::shared_ptr<IisptNnConnector> nnConnector =
+                iile::NnConnectorManager::getInstance().getInstance().get(i);
 
         futures.push_back(threadPool.enqueue([i, &runner0, schedule_monitor, film_monitor_indirect, film_monitor_direct, this, &scene, nnConnector]() {
             std::shared_ptr<IisptRenderRunner> runner (

@@ -48,6 +48,7 @@
 #include "tools/iisptrng.h"
 #include "tools/threadpool.h"
 #include "tools/generalutils.h"
+#include "tools/nnconnectormanager.h"
 
 namespace pbrt {
 
