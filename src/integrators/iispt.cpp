@@ -447,22 +447,46 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
                     )
                 );
 
-    std::shared_ptr<IisptRenderRunner> render_runner (
-                new IisptRenderRunner(
-                    schedule_monitor,
-                    film_monitor_indirect,
-                    film_monitor_direct,
-                    camera,
-                    dcamera,
-                    sampler,
-                    0,
-                    camera->film->GetSampleBounds()
-                    )
-                );
+    // Create thread pool for indirect pass
+    unsigned noCpus = iile::cpusCount();
+    ThreadPool threadPool (noCpus);
+    std::vector<std::future<void>> futures;
+    std::shared_ptr<IisptRenderRunner> runner0 = nullptr;
 
-    render_runner->run(scene);
+    // Start threads
+    for (int i = 0; i < noCpus; i++) {
+        futures.push_back(threadPool.enqueue([&, i]() {
+            std::shared_ptr<IisptRenderRunner> runner (
+                        new IisptRenderRunner(
+                            schedule_monitor,
+                            film_monitor_indirect,
+                            film_monitor_direct,
+                            camera,
+                            dcamera,
+                            sampler,
+                            i,
+                            camera->film->GetSampleBounds()
+                            )
+                        );
+            if (i == 0) {
+                runner0 = runner;
+            }
+            runner->run(scene);
+        }));
+    }
 
-    render_runner->run_direct(scene);
+    // Wait for threads to finish
+    for (int i = 0; i < noCpus; i++) {
+        futures[i].get();
+    }
+
+    // Direct pass
+
+    if (runner0 == nullptr) {
+        std::cerr << "iispt.cpp: Error, runner0 is NULL\n";
+        std::raise(SIGKILL);
+    }
+    runner0->run_direct(scene);
 
     std::cerr << "iispt.cpp: saving indirect EXR\n";
 

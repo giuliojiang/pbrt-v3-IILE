@@ -46,6 +46,8 @@
 #include "lightdistrib.h"
 #include "integrators/iispt_d.h"
 #include "tools/iisptrng.h"
+#include "tools/threadpool.h"
+#include "tools/generalutils.h"
 
 namespace pbrt {
 
