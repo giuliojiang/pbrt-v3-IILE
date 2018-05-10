@@ -1,8 +1,5 @@
-pbrt, Version 3
+pbrt, Version 3 - Intelligent Indirect Lighting Estimation
 ===============
-
-[![Build Status](https://travis-ci.org/mmp/pbrt-v3.svg?branch=master)](https://travis-ci.org/mmp/pbrt-v3)
-[![Build status](https://ci.appveyor.com/api/projects/status/mlm9g91ejxlcn67s/branch/master?svg=true)](https://ci.appveyor.com/project/mmp/pbrt-v3/branch/master)
 
 This repository holds the source code to the version of pbrt that is
 described in the third edition of *Physically Based Rendering: From
@@ -13,6 +10,8 @@ before, the code is available under the BSD license.
 The [pbrt website](http://pbrt.org) has general information about
 both the *Physically Based Rendering* book as well as many other resources
 for pbrt.
+
+This version has been modified to implement IILE.
 
 Example scenes
 --------------
