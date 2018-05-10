@@ -30,6 +30,8 @@ static Spectrum estimate_direct(
     // Sample light source with multiple importance sampling
     Vector3f wi;
     Float lightPdf = 1.0 / 6.28;
+    Float BSDF_RATIO = 0.10;
+    Float EM_RATIO = 0.5;
     Float scatteringPdf = 0;
     VisibilityTester visibility;
 
@@ -77,7 +79,7 @@ static Spectrum estimate_direct(
             // Add light's contribution to reflected radiance
             if (!Li.IsBlack()) {
                 Float weight = PowerHeuristic(1, lightPdf, 1, scatteringPdf);
-                Ld += f * Li * weight / lightPdf;
+                Ld += EM_RATIO * f * Li * weight / lightPdf;
             }
         }
     }
@@ -126,7 +128,7 @@ static Spectrum estimate_direct(
             // Compute Li
             Spectrum Li = auxCamera->getLightSampleNn(wi);
             if (!Li.IsBlack()) {
-                Ld += f * Li * weight / scatteringPdf;
+                Ld += BSDF_RATIO * f * Li * weight / scatteringPdf;
             }
         }
     }
