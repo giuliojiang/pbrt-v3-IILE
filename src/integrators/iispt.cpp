@@ -510,7 +510,7 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     std::cerr << "iispt.cpp: saving combined EXR\n";
 
-    film_monitor_direct->to_intensity_film()->pbrt_write("/tmp/iispt_combined.exr");
+    film_monitor_direct->to_intensity_film()->pbrt_write(PbrtOptions.imageFile);
 
 }
 
