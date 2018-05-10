@@ -51,7 +51,8 @@ Spectrum HemisphericCamera::getLightSampleNn(Vector3f wi)
     if (x >= 0 && x < PbrtOptions.iisptHemiSize &&
             y >= 0 && y < PbrtOptions.iisptHemiSize)
     {
-        return film->get_pixel_as_spectrum(Point2i(x, y));
+        PfmItem rgbpix = nn_film->get_camera_coord_jacobian(x, y);
+        return rgbpix.as_spectrum();
     } else {
         return Spectrum(0.0);
     }

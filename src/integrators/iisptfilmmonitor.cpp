@@ -52,6 +52,23 @@ void IisptFilmMonitor::add_n_samples(
 {
     std::unique_lock<std::recursive_mutex> lock (mutex);
 
+    // Compute average luminance and standard deviation
+//    std::vector<float> vals;
+
+//    for (int i = 0; i < pts.size(); i++) {
+//        float rgb[3];
+//        ss[i].ToRGB(rgb);
+//        vals.push_back(rgb[0] * weight);
+//        vals.push_back(rgb[1] * weight);
+//        vals.push_back(rgb[2] * weight);
+//    }
+
+//    float mean;
+//    float standardDeviation;
+//    iispt::meanStd(vals, mean, standardDeviation);
+
+//    float maxThreshold = mean + (2.0 * standardDeviation);
+
     for (int i = 0; i < pts.size(); i++) {
         Point2i pt = pts[i];
         execute_on_pixel([&](int fx, int fy) {
@@ -60,9 +77,17 @@ void IisptFilmMonitor::add_n_samples(
 
             float rgb[3];
             ss[i].ToRGB(rgb);
-            pix.r += rgb[0];
-            pix.g += rgb[1];
-            pix.b += rgb[2];
+
+//            if ((rgb[0] > maxThreshold) ||
+//                    (rgb[1] > maxThreshold) ||
+//                    (rgb[2] > maxThreshold)
+//                    ) {
+//                // Outliers! do nothing
+//            } else {
+                pix.r += rgb[0];
+                pix.g += rgb[1];
+                pix.b += rgb[2];
+//            }
 
             (pixels[fy])[fx] = pix;
         }, pt.x, pt.y);

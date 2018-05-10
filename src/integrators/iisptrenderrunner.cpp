@@ -357,7 +357,7 @@ void IisptRenderRunner::run(const Scene &scene)
                         d_integrator->get_intensity_film(aux_camera.get());
 
                 float auxMax = aux_intensity->get_image_film()->computeMax();
-                if (pixel.x == 299 && pixel.y == 599) {
+                if (pixel.x == 899 && pixel.y == 499) {
                     float auxAvg = aux_intensity->get_image_film()->computeMean();
                     std::cerr << "iisptrenderrunner.cpp: Max ["<< auxMax <<"] Mean ["<< auxAvg <<"]\n";
                     aux_intensity->get_image_film()->testPrintValueSamples();
@@ -390,7 +390,7 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 std::cerr << "iisptrenderrunner.cpp: ["<< pixel.x <<"]["<< pixel.y <<"] final mean ["<< nn_film->get_image_film()->computeMean() <<"] original mean ["<< intensityMean <<"] Original max ["<< auxMax <<"] ratio ["<< (intensityMean > 0.0 ? auxMax / intensityMean : 0.0) <<"]\n";
 
-                if (pixel.x == 299 && pixel.y == 599) {
+                if (pixel.x == 899 && pixel.y == 499) {
                     std::cerr << "iisptrenderrunner.cpp: DEBUG PIXEL\n";
                     aux_intensity->write(std::string("/tmp/d.pfm"));
 

@@ -188,7 +188,7 @@ float ImageFilm::computeMean()
 
 float ImageFilm::purgeAndComputeMean()
 {
-    float threshold = 200.0;
+    float threshold = 150.0;
 
     computeMax();
 
@@ -196,6 +196,7 @@ float ImageFilm::purgeAndComputeMean()
 
     if (firstMean > 0.0 && (maxVal / firstMean) > threshold) {
         // Purge
+        std::cerr << "imagefilm.cpp: PURGING...\n";
         if (num_components == 1) {
             set_all(PfmItem(0.0));
         } else {
