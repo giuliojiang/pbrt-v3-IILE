@@ -184,6 +184,52 @@ float ImageFilm::computeMean()
 }
 
 // ============================================================================
+// Compute mean while purging extraordinarily out-of-range values
+
+float ImageFilm::purgeAndComputeMean()
+{
+    float threshold = 200.0;
+
+    computeMax();
+
+    float firstMean = computeMean();
+
+    if (firstMean > 0.0 && (maxVal / firstMean) > threshold) {
+        // Purge
+        if (num_components == 1) {
+            set_all(PfmItem(0.0));
+        } else {
+            set_all(PfmItem(0.0, 0.0, 0.0));
+        }
+        return 0.0;
+    }
+
+    return firstMean;
+
+}
+
+// ============================================================================
+
+float ImageFilm::computeMax()
+{
+    for (int i = 0; i < data.size(); i++) {
+        PfmItem item = data[i];
+        if (num_components == 1) {
+            float x = item.get_single_component();
+            maxVal = std::max(maxVal, x);
+        } else {
+            float r, g, b;
+            item.get_triple_component(r, g, b);
+            maxVal = std::max(maxVal, r);
+            maxVal = std::max(maxVal, g);
+            maxVal = std::max(maxVal, b);
+        }
+    }
+
+    return maxVal;
+}
+
+// ============================================================================
 // Map
 
 void ImageFilm::map(std::function<float(float)> func)

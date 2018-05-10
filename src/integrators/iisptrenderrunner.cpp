@@ -256,7 +256,6 @@ void IisptRenderRunner::run(const Scene &scene)
         int tile_y = sm_task.y0;
         while (1) {
             // Process current tile
-            std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Hemi point ["<< tile_x <<"] ["<< tile_y <<"]\n";
             IisptPoint2i hemi_key;
             hemi_key.x = tile_x;
             hemi_key.y = tile_y;
@@ -357,6 +356,13 @@ void IisptRenderRunner::run(const Scene &scene)
                 std::unique_ptr<IntensityFilm> aux_intensity =
                         d_integrator->get_intensity_film(aux_camera.get());
 
+                float auxMax = aux_intensity->get_image_film()->computeMax();
+                if (pixel.x == 299 && pixel.y == 599) {
+                    float auxAvg = aux_intensity->get_image_film()->computeMean();
+                    std::cerr << "iisptrenderrunner.cpp: Max ["<< auxMax <<"] Mean ["<< auxAvg <<"]\n";
+                    aux_intensity->get_image_film()->testPrintValueSamples();
+                }
+
                 NormalFilm* aux_normals =
                         d_integrator->get_normal_film();
 
@@ -381,6 +387,15 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 // Upstream transforms on returned intensity
                 transformMapsUpstream(nn_film.get(), intensityMean);
+
+                std::cerr << "iisptrenderrunner.cpp: ["<< pixel.x <<"]["<< pixel.y <<"] final mean ["<< nn_film->get_image_film()->computeMean() <<"] original mean ["<< intensityMean <<"] Original max ["<< auxMax <<"] ratio ["<< (intensityMean > 0.0 ? auxMax / intensityMean : 0.0) <<"]\n";
+
+                if (pixel.x == 299 && pixel.y == 599) {
+                    std::cerr << "iisptrenderrunner.cpp: DEBUG PIXEL\n";
+                    aux_intensity->write(std::string("/tmp/d.pfm"));
+
+                    nn_film->write(std::string("/tmp/predicted.pfm"));
+                }
 
                 if (communicate_status) {
                     std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "NN communication issue" << std::endl;
@@ -440,8 +455,6 @@ void IisptRenderRunner::run(const Scene &scene)
         std::vector<Point2i> additions_pt;
         std::vector<Spectrum> additions_spectrum;
         std::vector<double> additions_weights;
-
-        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Start hemi evaluation\n";
 
         for (int fy = sm_task.y0; fy < sm_task.y1; fy++) {
             for (int fx = sm_task.x0; fx < sm_task.x1; fx++) {
@@ -591,8 +604,6 @@ void IisptRenderRunner::run(const Scene &scene)
                 additions_weights.push_back(1.0);
             }
         }
-
-        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: End hemi evaluation\n";
 
         film_monitor_indirect->add_n_samples(
                     additions_pt,
@@ -1159,7 +1170,7 @@ float IisptRenderRunner::normalizeMapsDownstream(
 
     // Compute mean of intensity
     std::shared_ptr<ImageFilm> intensityFilm = intensity->get_image_film();
-    float intensityMean = intensityFilm->computeMean();
+    float intensityMean = intensityFilm->purgeAndComputeMean();
 
     // Divide by 10*mean
     float multRatio = intensityMean == 0.0 ?
@@ -1217,10 +1228,10 @@ void IisptRenderRunner::transformMapsUpstream(
     float actualMean = intensityFilm->computeMean();
 
     float multiplier;
-    if (actualMean > 0.0) {
+    if (actualMean > 1e-5) {
         multiplier = targetMean / actualMean;
     } else {
-        multiplier = 1.0;
+        multiplier = 0.0;
     }
 
     // Multiply by 10*mean
