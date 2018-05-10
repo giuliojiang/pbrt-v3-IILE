@@ -224,8 +224,8 @@ std::unique_ptr<Distribution1D> ComputeLightPowerDistribution(
         new Distribution1D(&lightPower[0], lightPower.size()));
 }
 
-// SamplerIntegrator Method Definitions
-void SamplerIntegrator::Render(const Scene &scene) {
+void SamplerIntegrator::Render(const Scene &scene, bool writeFile)
+{
     Preprocess(scene, *sampler);
     // Render image tiles in parallel
 
@@ -333,7 +333,14 @@ void SamplerIntegrator::Render(const Scene &scene) {
     LOG(INFO) << "Rendering finished";
 
     // Save final image after rendering
-    camera->film->WriteImage();
+    if (writeFile) {
+        camera->film->WriteImage();
+    }
+}
+
+// SamplerIntegrator Method Definitions
+void SamplerIntegrator::Render(const Scene &scene) {
+    Render(scene, true);
 }
 
 Spectrum SamplerIntegrator::SpecularReflect(

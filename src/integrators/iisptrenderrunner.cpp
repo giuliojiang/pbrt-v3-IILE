@@ -15,9 +15,10 @@ namespace pbrt {
 // See intensityfilm.cpp for more detail
 static Spectrum estimate_direct(
         const Interaction &it,
-        float rx, // input uniform random floats
-        float ry,
-        HemisphericCamera* auxCamera
+        int rx, // Random numbers between 0 and IISPT HEMI SIZE
+        int ry,
+        HemisphericCamera* auxCamera,
+        IisptRng* rng
         ) {
 
     bool specular = false; // Default value
@@ -29,6 +30,8 @@ static Spectrum estimate_direct(
     // Sample light source with multiple importance sampling
     Vector3f wi;
     Float lightPdf = 1.0 / 6.28;
+    Float BSDF_RATIO = 0.10;
+    Float EM_RATIO = 0.5;
     Float scatteringPdf = 0;
     VisibilityTester visibility;
 
@@ -38,16 +41,11 @@ static Spectrum estimate_direct(
     // We don't need to have a visibility object
 
     // Get jacobian-adjusted sample, camera coordinates
-    float pp_prob;
-    Spectrum Li = auxCamera->get_light_sample_nn_importance(
+    Spectrum Li = auxCamera->get_light_sample_nn(
                 rx,
                 ry,
-                &wi,
-                &pp_prob
+                &wi
                 );
-    if (pp_prob <= 1e-5) {
-        return Spectrum(0.0);
-    }
 
     // Combine incoming light, BRDF and viewing direction ---------------------
     if (lightPdf > 0 && !Li.IsBlack()) {
@@ -80,15 +78,62 @@ static Spectrum estimate_direct(
 
             // Add light's contribution to reflected radiance
             if (!Li.IsBlack()) {
-                Ld += f * Li / lightPdf;
+                Float weight = PowerHeuristic(1, lightPdf, 1, scatteringPdf);
+                Ld += EM_RATIO * f * Li * weight / lightPdf;
             }
         }
     }
 
-    // Skipping sampling BSDF with multiple importance sampling
-    // because we gather all information from lights (hemisphere)
+    // Sample BSDF with multiple importance sampling
+    {
+        Spectrum f;
+        bool sampledSpecular = false;
+        if (it.IsSurfaceInteraction()) {
+            // Sample scattered direction for surface interactions
+            BxDFType sampledType;
+            const SurfaceInteraction &isect = (const SurfaceInteraction &) it;
+            Point2f uScattering (
+                        rng->uniform_float(),
+                        rng->uniform_float()
+                        );
+            f = isect.bsdf->Sample_f(
+                        isect.wo,
+                        &wi,
+                        uScattering,
+                        &scatteringPdf,
+                        bsdfFlags,
+                        &sampledType
+                        );
+            f *= AbsDot(wi, isect.shading.n);
+            sampledSpecular = (sampledType & BSDF_SPECULAR) != 0;
+        } else {
+            // Sample scattered direction for medium interactions
+            const MediumInteraction &mi = (const MediumInteraction &) it;
+            Point2f uScattering (
+                        rng->uniform_float(),
+                        rng->uniform_float()
+                        );
+            Float p = mi.phase->Sample_p(mi.wo, &wi, uScattering);
+            f = Spectrum(p);
+            scatteringPdf = p;
+        }
 
-    return Ld / pp_prob;
+        if (!f.IsBlack() && scatteringPdf > 0) {
+            // Account for light contributions along sampled direction _wi_
+            Float weight = 1;
+            if (!sampledSpecular) {
+                weight = PowerHeuristic(1, scatteringPdf, 1, lightPdf);
+            }
+
+            // Compute Li
+            Spectrum Li = auxCamera->getLightSampleNn(wi);
+            if (!Li.IsBlack()) {
+                Ld += BSDF_RATIO * f * Li * weight / scatteringPdf;
+            }
+        }
+    }
+
+    return Ld;
 
 }
 
@@ -119,9 +164,9 @@ Spectrum IisptRenderRunner::sample_hemisphere(
             if (rr < a_weight) {
                 samples_taken++;
                 if (a_camera != NULL) {
-                    float rx = rng->uniform_float();
-                    float ry = rng->uniform_float();
-                    L += estimate_direct(it, rx, ry, a_camera);
+                    int rx = rng->uniform_uint32(PbrtOptions.iisptHemiSize);
+                    int ry = rng->uniform_uint32(PbrtOptions.iisptHemiSize);
+                    L += estimate_direct(it, rx, ry, a_camera, rng.get());
                 }
             }
         }
@@ -135,49 +180,35 @@ Spectrum IisptRenderRunner::sample_hemisphere(
 }
 
 // ============================================================================
-IisptRenderRunner::IisptRenderRunner(
-        IISPTIntegrator* iispt_integrator,
-        std::shared_ptr<IisptScheduleMonitor> schedule_monitor,
+IisptRenderRunner::IisptRenderRunner(std::shared_ptr<IisptScheduleMonitor> schedule_monitor,
         std::shared_ptr<IisptFilmMonitor> film_monitor_indirect,
         std::shared_ptr<IisptFilmMonitor> film_monitor_direct,
         std::shared_ptr<const Camera> main_camera,
         std::shared_ptr<Camera> dcamera,
         std::shared_ptr<Sampler> sampler,
         int thread_no,
-        Bounds2i pixel_bounds
-        )
+        Bounds2i pixel_bounds,
+        std::shared_ptr<IisptNnConnector> nnConnector)
 {
-    this->iispt_integrator = iispt_integrator;
-
     this->schedule_monitor = schedule_monitor;
 
     this->film_monitor_indirect = film_monitor_indirect;
 
     this->film_monitor_direct = film_monitor_direct;
 
-    this->d_integrator = CreateIISPTdIntegrator(dcamera);
-    // Preprocess is called on run()
+    this->dcamera = dcamera;
 
-    std::cerr << "iisptrenderrunner.cpp: Creating NN connector\n";
-    this->nn_connector = std::unique_ptr<IisptNnConnector>(
-                new IisptNnConnector()
-                );
-    std::cerr << "iisptrenderrunner.cpp: NN connector created\n";
+    this->pixel_bounds = pixel_bounds;
 
-    // TODO remove fixed seed
+    this->nn_connector = std::move(nnConnector);
+
     this->rng = std::unique_ptr<IisptRng>(
                 new IisptRng(thread_no)
                 );
 
-    this->sampler = std::unique_ptr<Sampler>(
-                sampler->Clone(thread_no)
-                );
-
-    this->dcamera = dcamera;
+    this->sampler = sampler->Clone(thread_no);
 
     this->thread_no = thread_no;
-
-    this->pixel_bounds = pixel_bounds;
 
     this->main_camera = main_camera;
 }
@@ -186,20 +217,16 @@ IisptRenderRunner::IisptRenderRunner(
 
 void IisptRenderRunner::run(const Scene &scene)
 {
-    std::cerr << "iisptrenderrunner.cpp: New tiled renderer\n";
+    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: New tiled renderer thread " << this->thread_no << std::endl;;
 
-    // Read number of passes environment variable
-    char* num_passes_env = std::getenv("IISPT_INDIRECT_PASSES");
-    int num_passes = 2;
-    if (num_passes_env != NULL) {
-        num_passes = std::stoi(std::string(num_passes_env));
-    }
+    // dintegrator
+    std::shared_ptr<IISPTdIntegrator> d_integrator = CreateIISPTdIntegrator(this->dcamera);
 
     d_integrator->Preprocess(scene);
     lightDistribution =
             CreateLightSampleDistribution(std::string("spatial"), scene);
 
-    std::cerr << "iisptrenderrunner.cpp: start render loop\n";
+    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: start render loop\n";
 
     while (1) {
 
@@ -207,16 +234,16 @@ void IisptRenderRunner::run(const Scene &scene)
         IisptScheduleMonitorTask sm_task = schedule_monitor->next_task();
 
         // Check pass number for finish
-        if (sm_task.pass > num_passes) {
+        if (sm_task.taskNumber >= PbrtOptions.iileIndirectTasks) {
             break;
         }
 
-        std::cerr << "iisptrenderrunner.cpp PASS " << sm_task.pass << std::endl;
+        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp PASS " << sm_task.pass << std::endl;
 
         MemoryArena arena;
 
         // sm_task end points are exclusive
-        std::cerr << "Obtained new task: ["<< sm_task.x0 <<"]["<< sm_task.y0 <<"]-["<< sm_task.x1 <<"]["<< sm_task.y1 <<"] tilesize ["<< sm_task.tilesize <<"]\n";
+        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Obtained new task: ["<< sm_task.x0 <<"]["<< sm_task.y0 <<"]-["<< sm_task.x1 <<"]["<< sm_task.y1 <<"] tilesize ["<< sm_task.tilesize <<"]\n";
 
         // Use a HashMap to store the hemi points
         std::unordered_map<
@@ -229,7 +256,7 @@ void IisptRenderRunner::run(const Scene &scene)
         int tile_y = sm_task.y0;
         while (1) {
             // Process current tile
-            std::cerr << "Hemi point ["<< tile_x <<"] ["<< tile_y <<"]\n";
+            std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Hemi point ["<< tile_x <<"] ["<< tile_y <<"]\n";
             IisptPoint2i hemi_key;
             hemi_key.x = tile_x;
             hemi_key.y = tile_y;
@@ -356,7 +383,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 transformMapsUpstream(nn_film.get(), intensityMean);
 
                 if (communicate_status) {
-                    std::cerr << "NN communication issue" << std::endl;
+                    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "NN communication issue" << std::endl;
                     raise(SIGKILL);
                 }
 
@@ -373,7 +400,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 tile_x = sm_task.x0;
                 advance_tile_y = true;
             } else if (tile_x >= sm_task.x1) {
-                std::cerr << "iisptrenderrunner: ERROR tile has gone past the end\n";
+                std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner: ERROR tile has gone past the end\n";
                 std::raise(SIGKILL);
             } else {
                 // Advance x only
@@ -414,7 +441,7 @@ void IisptRenderRunner::run(const Scene &scene)
         std::vector<Spectrum> additions_spectrum;
         std::vector<double> additions_weights;
 
-        std::cerr << "iisptrenderrunner.cpp: Start hemi evaluation\n";
+        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Start hemi evaluation\n";
 
         for (int fy = sm_task.y0; fy < sm_task.y1; fy++) {
             for (int fx = sm_task.x0; fx < sm_task.x1; fx++) {
@@ -460,7 +487,7 @@ void IisptRenderRunner::run(const Scene &scene)
                     pt_key.x = pt.x;
                     pt_key.y = pt.y;
                     if (hemi_points.count(pt_key) <= 0) {
-                        std::cerr << "iisptrenderrunner.cpp: hemi_points does not have key ["<< pt.x <<"]["<< pt.y <<"]\n";
+                        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: hemi_points does not have key ["<< pt.x <<"]["<< pt.y <<"]\n";
                         std::raise(SIGKILL);
                     }
                     std::shared_ptr<HemisphericCamera> a_cmr =
@@ -544,7 +571,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 Vector3f wo = f_isect.wo;
                 Float wo_length = Dot(wo, wo);
                 if (wo_length == 0) {
-                    std::cerr << "iisptrenderrunner.cpp: Detected a 0 length wo" << std::endl;
+                    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Detected a 0 length wo" << std::endl;
                     raise(SIGKILL);
                     exit(1);
                 }
@@ -565,7 +592,7 @@ void IisptRenderRunner::run(const Scene &scene)
             }
         }
 
-        std::cerr << "iisptrenderrunner.cpp: End hemi evaluation\n";
+        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: End hemi evaluation\n";
 
         film_monitor_indirect->add_n_samples(
                     additions_pt,
@@ -575,7 +602,6 @@ void IisptRenderRunner::run(const Scene &scene)
 
     }
 
-    run_direct(scene);
 }
 
 // ============================================================================
@@ -583,129 +609,27 @@ void IisptRenderRunner::run(const Scene &scene)
 // Render direct illumination components
 void IisptRenderRunner::run_direct(const Scene &scene)
 {
-    std::cerr << "iisptrenderrunner.cpp: starting direct illumination pass\n";
+    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: starting direct illumination pass\n";
 
-    if (lightDistribution == nullptr) {
-        std::cerr << "iisptrenderrunner.cpp::run_direct ERROR lightDistribution is null\n";
-        std::raise(SIGKILL);
-    }
-
-    Bounds2i bounds = film_monitor_indirect->get_film_bounds();
-
-    // Collect vectors for new additions
-    std::vector<Point2i> additions_pt;
-    std::vector<Spectrum> additions_spectrum;
-    std::vector<double> additions_weights;
-
-    // Loop for each pixel
-    for (int fy = bounds.pMin.y; fy < bounds.pMax.y; fy++) {
-        for (int fx = bounds.pMin.x; fx < bounds.pMax.x; fx++) {
-
-            MemoryArena arena;
-
-            Point2i f_pixel (fx, fy);
-
-            sampler->StartPixel(f_pixel);
-
-            // Loop _pixelsample_ times
-            do {
-
-                CameraSample f_camera_sample =
-                        sampler->GetCameraSample(f_pixel);
-
-                RayDifferential f_r;
-                main_camera->GenerateRayDifferential(
-                    f_camera_sample,
-                    &f_r
-                    );
-                f_r.ScaleDifferentials(1.0);
-
-                SurfaceInteraction f_isect;
-                Spectrum f_beta;
-                Spectrum f_background;
-                RayDifferential f_ray;
-                Spectrum area_out;
-
-                // Find intersection point
-                bool f_intersection_found = find_intersection(
-                            f_r,
-                            scene,
-                            arena,
-                            &f_isect,
-                            &f_ray,
-                            &f_beta,
-                            &f_background,
-                            &area_out
-                            );
-
-                Spectrum L (0.0);
-                L += area_out;
-
-                if (!f_intersection_found) {
-                    // No intersection found, record background
-                    additions_pt.push_back(f_pixel);
-                    L += f_background;
-                    additions_spectrum.push_back(L);
-                    additions_weights.push_back(1.0);
-                    continue;
-                } else if (f_intersection_found && f_beta.y() <= 0.0) {
-                    // Intersection found but black pixel
-                    // Nothing to do
-                    additions_pt.push_back(f_pixel);
-                    additions_spectrum.push_back(L);
-                    additions_weights.push_back(1.0);
-                    continue;
-                }
-
-                // Compute scattering functions for surface interaction
-                f_isect.ComputeScatteringFunctions(f_ray, arena);
-                if (!f_isect.bsdf) {
-                    // This should not be possible, because find_intersection()
-                    // would have skipped the intersection
-                    // so do nothing
-                    continue;
-                }
-
-                // wo is vector towards viewer, from intersection
-                Vector3f wo = f_isect.wo;
-                Float wo_length = Dot(wo, wo);
-                if (wo_length == 0) {
-                    std::cerr << "iisptrenderrunner.cpp: Detected a 0 length wo" << std::endl;
-                    raise(SIGKILL);
-                    exit(1);
-                }
-
-
-
-                // Sample one direct lighting
-                const Distribution1D* distribution = lightDistribution->Lookup(f_isect.p);
-                L += path_uniform_sample_one_light(
-                            f_isect,
-                            scene,
-                            arena,
-                            false,
-                            distribution
-                            );
-
-                // Record sample
-                additions_pt.push_back(f_pixel);
-                additions_spectrum.push_back(f_beta * L);
-                additions_weights.push_back(1.0);
-
-            } while (sampler->StartNextSample());
-
-        }
-    }
-
-    std::cerr << "iisptrenderrunner.cpp: Completed direct pass loop\n";
-
-    film_monitor_direct->add_n_samples(
-                additions_pt,
-                additions_spectrum,
-                additions_weights
+    std::unique_ptr<DirectLightingIntegrator> directIntegrator (
+                new DirectLightingIntegrator(
+                    LightStrategy::UniformSampleAll,
+                    5,
+                    main_camera,
+                    sampler->Clone(0),
+                    film_monitor_indirect->get_film_bounds()
+                    )
                 );
 
-    std::cerr << "iisptrenderrunner.cpp: Completed direct pass add_n_samples\n";
+    directIntegrator->Render(scene, false);
+
+    std::unique_ptr<IntensityFilm> directFilm = main_camera->film->to_intensity_film();
+
+    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Completed direct pass loop\n";
+
+    film_monitor_direct->addFromIntensityFilm(directFilm.get());
+
+    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Completed direct pass add_n_samples\n";
 }
 
 // ============================================================================

@@ -420,6 +420,8 @@ void IISPTIntegrator::Render(const Scene &scene) {
         std::cerr << "Starting reference render" << std::endl;
         render_reference(scene);
     }
+
+    iile::NnConnectorManager::getInstance().stopAll();
 }
 
 // ============================================================================
@@ -427,9 +429,6 @@ void IISPTIntegrator::Render(const Scene &scene) {
 void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     Preprocess(scene);
-
-    // Create: IisptScheduleMonitor, IisptFilmMonitor,
-    // IisptRenderRunner
 
     std::shared_ptr<IisptScheduleMonitor> schedule_monitor (
                 new IisptScheduleMonitor(camera->film->GetSampleBounds())
@@ -447,21 +446,55 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
                     )
                 );
 
-    std::shared_ptr<IisptRenderRunner> render_runner (
-                new IisptRenderRunner(
-                    this,
-                    schedule_monitor,
-                    film_monitor_indirect,
-                    film_monitor_direct,
-                    camera,
-                    dcamera,
-                    sampler,
-                    0,
-                    camera->film->GetSampleBounds()
-                    )
-                );
+    // Create thread pool for indirect pass
+    unsigned noCpus = iile::cpusCountHalf();
+    // noCpus = 1;
+    ThreadPool threadPool (noCpus);
+    std::vector<std::future<void>> futures;
+    std::shared_ptr<IisptRenderRunner> runner0 = nullptr;
 
-    render_runner->run(scene);
+    // Start threads
+    for (int i = 0; i < noCpus; i++) {
+        std::shared_ptr<IisptNnConnector> nnConnector =
+                iile::NnConnectorManager::getInstance().getInstance().get(i);
+
+        futures.push_back(threadPool.enqueue([i, &runner0, schedule_monitor, film_monitor_indirect, film_monitor_direct, this, &scene, nnConnector]() {
+            std::shared_ptr<IisptRenderRunner> runner (
+                        new IisptRenderRunner(
+                            schedule_monitor,
+                            film_monitor_indirect,
+                            film_monitor_direct,
+                            camera,
+                            dcamera,
+                            sampler,
+                            i,
+                            camera->film->GetSampleBounds(),
+                            nnConnector
+                            )
+                        );
+            if (i == 0) {
+                runner0 = runner;
+            }
+            runner->run(scene);
+        }));
+    }
+
+    std::cerr << "iispt.cpp: All threads started\n";
+
+    std::cerr << "iispt.cpp THREAD count is " << futures.size() << std::endl;
+
+    // Wait for threads to finish
+    for (int i = 0; i < noCpus; i++) {
+        futures[i].get();
+    }
+
+    // Direct pass
+
+    if (runner0 == nullptr) {
+        std::cerr << "iispt.cpp: Error, runner0 is NULL\n";
+        std::raise(SIGKILL);
+    }
+    runner0->run_direct(scene);
 
     std::cerr << "iispt.cpp: saving indirect EXR\n";
 
@@ -477,9 +510,8 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     std::cerr << "iispt.cpp: saving combined EXR\n";
 
-    film_monitor_direct->to_intensity_film()->pbrt_write("/tmp/iispt_combined.exr");
+    film_monitor_direct->to_intensity_film()->pbrt_write(PbrtOptions.imageFile);
 
-    std::cerr << "iispt.cpp: render normal 2 end\n";
 }
 
 // Render reference ===========================================================
@@ -792,7 +824,6 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
     std::shared_ptr<const Camera> camera,
     std::shared_ptr<Camera> dcamera
 ) {
-    std::cerr << "iispt.cpp: CreateIISPTIntegrator\n";
 
     int maxDepth = params.FindOneInt("maxdepth", 5);
     int np;
@@ -813,18 +844,10 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
     std::string lightStrategy =
         params.FindOneString("lightsamplestrategy", "spatial");
 
-    std::cerr << "iispt.cpp: CreateIISPTIntegrator end\n";
-
-    char* direct_samples_env = std::getenv("IISPT_DIRECT_SAMPLES");
-    int direct_samples = 2;
-    if (direct_samples_env != NULL) {
-        direct_samples = std::stoi(std::string(direct_samples_env));
-    }
-
     std::shared_ptr<Sampler> sampler (
                 CreateSobolSampler(
                 pixelBounds,
-                direct_samples
+                PbrtOptions.iileDirectSamples
                 ));
 
     return new IISPTIntegrator(maxDepth, camera, pixelBounds,

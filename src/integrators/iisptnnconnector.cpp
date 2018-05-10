@@ -14,7 +14,6 @@ IisptNnConnector::IisptNnConnector() {
         std::cerr << "ERROR, environment variable IISPT_STDIO_NET_PY_PATH is not defined. Shutting down..." << std::endl;
         exit(1);
     }
-    fprintf(stderr, "Got env variable %s\n", nn_py_path);
 
     char *const argv[] = {
         "python3",
@@ -23,16 +22,12 @@ IisptNnConnector::IisptNnConnector() {
         NULL
     };
 
-    std::cerr << "iisptnnconnector.cpp: Starting child process\n";
-
     child_process = std::unique_ptr<ChildProcess>(
                 new ChildProcess(
                     std::string("python3"),
                     argv
                     )
                 );
-
-    std::cerr << "iisptnnconnector.cpp: Child process started\n";
 
 }
 
@@ -150,6 +145,12 @@ std::unique_ptr<IntensityFilm> IisptNnConnector::communicate(
         status = 0;
         return output_film;
     }
+}
+
+// ============================================================================
+void IisptNnConnector::sendEOF()
+{
+    child_process->writeEOF();
 }
 
 }

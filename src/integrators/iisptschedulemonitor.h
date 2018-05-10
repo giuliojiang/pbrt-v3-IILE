@@ -16,6 +16,7 @@ struct IisptScheduleMonitorTask
     int y1;
     int tilesize;
     int pass;
+    int taskNumber;
 };
 
 // ============================================================================
@@ -25,6 +26,8 @@ private:
 
     // ------------------------------------------------------------------------
     // Members
+
+    std::mutex mutex;
 
     // Number of tiles per side in each task
     int NUMBER_TILES = 10;
@@ -46,6 +49,9 @@ private:
 
     // Pass number
     int pass = 1;
+
+    // Task number
+    int taskNumber = 0;
 
 public:
 

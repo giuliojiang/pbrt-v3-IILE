@@ -276,8 +276,10 @@ Film *CreateFilm(const ParamSet &params, std::unique_ptr<Filter> filter,
                 "Output filename supplied on command line, \"%s\" is overriding "
                 "filename provided in scene description file, \"%s\".",
                 PbrtOptions.imageFile.c_str(), paramsFilename.c_str());
-    } else
+    } else {
         filename = params.FindOneString("filename", "pbrt.exr");
+    }
+    PbrtOptions.imageFile = filename;
 
     if (PbrtOptions.quickRender) xres = std::max(1, xres / 4);
     if (PbrtOptions.quickRender) yres = std::max(1, yres / 4);

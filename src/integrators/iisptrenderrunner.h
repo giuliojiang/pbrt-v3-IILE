@@ -9,6 +9,7 @@
 #include "integrators/iisptnnconnector.h"
 #include "integrators/iisptschedulemonitor.h"
 #include "integrators/iispt_d.h"
+#include "integrators/directlighting.h"
 #include "rng.h"
 #include "sampler.h"
 #include "camera.h"
@@ -17,6 +18,8 @@
 #include "tools/iisptrng.h"
 #include "tools/iisptpoint2i.h"
 #include "samplers/sobol.h"
+#include "tools/threadpool.h"
+#include "tools/generalutils.h"
 
 namespace pbrt {
 
@@ -26,8 +29,7 @@ class IisptRenderRunner
 private:
     // Fields -----------------------------------------------------------------
 
-    double HEMI_IMPORTANCE = 10.0;
-    int HEMISPHERIC_IMPORTANCE_SAMPLES = 16;
+    static const int HEMISPHERIC_IMPORTANCE_SAMPLES = 16;
 
     int thread_no;
 
@@ -36,8 +38,6 @@ private:
     Point2i sampler_pixel_counter = Point2i(0, 0);
 
     // Shared objects
-
-    IISPTIntegrator* iispt_integrator;
 
     std::shared_ptr<IisptScheduleMonitor> schedule_monitor;
 
@@ -51,9 +51,7 @@ private:
 
     // Single objects
 
-    std::shared_ptr<IISPTdIntegrator> d_integrator;
-
-    std::unique_ptr<IisptNnConnector> nn_connector;
+    std::shared_ptr<IisptNnConnector> nn_connector;
 
     std::unique_ptr<IisptRng> rng;
 
@@ -113,8 +111,6 @@ private:
 
     void sampler_next_pixel();
 
-    void run_direct(const Scene &scene);
-
     void compute_fpixel_weights(
             std::vector<Point2i> &neighbour_points,
             std::vector<HemisphericCamera*> &hemi_sampling_cameras,
@@ -163,7 +159,7 @@ private:
 public:
 
     // Constructor ------------------------------------------------------------
-    IisptRenderRunner(IISPTIntegrator* iispt_integrator,
+    IisptRenderRunner(
             std::shared_ptr<IisptScheduleMonitor> schedule_monitor,
             std::shared_ptr<IisptFilmMonitor> film_monitor_indirect,
             std::shared_ptr<IisptFilmMonitor> film_monitor_direct,
@@ -171,12 +167,15 @@ public:
             std::shared_ptr<Camera> dcamera,
             std::shared_ptr<Sampler> sampler,
             int thread_no,
-            Bounds2i pixel_bounds
+            Bounds2i pixel_bounds,
+            std::shared_ptr<IisptNnConnector> nnConnector
             );
 
     // Public methods ---------------------------------------------------------
 
     virtual void run(const Scene &scene);
+
+    void run_direct(const Scene &scene);
 
 };
 

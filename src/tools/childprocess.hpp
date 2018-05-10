@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
 
 namespace pbrt {
 
@@ -27,6 +28,7 @@ public: // ====================================================================
     {
         pipe(stdout_pipe);
         pipe(stdin_pipe);
+
         child_pid = fork();
 
         if (child_pid == -1) {
@@ -40,11 +42,6 @@ public: // ====================================================================
 
             // Child receives read end of stdin pipe
             dup2(stdin_pipe[0], STDIN_FILENO);
-
-            close(stdout_pipe[0]);
-            close(stdout_pipe[1]);
-            close(stdin_pipe[0]);
-            close(stdin_pipe[1]);
 
             execvp(process_path.c_str(), argv);
 
@@ -76,6 +73,13 @@ public: // ====================================================================
         char buffer[1];
         buffer[0] = c;
         write(stdin_pipe[1], buffer, 1);
+    }
+
+    // ------------------------------------------------------------------------
+    void writeEOF()
+    {
+        close(stdin_pipe[1]);
+        kill(child_pid, SIGKILL);
     }
 
     // ------------------------------------------------------------------------

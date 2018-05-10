@@ -39,6 +39,8 @@ IisptScheduleMonitor::IisptScheduleMonitor(Bounds2i bounds) {
 // ============================================================================
 IisptScheduleMonitorTask IisptScheduleMonitor::next_task() {
 
+    std::unique_lock<std::mutex> lock (mutex);
+
     int effective_radius = std::floor(current_radius);
     if (effective_radius < 1) {
         effective_radius = 1;
@@ -55,6 +57,7 @@ IisptScheduleMonitorTask IisptScheduleMonitor::next_task() {
     res.y1 = std::min(res.y0 + task_size, bounds.pMax.y);
     res.tilesize = effective_radius;
     res.pass = pass;
+    res.taskNumber = taskNumber++;
 
     // Advance to the next tile
 
