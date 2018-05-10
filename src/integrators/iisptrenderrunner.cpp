@@ -30,7 +30,7 @@ static Spectrum estimate_direct(
     // Sample light source with multiple importance sampling
     Vector3f wi;
     Float lightPdf = 1.0 / 6.28;
-    Float BSDF_RATIO = 0.10;
+    Float BSDF_RATIO = 0.20;
     Float EM_RATIO = 0.5;
     Float scatteringPdf = 0;
     VisibilityTester visibility;

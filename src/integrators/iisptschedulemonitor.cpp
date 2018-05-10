@@ -12,7 +12,7 @@ IisptScheduleMonitor::IisptScheduleMonitor(Bounds2i bounds) {
     // Read environment variables
     char* radius_start_env = std::getenv("IISPT_SCHEDULE_RADIUS_START");
     if (radius_start_env == NULL) {
-        current_radius = 60.0;
+        current_radius = 100.0;
     } else {
         current_radius = std::stof(std::string(radius_start_env));
     }
