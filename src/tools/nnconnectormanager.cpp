@@ -30,6 +30,15 @@ std::shared_ptr<IisptNnConnector> NnConnectorManager::get(int threadNumber)
     return nnConnectors[threadNumber];
 }
 
+void NnConnectorManager::stopAll()
+{
+    std::cerr << "nnconnectormanager.cpp: Stopping all python processes...\n";
+    for (int i = 0; i < nnConnectors.size(); i++) {
+        nnConnectors[i]->sendEOF();
+    }
+    nnConnectors.clear();
+}
+
 }
 
 

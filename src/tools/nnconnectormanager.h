@@ -33,6 +33,8 @@ public:
     void start(int noThreads);
 
     std::shared_ptr<IisptNnConnector> get(int threadNumber);
+
+    void stopAll();
 };
 
 

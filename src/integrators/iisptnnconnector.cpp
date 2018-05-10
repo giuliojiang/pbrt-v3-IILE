@@ -147,4 +147,10 @@ std::unique_ptr<IntensityFilm> IisptNnConnector::communicate(
     }
 }
 
+// ============================================================================
+void IisptNnConnector::sendEOF()
+{
+    child_process->writeEOF();
+}
+
 }

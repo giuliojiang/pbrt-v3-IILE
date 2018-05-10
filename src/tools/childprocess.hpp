@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
 
 namespace pbrt {
 
@@ -72,6 +73,13 @@ public: // ====================================================================
         char buffer[1];
         buffer[0] = c;
         write(stdin_pipe[1], buffer, 1);
+    }
+
+    // ------------------------------------------------------------------------
+    void writeEOF()
+    {
+        close(stdin_pipe[1]);
+        kill(child_pid, SIGKILL);
     }
 
     // ------------------------------------------------------------------------

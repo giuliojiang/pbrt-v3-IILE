@@ -420,6 +420,8 @@ void IISPTIntegrator::Render(const Scene &scene) {
         std::cerr << "Starting reference render" << std::endl;
         render_reference(scene);
     }
+
+    iile::NnConnectorManager::getInstance().stopAll();
 }
 
 // ============================================================================
