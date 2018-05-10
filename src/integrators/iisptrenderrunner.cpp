@@ -15,9 +15,10 @@ namespace pbrt {
 // See intensityfilm.cpp for more detail
 static Spectrum estimate_direct(
         const Interaction &it,
-        float rx, // input uniform random floats
-        float ry,
-        HemisphericCamera* auxCamera
+        int rx, // Random numbers between 0 and IISPT HEMI SIZE
+        int ry,
+        HemisphericCamera* auxCamera,
+        IisptRng* rng
         ) {
 
     bool specular = false; // Default value
@@ -38,16 +39,11 @@ static Spectrum estimate_direct(
     // We don't need to have a visibility object
 
     // Get jacobian-adjusted sample, camera coordinates
-    float pp_prob;
-    Spectrum Li = auxCamera->get_light_sample_nn_importance(
+    Spectrum Li = auxCamera->get_light_sample_nn(
                 rx,
                 ry,
-                &wi,
-                &pp_prob
+                &wi
                 );
-    if (pp_prob <= 1e-5) {
-        return Spectrum(0.0);
-    }
 
     // Combine incoming light, BRDF and viewing direction ---------------------
     if (lightPdf > 0 && !Li.IsBlack()) {
@@ -80,15 +76,62 @@ static Spectrum estimate_direct(
 
             // Add light's contribution to reflected radiance
             if (!Li.IsBlack()) {
-                Ld += f * Li / lightPdf;
+                Float weight = PowerHeuristic(1, lightPdf, 1, scatteringPdf);
+                Ld += f * Li * weight / lightPdf;
             }
         }
     }
 
-    // Skipping sampling BSDF with multiple importance sampling
-    // because we gather all information from lights (hemisphere)
+    // Sample BSDF with multiple importance sampling
+    {
+        Spectrum f;
+        bool sampledSpecular = false;
+        if (it.IsSurfaceInteraction()) {
+            // Sample scattered direction for surface interactions
+            BxDFType sampledType;
+            const SurfaceInteraction &isect = (const SurfaceInteraction &) it;
+            Point2f uScattering (
+                        rng->uniform_float(),
+                        rng->uniform_float()
+                        );
+            f = isect.bsdf->Sample_f(
+                        isect.wo,
+                        &wi,
+                        uScattering,
+                        &scatteringPdf,
+                        bsdfFlags,
+                        &sampledType
+                        );
+            f *= AbsDot(wi, isect.shading.n);
+            sampledSpecular = (sampledType & BSDF_SPECULAR) != 0;
+        } else {
+            // Sample scattered direction for medium interactions
+            const MediumInteraction &mi = (const MediumInteraction &) it;
+            Point2f uScattering (
+                        rng->uniform_float(),
+                        rng->uniform_float()
+                        );
+            Float p = mi.phase->Sample_p(mi.wo, &wi, uScattering);
+            f = Spectrum(p);
+            scatteringPdf = p;
+        }
 
-    return Ld / pp_prob;
+        if (!f.IsBlack() && scatteringPdf > 0) {
+            // Account for light contributions along sampled direction _wi_
+            Float weight = 1;
+            if (!sampledSpecular) {
+                weight = PowerHeuristic(1, scatteringPdf, 1, lightPdf);
+            }
+
+            // Compute Li
+            Spectrum Li = auxCamera->getLightSampleNn(wi);
+            if (!Li.IsBlack()) {
+                Ld += f * Li * weight / scatteringPdf;
+            }
+        }
+    }
+
+    return Ld;
 
 }
 
@@ -119,9 +162,9 @@ Spectrum IisptRenderRunner::sample_hemisphere(
             if (rr < a_weight) {
                 samples_taken++;
                 if (a_camera != NULL) {
-                    float rx = rng->uniform_float();
-                    float ry = rng->uniform_float();
-                    L += estimate_direct(it, rx, ry, a_camera);
+                    int rx = rng->uniform_uint32(PbrtOptions.iisptHemiSize);
+                    int ry = rng->uniform_uint32(PbrtOptions.iisptHemiSize);
+                    L += estimate_direct(it, rx, ry, a_camera, rng.get());
                 }
             }
         }

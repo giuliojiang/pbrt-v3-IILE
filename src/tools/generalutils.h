@@ -6,12 +6,9 @@
 namespace pbrt {
 namespace iile {
 
-static unsigned cpusCount() {
+static unsigned cpusCountHalf() {
     unsigned count = std::thread::hardware_concurrency();
-    if (count == 0) {
-        return 2; // Could not detect, return default value
-    }
-    return count;
+    return std::max(1u, count / 2);
 }
 
 }

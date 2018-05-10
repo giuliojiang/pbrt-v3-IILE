@@ -41,6 +41,23 @@ Float HemisphericCamera::GenerateRay(
 }
 
 // ============================================================================
+Spectrum HemisphericCamera::getLightSampleNn(Vector3f wi)
+{
+    Vector3f wiCamera = WorldToCamera->operator ()(wi);
+    Float theta = std::acos(wiCamera.y);
+    Float phi = std::atan2(wiCamera.z, wiCamera.x);
+    int y = PbrtOptions.iisptHemiSize * theta / Pi;
+    int x = PbrtOptions.iisptHemiSize * phi / Pi;
+    if (x >= 0 && x < PbrtOptions.iisptHemiSize &&
+            y >= 0 && y < PbrtOptions.iisptHemiSize)
+    {
+        return film->get_pixel_as_spectrum(Point2i(x, y));
+    } else {
+        return Spectrum(0.0);
+    }
+}
+
+// ============================================================================
 Spectrum HemisphericCamera::getLightSample(
         int x,
         int y,

@@ -29,8 +29,7 @@ class IisptRenderRunner
 private:
     // Fields -----------------------------------------------------------------
 
-    double HEMI_IMPORTANCE = 10.0;
-    int HEMISPHERIC_IMPORTANCE_SAMPLES = 32;
+    static const int HEMISPHERIC_IMPORTANCE_SAMPLES = 16;
 
     int thread_no;
 

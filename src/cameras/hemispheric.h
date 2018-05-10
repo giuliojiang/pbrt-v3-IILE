@@ -65,6 +65,8 @@ public:
             std::shared_ptr<IntensityFilm> nn_film
             );
 
+    Spectrum getLightSampleNn(Vector3f wi);
+
     Spectrum get_light_sample_nn(
             int x,
             int y,
