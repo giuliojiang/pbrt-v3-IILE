@@ -217,16 +217,12 @@ IisptRenderRunner::IisptRenderRunner(std::shared_ptr<IisptScheduleMonitor> sched
 
 void IisptRenderRunner::run(const Scene &scene)
 {
-    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: New tiled renderer thread " << this->thread_no << std::endl;;
-
     // dintegrator
     std::shared_ptr<IISPTdIntegrator> d_integrator = CreateIISPTdIntegrator(this->dcamera);
 
     d_integrator->Preprocess(scene);
     lightDistribution =
             CreateLightSampleDistribution(std::string("spatial"), scene);
-
-    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: start render loop\n";
 
     while (1) {
 
@@ -238,12 +234,10 @@ void IisptRenderRunner::run(const Scene &scene)
             break;
         }
 
-        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp PASS " << sm_task.pass << std::endl;
-
         MemoryArena arena;
 
         // sm_task end points are exclusive
-        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Obtained new task: ["<< sm_task.x0 <<"]["<< sm_task.y0 <<"]-["<< sm_task.x1 <<"]["<< sm_task.y1 <<"] tilesize ["<< sm_task.tilesize <<"]\n";
+        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Task ["<< sm_task.taskNumber + 1 <<"] of ["<< PbrtOptions.iileIndirectTasks <<"]\n";
 
         // Use a HashMap to store the hemi points
         std::unordered_map<
@@ -356,13 +350,6 @@ void IisptRenderRunner::run(const Scene &scene)
                 std::unique_ptr<IntensityFilm> aux_intensity =
                         d_integrator->get_intensity_film(aux_camera.get());
 
-                float auxMax = aux_intensity->get_image_film()->computeMax();
-                if (pixel.x == 899 && pixel.y == 499) {
-                    float auxAvg = aux_intensity->get_image_film()->computeMean();
-                    std::cerr << "iisptrenderrunner.cpp: Max ["<< auxMax <<"] Mean ["<< auxAvg <<"]\n";
-                    aux_intensity->get_image_film()->testPrintValueSamples();
-                }
-
                 NormalFilm* aux_normals =
                         d_integrator->get_normal_film();
 
@@ -387,15 +374,6 @@ void IisptRenderRunner::run(const Scene &scene)
 
                 // Upstream transforms on returned intensity
                 transformMapsUpstream(nn_film.get(), intensityMean);
-
-                std::cerr << "iisptrenderrunner.cpp: ["<< pixel.x <<"]["<< pixel.y <<"] final mean ["<< nn_film->get_image_film()->computeMean() <<"] original mean ["<< intensityMean <<"] Original max ["<< auxMax <<"] ratio ["<< (intensityMean > 0.0 ? auxMax / intensityMean : 0.0) <<"]\n";
-
-                if (pixel.x == 899 && pixel.y == 499) {
-                    std::cerr << "iisptrenderrunner.cpp: DEBUG PIXEL\n";
-                    aux_intensity->write(std::string("/tmp/d.pfm"));
-
-                    nn_film->write(std::string("/tmp/predicted.pfm"));
-                }
 
                 if (communicate_status) {
                     std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "NN communication issue" << std::endl;

@@ -12,14 +12,14 @@ IisptScheduleMonitor::IisptScheduleMonitor(Bounds2i bounds) {
     // Read environment variables
     char* radius_start_env = std::getenv("IISPT_SCHEDULE_RADIUS_START");
     if (radius_start_env == NULL) {
-        current_radius = 100.0;
+        current_radius = 60.0;
     } else {
         current_radius = std::stof(std::string(radius_start_env));
     }
 
     char* radius_ratio_env = std::getenv("IISPT_SCHEDULE_RADIUS_RATIO");
     if (radius_ratio_env == NULL) {
-        update_multiplier = 0.6348876511246;
+        update_multiplier = 0.65135487;
     } else {
         update_multiplier = std::stof(std::string(radius_ratio_env));
     }

@@ -188,25 +188,20 @@ float ImageFilm::computeMean()
 
 float ImageFilm::purgeAndComputeMean()
 {
-    float threshold = 150.0;
+    if (num_components != 3) {
+        std::cerr << "imagefilm.cpp: ERROR purgeAndComputeMean() only supported on image film with 3 channels\n";
+        std::raise(SIGKILL);
+    }
 
-    computeMax();
+    float theMax = computeMax();
 
-    float firstMean = computeMean();
-
-    if (firstMean > 0.0 && (maxVal / firstMean) > threshold) {
-        // Purge
-        std::cerr << "imagefilm.cpp: PURGING...\n";
-        if (num_components == 1) {
-            set_all(PfmItem(0.0));
-        } else {
-            set_all(PfmItem(0.0, 0.0, 0.0));
-        }
+    if (theMax > 10000) {
+        std::cerr << "imagefilm.cpp: out\n";
+        set_all(PfmItem(0.0, 0.0, 0.0));
         return 0.0;
     }
 
-    return firstMean;
-
+    return computeMean();
 }
 
 // ============================================================================

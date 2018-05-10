@@ -10,6 +10,7 @@
 #include <limits>
 
 #include "pfmitem.h"
+#include "tools/iisptmathutils.h"
 
 namespace pbrt {
 
