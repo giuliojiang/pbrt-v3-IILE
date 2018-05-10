@@ -57,6 +57,7 @@ IisptScheduleMonitorTask IisptScheduleMonitor::next_task() {
     res.y1 = std::min(res.y0 + task_size, bounds.pMax.y);
     res.tilesize = effective_radius;
     res.pass = pass;
+    res.taskNumber = taskNumber++;
 
     // Advance to the next tile
 

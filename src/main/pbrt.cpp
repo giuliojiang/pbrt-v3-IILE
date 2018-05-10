@@ -68,6 +68,10 @@ Rendering options:
   --iispt_hemi_size=<pixel>
                        Set the dimension of the IISPT hemispherical renders
                        Defaults to 32
+  --iileIndirect=<tasks>
+                       Number of indirect tasks to be rendered
+  --iileDirect=<samples>
+                       Number of direct pass samples
 
 
 Logging options:
@@ -162,6 +166,14 @@ int main(int argc, char *argv[]) {
         else if (!strncmp(argv[i], "--iispt_hemi_size=", 18)) {
             options.iisptHemiSize = atoi(&argv[i][18]);
             std::cerr << "Set IISPT hemi size to " << options.iisptHemiSize << std::endl;
+        }
+        else if (!strncmp(argv[i], "--iileIndirect=", 15)) {
+            options.iileIndirectTasks = atoi(&argv[i][15]);
+            std::cerr << "Set IILE Indirect tasks to " << options.iileIndirectTasks << std::endl;
+        }
+        else if (!strncmp(argv[i], "--iileDirect=", 13)) {
+            options.iileDirectSamples = atoi(&argv[i][13]);
+            std::cerr << "Set IILE direct samples to " << options.iileDirectSamples << std::endl;
         }
         else {
             filenames.push_back(argv[i]);

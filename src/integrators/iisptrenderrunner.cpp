@@ -206,9 +206,7 @@ IisptRenderRunner::IisptRenderRunner(std::shared_ptr<IisptScheduleMonitor> sched
                 new IisptRng(thread_no)
                 );
 
-    this->sampler = std::unique_ptr<Sampler>(
-                sampler->Clone(thread_no)
-                );
+    this->sampler = sampler->Clone(thread_no);
 
     this->thread_no = thread_no;
 
@@ -224,13 +222,6 @@ void IisptRenderRunner::run(const Scene &scene)
     // dintegrator
     std::shared_ptr<IISPTdIntegrator> d_integrator = CreateIISPTdIntegrator(this->dcamera);
 
-    // Read number of passes environment variable
-    char* num_passes_env = std::getenv("IISPT_INDIRECT_PASSES");
-    int num_passes = 2;
-    if (num_passes_env != NULL) {
-        num_passes = std::stoi(std::string(num_passes_env));
-    }
-
     d_integrator->Preprocess(scene);
     lightDistribution =
             CreateLightSampleDistribution(std::string("spatial"), scene);
@@ -243,7 +234,7 @@ void IisptRenderRunner::run(const Scene &scene)
         IisptScheduleMonitorTask sm_task = schedule_monitor->next_task();
 
         // Check pass number for finish
-        if (sm_task.pass > num_passes) {
+        if (sm_task.taskNumber >= PbrtOptions.iileIndirectTasks) {
             break;
         }
 

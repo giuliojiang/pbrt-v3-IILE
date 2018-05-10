@@ -430,9 +430,6 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     Preprocess(scene);
 
-    // Create: IisptScheduleMonitor, IisptFilmMonitor,
-    // IisptRenderRunner
-
     std::shared_ptr<IisptScheduleMonitor> schedule_monitor (
                 new IisptScheduleMonitor(camera->film->GetSampleBounds())
                 );
@@ -515,7 +512,6 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     film_monitor_direct->to_intensity_film()->pbrt_write("/tmp/iispt_combined.exr");
 
-    std::cerr << "iispt.cpp: render normal 2 end\n";
 }
 
 // Render reference ===========================================================
@@ -828,7 +824,6 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
     std::shared_ptr<const Camera> camera,
     std::shared_ptr<Camera> dcamera
 ) {
-    std::cerr << "iispt.cpp: CreateIISPTIntegrator\n";
 
     int maxDepth = params.FindOneInt("maxdepth", 5);
     int np;
@@ -849,18 +844,10 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
     std::string lightStrategy =
         params.FindOneString("lightsamplestrategy", "spatial");
 
-    std::cerr << "iispt.cpp: CreateIISPTIntegrator end\n";
-
-    char* direct_samples_env = std::getenv("IISPT_DIRECT_SAMPLES");
-    int direct_samples = 2;
-    if (direct_samples_env != NULL) {
-        direct_samples = std::stoi(std::string(direct_samples_env));
-    }
-
     std::shared_ptr<Sampler> sampler (
                 CreateSobolSampler(
                 pixelBounds,
-                direct_samples
+                PbrtOptions.iileDirectSamples
                 ));
 
     return new IISPTIntegrator(maxDepth, camera, pixelBounds,

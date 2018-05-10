@@ -173,6 +173,9 @@ struct Options {
     int referencePixelSamples = 4096;
     int iisptHemiSize = 32;
     int referenceResume = 1;
+    // IILE quality settings
+    int iileIndirectTasks = 16;
+    int iileDirectSamples = 16;
 };
 
 extern Options PbrtOptions;
