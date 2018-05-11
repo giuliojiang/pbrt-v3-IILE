@@ -7,8 +7,10 @@
 #include <cstdlib>
 #include <functional>
 #include <cmath>
+#include <limits>
 
 #include "pfmitem.h"
+#include "tools/iisptmathutils.h"
 
 namespace pbrt {
 
@@ -24,6 +26,8 @@ private:
     int num_components;
 
     std::vector<PfmItem> data;
+
+    float maxVal = std::numeric_limits<float>::min();
 
     // ========================================================================
     // Private methods
@@ -99,6 +103,11 @@ public:
     // ========================================================================
     // Compute mean
     float computeMean();
+
+    float purgeAndComputeMean();
+
+    // ========================================================================
+    float computeMax();
 
     // ========================================================================
     // Multiply

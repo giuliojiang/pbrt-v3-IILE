@@ -30,7 +30,7 @@ static Spectrum estimate_direct(
     // Sample light source with multiple importance sampling
     Vector3f wi;
     Float lightPdf = 1.0 / 6.28;
-    Float BSDF_RATIO = 0.10;
+    Float BSDF_RATIO = 0.20;
     Float EM_RATIO = 0.5;
     Float scatteringPdf = 0;
     VisibilityTester visibility;
@@ -151,9 +151,6 @@ Spectrum IisptRenderRunner::sample_hemisphere(
 
     for (int i = 0; i < cameras.size(); i++) {
         HemisphericCamera* a_camera = cameras[i];
-        if (a_camera != NULL) {
-            a_camera->compute_cdfs();
-        }
         float a_weight = weights[i];
 
         // Attempt HEMISPHERIC_IMPORTANCE_SAMPLES to sample this camera
@@ -217,16 +214,12 @@ IisptRenderRunner::IisptRenderRunner(std::shared_ptr<IisptScheduleMonitor> sched
 
 void IisptRenderRunner::run(const Scene &scene)
 {
-    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: New tiled renderer thread " << this->thread_no << std::endl;;
-
     // dintegrator
     std::shared_ptr<IISPTdIntegrator> d_integrator = CreateIISPTdIntegrator(this->dcamera);
 
     d_integrator->Preprocess(scene);
     lightDistribution =
             CreateLightSampleDistribution(std::string("spatial"), scene);
-
-    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: start render loop\n";
 
     while (1) {
 
@@ -238,12 +231,10 @@ void IisptRenderRunner::run(const Scene &scene)
             break;
         }
 
-        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp PASS " << sm_task.pass << std::endl;
-
         MemoryArena arena;
 
         // sm_task end points are exclusive
-        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Obtained new task: ["<< sm_task.x0 <<"]["<< sm_task.y0 <<"]-["<< sm_task.x1 <<"]["<< sm_task.y1 <<"] tilesize ["<< sm_task.tilesize <<"]\n";
+        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Task ["<< sm_task.taskNumber + 1 <<"] of ["<< PbrtOptions.iileIndirectTasks <<"]\n";
 
         // Use a HashMap to store the hemi points
         std::unordered_map<
@@ -256,7 +247,6 @@ void IisptRenderRunner::run(const Scene &scene)
         int tile_y = sm_task.y0;
         while (1) {
             // Process current tile
-            std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Hemi point ["<< tile_x <<"] ["<< tile_y <<"]\n";
             IisptPoint2i hemi_key;
             hemi_key.x = tile_x;
             hemi_key.y = tile_y;
@@ -441,8 +431,6 @@ void IisptRenderRunner::run(const Scene &scene)
         std::vector<Spectrum> additions_spectrum;
         std::vector<double> additions_weights;
 
-        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Start hemi evaluation\n";
-
         for (int fy = sm_task.y0; fy < sm_task.y1; fy++) {
             for (int fx = sm_task.x0; fx < sm_task.x1; fx++) {
 
@@ -591,8 +579,6 @@ void IisptRenderRunner::run(const Scene &scene)
                 additions_weights.push_back(1.0);
             }
         }
-
-        std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: End hemi evaluation\n";
 
         film_monitor_indirect->add_n_samples(
                     additions_pt,
@@ -1159,7 +1145,7 @@ float IisptRenderRunner::normalizeMapsDownstream(
 
     // Compute mean of intensity
     std::shared_ptr<ImageFilm> intensityFilm = intensity->get_image_film();
-    float intensityMean = intensityFilm->computeMean();
+    float intensityMean = intensityFilm->purgeAndComputeMean();
 
     // Divide by 10*mean
     float multRatio = intensityMean == 0.0 ?
@@ -1217,10 +1203,10 @@ void IisptRenderRunner::transformMapsUpstream(
     float actualMean = intensityFilm->computeMean();
 
     float multiplier;
-    if (actualMean > 0.0) {
+    if (actualMean > 1e-5) {
         multiplier = targetMean / actualMean;
     } else {
-        multiplier = 1.0;
+        multiplier = 0.0;
     }
 
     // Multiply by 10*mean

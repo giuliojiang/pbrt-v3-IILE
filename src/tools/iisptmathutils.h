@@ -2,6 +2,7 @@
 #define IISPTMATHUTILS_H
 
 #include <cmath>
+#include <numeric>
 
 #include "geometry.h"
 
@@ -188,6 +189,23 @@ static float linearRatioDistance(Point2i x, Point2i a, Point2i b, Point2i &out) 
     float leftRatio = linearRatio(left, right);
     out = (a * leftRatio) + (b * (1.0 - leftRatio));
     return leftRatio;
+}
+
+// ============================================================================
+static void meanStd(std::vector<float> &v, float &meanOut, float &stddevOut)
+{
+    double sum = std::accumulate(std::begin(v), std::end(v), 0.0);
+    double m =  sum / v.size();
+
+    double accum = 0.0;
+    std::for_each (std::begin(v), std::end(v), [&](const double d) {
+        accum += (d - m) * (d - m);
+    });
+
+    double stdev = sqrt(accum / (v.size()-1));
+
+    meanOut = m;
+    stddevOut = stdev;
 }
 
 } // namespace iispt

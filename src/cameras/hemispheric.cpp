@@ -51,7 +51,8 @@ Spectrum HemisphericCamera::getLightSampleNn(Vector3f wi)
     if (x >= 0 && x < PbrtOptions.iisptHemiSize &&
             y >= 0 && y < PbrtOptions.iisptHemiSize)
     {
-        return film->get_pixel_as_spectrum(Point2i(x, y));
+        PfmItem rgbpix = nn_film->get_camera_coord_jacobian(x, y);
+        return rgbpix.as_spectrum();
     } else {
         return Spectrum(0.0);
     }
@@ -100,30 +101,6 @@ Spectrum HemisphericCamera::get_light_sample_nn(
 
     PfmItem rgbpix = nn_film->get_camera_coord_jacobian(x, y);
     return rgbpix.as_spectrum();
-}
-
-// ============================================================================
-Spectrum HemisphericCamera::get_light_sample_nn_importance(
-        float rx, // Random rx and ry uniform floats
-        float ry,
-        Vector3f* wi,
-        float* prob // Probability of getting the selected sample
-        )
-{
-    int cx; // Sampled pixel, on camera coordinates
-    int cy;
-    nn_film->importance_sample_camera_coord(
-                rx,
-                ry,
-                &cx,
-                &cy,
-                prob
-                );
-    return get_light_sample_nn(
-                cx,
-                cy,
-                wi
-                );
 }
 
 // ============================================================================
@@ -177,12 +154,6 @@ HemisphericCamera* CreateHemisphericCamera(
     return new HemisphericCamera(cam2world, shutteropen, shutterclose,
                                  film, medium, dir, pos, std::move(worldToCamera));
 
-}
-
-// ============================================================================
-void HemisphericCamera::compute_cdfs()
-{
-    nn_film->compute_cdfs();
 }
 
 }

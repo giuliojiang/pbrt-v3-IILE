@@ -60,6 +60,7 @@ void IisptFilmMonitor::add_n_samples(
 
             float rgb[3];
             ss[i].ToRGB(rgb);
+
             pix.r += rgb[0];
             pix.g += rgb[1];
             pix.b += rgb[2];
