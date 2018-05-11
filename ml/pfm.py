@@ -12,6 +12,7 @@ import array
 import sys
 import scipy.signal
 from skimage.measure import compare_ssim as ssim
+import scipy.ndimage
 
 import iispt_transforms
 
@@ -29,6 +30,16 @@ class PfmImage:
     def __init__(self, data, location):
         self.data = data
         self.location = location
+    
+    # -------------------------------------------------------------------------
+    def makeCopy(self):
+        height, width, channels = self.data.shape
+        newData = numpy.zeros((height, width, channels), dtype=numpy.float32)
+        for y in range(height):
+            for x in range(width):
+                for c in range(channels):
+                    newData[y, x, c] = self.data[y, x, c]
+        return PfmImage(newData, self.location)
     
     # -------------------------------------------------------------------------
     def print_shape(self):
@@ -332,6 +343,22 @@ class PfmImage:
 
         return similarityMeasures / float(channels)
 
+    # -------------------------------------------------------------------------
+    def gaussianBlur(self, sd):
+        height, width, channels = self.data.shape
+
+        for c in range(channels):
+            tempArray = numpy.zeros((height, width), dtype=numpy.float32)
+            for y in range(height):
+                for x in range(width):
+                    tempArray[y, x] = self.data[y, x, c]
+            
+            blurred = scipy.ndimage.gaussian_filter(tempArray, sigma=sd)
+
+            for y in range(height):
+                for x in range(width):
+                    self.data[y, x, c] = blurred[y, x]
+
 
 # =============================================================================
 # Utilities
@@ -453,5 +480,9 @@ def test_main():
         print("CrossCorrelation is {}".format(crossCorr))
         similarity = p.computeStructuralSimilarity(pPfm)
         print("Structural similarity is {}".format(similarity))
+
+        aCopy = p.makeCopy()
+        aCopy.gaussianBlur(1.0)
+        aCopy.save_png("/tmp/testblur{}.png".format(nameCount), autoExposure, 1.8)
 
 test_main()
