@@ -135,6 +135,8 @@ class IISPTDataset(Dataset):
     #   t        nparray net input flattened and processed
     #   p_name   path to p file
     #   d_name   path to d file
+    #   n_name   path to n file
+    #   z_name   path to z file
     #   mean     mean of D, returned by d_pfm normalize intensity downstream full
     # }
     def __getitem__(self, idx):
@@ -181,6 +183,10 @@ class IISPTDataset(Dataset):
         result["p_name"] = p_name
 
         result["d_name"] = d_name
+
+        result["n_name"] = n_name
+
+        result["z_name"] = z_name
 
         result["mean"] = dmean
 

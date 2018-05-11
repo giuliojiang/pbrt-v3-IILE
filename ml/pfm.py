@@ -485,4 +485,4 @@ def test_main():
         aCopy.gaussianBlur(1.0)
         aCopy.save_png("/tmp/testblur{}.png".format(nameCount), autoExposure, 1.8)
 
-test_main()
+# test_main()

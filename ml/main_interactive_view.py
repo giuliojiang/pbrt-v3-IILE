@@ -12,6 +12,8 @@ import iispt_dataset
 import pfm
 import iispt_net
 
+GAMMA = 1.8
+
 pydir = os.path.dirname(os.path.abspath(__file__)) # root/ml
 rootdir = os.path.dirname(pydir)
 os.chdir(rootdir)
@@ -29,7 +31,7 @@ def convert_image(pfm_path, output_path, png_path):
 def main():
 
     # Load dataset
-    trainset, testset = iispt_dataset.load_dataset(config.testset, 1.0)
+    trainset, testset = iispt_dataset.load_dataset(config.testset, 0.0)
 
     selected_set = testset
     selected_set_len = testset.__len__()
@@ -61,28 +63,57 @@ def main():
 
         # Run the network on the data
         input_variable = Variable(item_input)
-        print_force("Input variable.data is {}".format(input_variable.data))
         result = net(input_variable)
         
-        print_force("Result.data is {}".format(result.data))
-        print_force("Expected is {}".format(item_expected))
-
-        # TODO inverse log transform
 
         # Save the created result
         result_image = pfm.loadFromConvOutNpArray(result.data.numpy()[0])
         # Upstream processing
         result_image.normalize_intensity_upstream(item["mean"])
-        result_image.save_pfm("created.pfm")
 
         # Save the expected result
         expected_image = pfm.load(item["p_name"])
         # expected_image = pfm.load_from_flat_numpy(item_expected.numpy())
-        expected_image.save_pfm("expected.pfm")
+        expectedExposure = expected_image.computeAutoexposure()
+        expected_image.save_png("interactiveExpected.png", expectedExposure, GAMMA)
 
-        # Convert images to PNG
-        convert_image("created.pfm", "created.ppm", "created.png")
-        convert_image("expected.pfm", "expected.ppm", "expected.png")
+        # Save the created result
+        result_image.save_png("interactiveResult.png", expectedExposure, GAMMA)
+
+        # Save the normals map
+        normalsImage = pfm.load(item["n_name"])
+        normalsImage.save_png("interactiveNormals.png", normalsImage.computeAutoexposure(), GAMMA)
+
+        # Save the distance map
+        distanceImage = pfm.load(item["z_name"])
+        distanceImage.save_png("interactiveDistance.png", distanceImage.computeAutoexposure(), GAMMA)
+
+        # Save 1SPP path
+        lowSamplesImage = pfm.load(item["d_name"])
+        lowSamplesImage.save_png("interactiveLow.png", expectedExposure, GAMMA)
+
+        # Make gaussian blur of 1SPP
+        gaussianBlurred = lowSamplesImage.makeCopy()
+        gaussianBlurred.gaussianBlur(1.0)
+        gaussianBlurred.save_png("interactiveBlurred.png", expectedExposure, GAMMA)
+
+        # Compute metrics on the 1SPP path
+        lowSamplesL1 = lowSamplesImage.computeL1Loss(expected_image)
+        lowSamplesSs = lowSamplesImage.computeStructuralSimilarity(expected_image)
+        print_force("#LOWL1 {}".format(lowSamplesL1))
+        print_force("#LOWSS {}".format(lowSamplesSs))
+
+        # Compute metrics on blurred
+        gaussianBlurredL1 = gaussianBlurred.computeL1Loss(expected_image)
+        gaussianBlurredSs = gaussianBlurred.computeStructuralSimilarity(expected_image)
+        print_force("#GAUSSL1 {}".format(gaussianBlurredL1))
+        print_force("#GAUSSSS {}".format(gaussianBlurredSs))
+
+        # Compute emtrics on NN predicted
+        resultL1 = result_image.computeL1Loss(expected_image)
+        resultSs = result_image.computeStructuralSimilarity(expected_image)
+        print_force("#RESL1 {}".format(resultL1))
+        print_force("#RESSS {}".format(resultSs))
 
         print_force("#EVALUATECOMPLETE")
 
