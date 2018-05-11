@@ -320,16 +320,19 @@ Weight_i = DistanceWeight_i * NormalWeight_i + eps
 
 # TODO
 
-Report: net structure for model 7.
+## NN evaluation on test patches (unseen scenes)
 
-Report: downstream/upstream graph for model 7.
+Display:
 
-Prevent overfitting: dropout and recording loss on test data
+* Normals map
+* Distance map
+* 1spp path
+* Gaussian blur
+* NN predicted
+* Path ground truth
 
-Rewrite the main_stdio python system. Move the normalization stuff to C++ entirely for efficiency.
+Metrics vs ground truth: 1spp path, gaussian blur, NN predicted
 
-Test the 2 interpolation methods.
-
-do mean stddev analysis in the image film
-
-remove CDFs code
+* L1 Loss
+* Cross Correlation
+* Structural similarity

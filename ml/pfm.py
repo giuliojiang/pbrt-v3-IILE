@@ -195,8 +195,10 @@ class PfmImage:
     # -------------------------------------------------------------------------
     # Write out to LDR PNG file, with exposure and gamma settings
     def save_png(self, out_path, exposure, gamma):
+        exposure = float(exposure)
+        gamma = float(gamma)
         # Create bytebuffer
-        width, height, channels = self.data.shape
+        height, width, channels = self.data.shape
         buff = bytearray()
         for y in range(height):
             for x in range(width):
@@ -231,6 +233,34 @@ class PfmImage:
             bytes(buff)
         )
         im.save(out_path)
+
+    # -------------------------------------------------------------------------
+    # Compute autoexposure
+    # Steps exposure values one at a time starting from 20
+    # Until less than 10% of the pixels are clipped in the upper bound
+    def computeAutoexposure(self):
+        currentExposure = 20.0
+        height, width, channels = self.data.shape
+        while True:
+            clippedCount = 0.0
+            totalCount = float(width * height)
+            for y in range(height):
+                for x in range(width):
+                    pixelSum = 0.0
+                    pixelCount = float(channels)
+                    for c in range(channels):
+                        pixelSum += self.data[y, x, c]
+                    pixelAvg = pixelSum / pixelCount
+                    # Compute exposed value
+                    exposedPixel = pixelAvg * (2.0**currentExposure)
+                    if exposedPixel > 1.0:
+                        clippedCount += 1.0
+            clippedRatio = clippedCount / totalCount
+            if clippedRatio < 0.10:
+                return currentExposure
+            else:
+                currentExposure -= 1.0
+
 
 # =============================================================================
 # Utilities
@@ -328,19 +358,20 @@ def loadFromConvOutNpArray(vals):
 
 def test_main():
     files = [
-        "/home/gj/git/pbrt-v3-IISPT/TMP_P_ORIGINAL.pfm",
-        "/home/gj/git/pbrt-v3-IISPT/TMP_P_NORM.pfm",
-        "/home/gj/git/pbrt-v3-IISPT/TMP_D_ORIGINAL.pfm",
-        "/home/gj/git/pbrt-v3-IISPT/TMP_D_NORM.pfm",
-        "/home/gj/git/pbrt-v3-IISPT/TMP_Z_ORIGINAL.pfm",
-        "/home/gj/git/pbrt-v3-IISPT/TMP_Z_NORM.pfm"
+        "/home/gj/git/pbrt-v3-IISPT-dataset-indirect/bathroom-0/p_448_168.pfm",
+        "/home/gj/git/pbrt-v3-IISPT-dataset-indirect/bathroom-0/z_64_72.pfm",
+        "/home/gj/git/pbrt-v3-IISPT-dataset-indirect/bathroom-0/n_64_288.pfm",
+        "/home/gj/git/pbrt-v3-IISPT-dataset-indirect/bathroom-0/d_544_408.pfm"
     ]
 
+    nameCount = 0
+
     for f in files:
+        nameCount += 1
         print(f)
         p = load(f)
-        p.print_shape()
-        p.print_samples()
-        print("Mean is : {}\n\n\n".format(p.get_mean()))
+        autoExposure = p.computeAutoexposure()
+        print("Autoexposure computed {}".format(autoExposure))
+        p.save_png("/tmp/testmain{}.png".format(nameCount), autoExposure, 1.8)
 
-# test_main()
+test_main()
