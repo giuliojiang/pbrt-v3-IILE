@@ -10,6 +10,8 @@ import scipy.misc
 import PIL
 import array
 import sys
+import scipy.signal
+from skimage.measure import compare_ssim as ssim
 
 import iispt_transforms
 
@@ -260,6 +262,75 @@ class PfmImage:
                 return currentExposure
             else:
                 currentExposure -= 1.0
+    
+    # -------------------------------------------------------------------------
+    # Compute L1 loss
+    # Average of absolute differences
+    def computeL1Loss(self, other):
+        height, width, channels = self.data.shape
+        totalCount = float(height * width * channels)
+
+        differenceSum = 0.0
+
+        for y in range(height):
+            for x in range(width):
+                for c in range(channels):
+                    va = self.data[y, x, c]
+                    vb = other.data[y, x, c]
+                    differenceSum += abs(va - vb)
+        
+        return differenceSum / totalCount
+    
+    # -------------------------------------------------------------------------
+    # Compute cross correlation
+    def computeCrossCorrelation(self, other):
+        height, width, channels = self.data.shape
+
+        crossCorrelation = 0.0
+
+        for c in range(channels):
+            imgA = numpy.zeros((height, width), dtype=numpy.float32)
+            imgB = numpy.zeros((height, width), dtype=numpy.float32)
+            for y in range(height):
+                for x in range(width):
+                    imgA[y, x] = self.data[y, x, c]
+                    imgB[y, x] = other.data[y, x, c]
+            # Normalize the 2 images
+            imgAMean = numpy.mean(imgA)
+            imgAStd = numpy.std(imgA)
+            imgA = imgA - imgAMean
+            if imgAStd > 0.0:
+                imgA = imgA / imgAStd
+            imgBMean = numpy.mean(imgB)
+            imgBStd = numpy.std(imgB)
+            imgB = imgB - imgBMean
+            if imgBStd > 0.0:
+                imgB = imgB / imgBStd
+            crossCorrelation += numpy.mean(scipy.signal.correlate2d(imgA, imgB))
+        
+        return crossCorrelation
+
+    # -------------------------------------------------------------------------
+    # Compute structural similarity
+    # <other> should be the ground truth
+    def computeStructuralSimilarity(self, other):
+        height, width, channels = self.data.shape
+        similarityMeasures = 0.0
+
+        for c in range(channels):
+            imgA = numpy.zeros((height, width), dtype=numpy.float32)
+            imgB = numpy.zeros((height, width), dtype=numpy.float32)
+            for y in range(height):
+                for x in range(width):
+                    imgA[y, x] = self.data[y, x, c]
+                    imgB[y, x] = other.data[y, x, c]
+            aSimil = ssim(
+                imgA,
+                imgB
+            )
+            similarityMeasures += aSimil
+
+        return similarityMeasures / float(channels)
 
 
 # =============================================================================
@@ -364,14 +435,23 @@ def test_main():
         "/home/gj/git/pbrt-v3-IISPT-dataset-indirect/bathroom-0/d_544_408.pfm"
     ]
 
+    pPfm = load("/home/gj/git/pbrt-v3-IISPT-dataset-indirect/bathroom-0/p_448_168.pfm")
+
     nameCount = 0
 
     for f in files:
+        print()
         nameCount += 1
         print(f)
         p = load(f)
         autoExposure = p.computeAutoexposure()
         print("Autoexposure computed {}".format(autoExposure))
         p.save_png("/tmp/testmain{}.png".format(nameCount), autoExposure, 1.8)
+        l1loss = p.computeL1Loss(pPfm)
+        print("Loss compared to P is {}".format(l1loss))
+        crossCorr = p.computeCrossCorrelation(pPfm)
+        print("CrossCorrelation is {}".format(crossCorr))
+        similarity = p.computeStructuralSimilarity(pPfm)
+        print("Structural similarity is {}".format(similarity))
 
 test_main()
