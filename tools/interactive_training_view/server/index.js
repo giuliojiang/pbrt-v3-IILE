@@ -8,7 +8,11 @@ var randomInt = require("random-int");
 var priv = {};
 
 // Subprocess data
-var prc = {}; // proc examples_count on_task_complete
+var prc = {}; // proc examples_count on_task_complete metrics
+prc.metrics = {};
+prc.metrics.low = {};
+prc.metrics.gauss = {};
+prc.metrics.pred = {};
 
 // ============================================================================
 // Constants
@@ -21,12 +25,28 @@ var rootdir = path.join(__dirname, "..", "..", "..");
 // ============================================================================
 // ExpressJS
 
-app.get("/left", (req, res) => {
-    res.sendFile(path.join(rootdir, "expected.png"));
+app.get("/img_normals", (req, res) => {
+    res.sendFile(path.join(rootdir, "interactiveNormals.png"));
 });
 
-app.get("/right", (req, res) => {
-    res.sendFile(path.join(rootdir, "created.png"));
+app.get("/img_distance", (req, res) => {
+    res.sendFile(path.join(rootdir, "interactiveDistance.png"));
+});
+
+app.get("/img_low", (req, res) => {
+    res.sendFile(path.join(rootdir, "interactiveLow.png"));
+});
+
+app.get("/img_gauss", (req, res) => {
+    res.sendFile(path.join(rootdir, "interactiveBlurred.png"));
+});
+
+app.get("/img_pred", (req, res) => {
+    res.sendFile(path.join(rootdir, "interactiveResult.png"));
+});
+
+app.get("/img_ground", (req, res) => {
+    res.sendFile(path.join(rootdir, "interactiveExpected.png"));
 });
 
 app.use(express.static(path.join(__dirname, "..", "static")));
@@ -75,7 +95,8 @@ priv.handler_button_next = function(msgobj, ws) {
     // Register next subprocess callback
     prc.on_task_complete = function() {
         ws.send(JSON.stringify({
-            _t: "task_complete"
+            _t: "task_complete",
+            example: prc.metrics
         }));
     };
     // Write to process
@@ -104,6 +125,12 @@ function emitLines (stream) {
     })
 };
 
+priv.parseSecondFloatFixed = function(line) {
+    sp = line.split(" ");
+    sp1 = sp[1];
+    return parseFloat(sp1).toFixed(3);
+}
+
 priv.start_python_subprocess = function() {
     var interactive_py_path = path.join(__dirname, "..", "..", "..", "ml", "main_interactive_view.py");
     prc.proc = spawn("python3", [interactive_py_path]);
@@ -117,6 +144,18 @@ priv.start_python_subprocess = function() {
             prc.examples_count = examples_count;
         } else if (line.startsWith("#EVALUATECOMPLETE")) {
             prc.on_task_complete();
+        } else if (line.startsWith("#LOWL1")) {
+            prc.metrics.low.l1 = priv.parseSecondFloatFixed(line);
+        } else if (line.startsWith("#LOWSS")) {
+            prc.metrics.low.ss = priv.parseSecondFloatFixed(line);
+        } else if (line.startsWith("#GAUSSL1")) {
+            prc.metrics.gauss.l1 = priv.parseSecondFloatFixed(line);
+        } else if (line.startsWith("#GAUSSSS")) {
+            prc.metrics.gauss.ss = priv.parseSecondFloatFixed(line);
+        } else if (line.startsWith("#RESL1")) {
+            prc.metrics.pred.l1 = priv.parseSecondFloatFixed(line);
+        } else if (line.startsWith("#RESSS")) {
+            prc.metrics.pred.ss = priv.parseSecondFloatFixed(line);
         }
     });
     emitLines(prc.proc.stdout);

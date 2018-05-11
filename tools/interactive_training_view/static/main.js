@@ -4,6 +4,23 @@ mainApp.controller("main_controller", function($scope) {
 
     var priv = {};
 
+    $scope.d = {};
+
+    $scope.d.examples = []; // each example is a
+    // {
+    //     low: {
+    //         l1, ss
+    //     },
+    //     gauss: {
+    //         l1, ss
+    //     },
+    //     pred: {
+    //         l1, ss
+    //     }
+    // }
+
+    $scope.d.nextNum = 0;
+
     // ------------------------------------------------------------------------
     // Websocket setup
 
@@ -28,8 +45,17 @@ mainApp.controller("main_controller", function($scope) {
         console.info(msgobj);
         var t = msgobj._t;
         if (t == "task_complete") {
-            priv.image_refresh_left();
-            priv.image_refresh_right();
+            $scope.d.nextNum += 1;
+            var anExample = msgobj.example;
+            if (!anExample) {
+                anExample = {};
+            }
+            anExample.num = $scope.d.nextNum;
+            $scope.d.examples.push(anExample);
+            $scope.$apply();
+            async.setImmediate(function() {
+                priv.loadRow(anExample.num);
+            });
         }
     };
 
@@ -58,18 +84,26 @@ mainApp.controller("main_controller", function($scope) {
     // ------------------------------------------------------------------------
     // Images
 
-    priv.image_refresh_left = function() {
-        priv.image_refresh_by_id("main_image_left", "left");
-    };
-
-    priv.image_refresh_right = function() {
-        priv.image_refresh_by_id("main_image_right", "right");
-    };
-
-    priv.image_refresh_by_id = function(elem_id, image_source) {
+    priv.image_refresh_by_id = function(name, num) {
+        var elem_id = name + "_" + num;
         var elem = document.getElementById(elem_id);
-        var new_source = image_source + "?" + new Date().getTime();
+        var new_source = name + "?" + new Date().getTime();
         elem.src = new_source;
     };
+
+    priv.loadRow = function(rowNumber) {
+
+        var imgIds = [
+            "img_normals",
+            "img_distance",
+            "img_low",
+            "img_gauss",
+            "img_pred",
+            "img_ground"
+        ];
+        for (var i = 0; i < imgIds.length; i++) {
+            priv.image_refresh_by_id(imgIds[i], rowNumber);
+        }
+    }
 
 });

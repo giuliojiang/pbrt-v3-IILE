@@ -1,5 +1,35 @@
 .j_image {
-    width: 40vw;
-    height: 40vw;
+    width: 128px;
+    height: 128px;
     image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+}
+
+.j_h_box {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.j_v_box {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.j_item {
+    margin: 0;
+    border: 0;
+    padding: 0;
+    flex-grow: 0;
+}
+
+.j_p {
+    margin: 0;
+    border: 0;
+    padding: 1px;
 }

@@ -24,12 +24,58 @@
                 <a href="#" class="w3-button w3-black" ng-click="button_next()">Next</a>
             </div>
         </div>
-        <div class="w3-container">
-            <div class="w3-col s6">
-                <img class="j_image" src="blank.png" id="main_image_left">
-            </div>
-            <div class="w3-col s6">
-                <img class="j_image" src="blank.png" id="main_image_right">
+        <div class="j_v_box">
+            <div class="j_item" ng-repeat="x in d.examples track by $index">
+                <div class="j_h_box">
+                    <!-- Normals -->
+                    <div class="j_item">
+                        <img class="j_image" src="blank.png" id="img_normals_{{x.num}}">
+                    </div>
+                    <!-- Distance -->
+                    <div class="j_item">
+                        <img class="j_image" src="blank.png" id="img_distance_{{x.num}}">
+                    </div>
+                    <!-- 1 SPP -->
+                    <div class="j_item">
+                        <div class="j_v_box">
+                            <div class="j_item">
+                                <img class="j_image" src="blank.png" id="img_low_{{x.num}}">
+                            </div>
+                            <div class="j_item">
+                                <p class="j_p">L1: {{x.low.l1}}</p>
+                                <p class="j_p">SS: {{x.low.ss}}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Gaussian -->
+                    <div class="j_item">
+                        <div class="j_v_box">
+                            <div class="j_item">
+                                <img class="j_image" src="blank.png" id="img_gauss_{{x.num}}">
+                            </div>
+                            <div class="j_item">
+                                <p class="j_p">L1: {{x.gauss.l1}}</p>
+                                <p class="j_p">SS: {{x.gauss.ss}}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Predicted -->
+                    <div class="j_item">
+                        <div class="j_v_box">
+                            <div class="j_item">
+                                <img class="j_image" src="blank.png" id="img_pred_{{x.num}}">
+                            </div>
+                            <div class="j_item">
+                                <p class="j_p">L1: {{x.pred.l1}}</p>
+                                <p class="j_p">SS: {{x.pred.ss}}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Ground truth -->
+                    <div class="j_item">
+                        <img class="j_image" src="blank.png" id="img_ground_{{x.num}}">
+                    </div>
+                </div>
             </div>
         </div>
     </body>
