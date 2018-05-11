@@ -151,9 +151,6 @@ Spectrum IisptRenderRunner::sample_hemisphere(
 
     for (int i = 0; i < cameras.size(); i++) {
         HemisphericCamera* a_camera = cameras[i];
-        if (a_camera != NULL) {
-            a_camera->compute_cdfs();
-        }
         float a_weight = weights[i];
 
         // Attempt HEMISPHERIC_IMPORTANCE_SAMPLES to sample this camera

@@ -104,30 +104,6 @@ Spectrum HemisphericCamera::get_light_sample_nn(
 }
 
 // ============================================================================
-Spectrum HemisphericCamera::get_light_sample_nn_importance(
-        float rx, // Random rx and ry uniform floats
-        float ry,
-        Vector3f* wi,
-        float* prob // Probability of getting the selected sample
-        )
-{
-    int cx; // Sampled pixel, on camera coordinates
-    int cy;
-    nn_film->importance_sample_camera_coord(
-                rx,
-                ry,
-                &cx,
-                &cy,
-                prob
-                );
-    return get_light_sample_nn(
-                cx,
-                cy,
-                wi
-                );
-}
-
-// ============================================================================
 HemisphericCamera* CreateHemisphericCamera(
         int xres,
         int yres,
@@ -178,12 +154,6 @@ HemisphericCamera* CreateHemisphericCamera(
     return new HemisphericCamera(cam2world, shutteropen, shutterclose,
                                  film, medium, dir, pos, std::move(worldToCamera));
 
-}
-
-// ============================================================================
-void HemisphericCamera::compute_cdfs()
-{
-    nn_film->compute_cdfs();
 }
 
 }
