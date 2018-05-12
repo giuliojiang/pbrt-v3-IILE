@@ -7,7 +7,7 @@ var pathToUrl = function(pname) {
         pathname: pname,
         protocol: "file:",
         slashes: true
-    });
+    }) + "?" + new Date().getTime();
 };
 
 var loadImage = function(targetId, imagePath) {
