@@ -23,9 +23,9 @@ class IISPTNet(torch.nn.Module):
             # Input 32x32
             nn.Conv2d(7, 24, 5, stride=1, padding=2),
             nn.ELU(),
-            nn.Dropout2d(0.1),
             nn.Conv2d(24, 64, 5, stride=1, padding=2),
-            nn.ELU()
+            nn.ELU(),
+            nn.Dropout2d(0.25)
         )
         # Out 32x32
 
@@ -35,7 +35,8 @@ class IISPTNet(torch.nn.Module):
             nn.Conv2d(64, 72, 5, stride=1, padding=2),
             nn.ELU(),
             nn.Conv2d(72, 84, 5, stride=1, padding=2),
-            nn.ELU()
+            nn.ELU(),
+            nn.Dropout2d(0.25)
         )
         # Out 16x16
 
@@ -43,7 +44,8 @@ class IISPTNet(torch.nn.Module):
         self.encoder2 = nn.Sequential(
             nn.MaxPool2d(2), # 8x8
             nn.Conv2d(84, 112, 5, stride=1, padding=2),
-            nn.ELU()
+            nn.ELU(),
+            nn.Dropout2d(0.25)
         )
         # Out 8x8
 
@@ -83,7 +85,7 @@ class IISPTNet(torch.nn.Module):
 
         # In 32x32
         self.decoder3 = nn.Sequential(
-            nn.ConvTranspose2d(71, 36, 5, stride=1, padding=2),
+            nn.ConvTranspose2d(128, 36, 5, stride=1, padding=2),
             nn.ELU(),
             nn.ConvTranspose2d(36, 16, 5, stride=1, padding=2),
             nn.ELU(),
@@ -101,6 +103,6 @@ class IISPTNet(torch.nn.Module):
         x4 = self.decoder0(x3)
         x5 = self.decoder1(torch.cat((x4, x2), 1))
         x6 = self.decoder2(torch.cat((x5, x1), 1))
-        x7 = self.decoder3(torch.cat((x6, x), 1))
+        x7 = self.decoder3(torch.cat((x6, x0), 1))
 
         return x7
