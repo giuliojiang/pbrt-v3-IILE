@@ -94,7 +94,7 @@ Reformatting options:
 // ============================================================================
 // Main
 int main(int argc, char *argv[]) {
-    // test_main8(); raise(SIGKILL);
+    // test_main9(); raise(SIGKILL);
 
     google::InitGoogleLogging(argv[0]);
     FLAGS_stderrthreshold = 1; // Warning and above.
@@ -174,6 +174,10 @@ int main(int argc, char *argv[]) {
         else if (!strncmp(argv[i], "--iileDirect=", 13)) {
             options.iileDirectSamples = atoi(&argv[i][13]);
             std::cerr << "Set IILE direct samples to " << options.iileDirectSamples << std::endl;
+        }
+        else if (!strncmp(argv[i], "--iileControl=", 14)) {
+            options.iileControl = &argv[i][14];
+            std::cerr << "Set IILE control directory to " << options.iileControl << std::endl;
         }
         else {
             filenames.push_back(argv[i]);

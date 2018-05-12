@@ -14,8 +14,24 @@
 #include "integrators/iisptfilmmonitor.h"
 #include "tools/iisptrng.h"
 #include "integrators/iisptnnconnector.h"
+#include "tools/generalutils.h"
 
 using namespace pbrt;
+
+// Test listdir
+void test_main9()
+{
+    std::cerr << "test_main9()\n";
+
+    std::unique_ptr<std::vector<std::string>> dirContent = iile::listDir(std::string("/tmp"));
+
+    for (int i = 0; i < dirContent->size(); i++) {
+        std::string aPath = dirContent->operator[](i);
+        std::cerr << aPath << std::endl;
+    }
+
+    std::raise(SIGKILL);
+}
 
 // Test the new iispt schedule monitor
 void test_main8()
