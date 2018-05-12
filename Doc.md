@@ -354,3 +354,11 @@ Metrics vs ground truth: 1spp path, gaussian blur, NN predicted
 * L1 Loss
 * Cross Correlation
 * Structural similarity
+
+## Selected test scenes
+
+Extra dining room
+
+White room daytime
+
+Extra bedroom

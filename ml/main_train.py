@@ -21,7 +21,7 @@ os.chdir(rootdir)
 TRAINING_TIME_MINUTES = 2.0 * 60.0
 BATCH_SIZE = 64
 NO_WORKERS = 4
-LEARNING_RATE = 0.0001
+LEARNING_RATE = 6e-05
 
 log_dir = os.path.join('/tmp/runs', datetime.now().strftime('%b%d_%H-%M-%S'))
 writer = SummaryWriter(log_dir=log_dir)

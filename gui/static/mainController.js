@@ -4,17 +4,51 @@ mainApp.controller("main_controller", function($scope) {
 
     $scope.title = "pbrt v3 IILE";
 
+    $scope.d = {};
+
+    // Preview images =========================================================
+
+    $scope.d.activePreview = "out_indirect.png";
+
     $scope.buttonCombined = function() {
-        var imgPath = "/home/gj/git/pbrt-v3-scenes-extra/staircase2/TungstenRender.png";
-        loadImage("img_main", imgPath);
+        $scope.d.activePreview = "out_combined.png";
+        $scope.reloadImage();
+    };
+
+    $scope.buttonIndirect = function() {
+        $scope.d.activePreview = "out_indirect.png";
+        $scope.reloadImage();
+    };
+
+    $scope.buttonDirect = function() {
+        $scope.d.activePreview = "out_direct.png";
+        $scope.reloadImage();
+    };
+
+    $scope.reloadImage = function() {
+        loadImage("img_main", toControlFile($scope.d.activePreview));
     };
 
     // Exposure controls ======================================================
 
     $scope.exposure = 20;
 
+    $scope.buttonExposureApply = function() {
+        console.info("Updating exposure control");
+        data.exposure = $scope.exposure;
+        controlWriteExposure();
+    };
+
     // Status info ============================================================
 
     $scope.status = "Idle";
+
+    // ========================================================================
+    // Auto update loop
+    setInterval(function() {
+        console.info("Reloading image...");
+        // Reload current image
+        $scope.reloadImage();
+    }, 10000); // Every 10 seconds
 
 });

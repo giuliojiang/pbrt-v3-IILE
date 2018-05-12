@@ -22,6 +22,16 @@ var toControlFile = function(controlString) {
 };
 
 var controlWriteExposure = function() {
+    // Clear existing exposure controls
+    var dircontent = fs.readdirSync(data.controlDir);
+    for (var i = 0; i < dircontent.length; i++) {
+        if (dircontent[i].startsWith("control_gain_")) {
+            var fullPath = path.join(data.controlDir, dircontent[i]);
+            fsExtra.removeSync(fullPath);
+            console.info("Removing: " + dircontent[i]);
+        }
+    }
+
     var exposureString = "control_gain_" + data.exposure;
     touchFile(toControlFile(exposureString));
 };
@@ -54,16 +64,27 @@ var pathToUrl = function(pname) {
 };
 
 var loadImage = function(targetId, imagePath) {
+
     var elem = document.getElementById(targetId);
     // Remove all children of the target element
     while (elem.firstChild) {
         elem.removeChild(elem.firstChild);
     }
-    // Create new IMG node
-    var img = document.createElement("img");
-    img.src = pathToUrl(imagePath);
-    // Add the node
-    elem.appendChild(img);
+
+    // Check if imagePath exists
+    if (!fs.existsSync(imagePath)) {
+        // Display unavailable text
+        var txt = document.createElement("p");
+        txt.innerHTML = "unavailable";
+        elem.appendChild(txt);
+        return;
+    } else {
+        // Create new IMG node
+        var img = document.createElement("img");
+        img.src = pathToUrl(imagePath);
+        // Add the node
+        elem.appendChild(img);
+    }
 };
 
 // Call initialization ========================================================
