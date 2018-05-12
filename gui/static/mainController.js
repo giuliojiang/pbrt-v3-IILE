@@ -9,4 +9,12 @@ mainApp.controller("main_controller", function($scope) {
         loadImage("img_main", imgPath);
     };
 
+    // Exposure controls ======================================================
+
+    $scope.exposure = 20;
+
+    // Status info ============================================================
+
+    $scope.status = "Idle";
+
 });

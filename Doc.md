@@ -318,6 +318,24 @@ The final weight is
 Weight_i = DistanceWeight_i * NormalWeight_i + eps
 ```
 
+# GUI
+
+## Directory based controls
+
+`control_gain_XXX` XXX is an integer for the exposure gain. GUI->CPP
+
+`out_indirect.png` Output indirect component
+
+`out_direct.png` Output direct component
+
+`out_combined.png` Output combined component
+
+`info_current_XXX` XXX is the current indirect task being processed
+
+`info_total_XXX` XXX is the total number of indirect tasks
+
+`info_complete` Signals that rendering has finished
+
 # TODO
 
 ## NN evaluation on test patches (unseen scenes)

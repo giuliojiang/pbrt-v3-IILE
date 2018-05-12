@@ -13,7 +13,7 @@
 
         <script src="mainController.js"></script>
     </head>
-    <body ng-app="mainApp" ng-controller="main_controller">
+    <body ng-app="mainApp" ng-controller="main_controller" onunload="bodyUnload()">
         <div class="j_v_box">
             <!--Title-->
             <div class="j_item">
@@ -33,9 +33,25 @@
                     </div>
                 </div>
             </div>
-            <!--Exposure settings-->
+            <!--Exposure settings and status-->
             <div class="j_item">
-                <p>Exposure settings</p>
+                <div class="j_h_box">
+                    <div class="j_item">
+                        <p class="j_p">Exposure</p>
+                    </div>
+                    <!--Exposure input-->
+                    <div class="j_item">
+                        <input type="number" step="1" min="-20" max="20" ng-model="exposure">
+                    </div>
+                    <!--Apply button-->
+                    <div class="j_item">
+                        <a class="w3-button w3-black">Apply</a>
+                    </div>
+                    <!--Status-->
+                    <div class="j_item">
+                        <p class="j_p">Status: {{status}}</p>
+                    </div>
+                </div>
             </div>
             <!--Image previews-->
             <div class="j_item">

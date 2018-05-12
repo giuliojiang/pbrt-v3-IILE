@@ -2,6 +2,8 @@ const {app, BrowserWindow} = require('electron')
   const path = require('path')
   const url = require('url')
 
+  global.argv = {argv: process.argv}
+
   function createWindow () {
     // Create the browser window.
     win = new BrowserWindow({width: 800, height: 600})
@@ -12,6 +14,7 @@ const {app, BrowserWindow} = require('electron')
       protocol: 'file:',
       slashes: true
     }))
+
   }
 
   app.on('ready', createWindow)
