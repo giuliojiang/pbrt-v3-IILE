@@ -5,21 +5,44 @@ var randomstring = require("randomstring");
 var remote = require("electron").remote;
 var fs = require("fs");
 var fsExtra = require("fs-extra");
+var path = require("path");
 
 var argv = remote.getGlobal("argv").argv;
 
-controlDir = "/tmp/" + randomstring.generate(20);
+var data = {};
+data.controlDir = "";
+data.exposure = 20;
 
-console.info("Control directory: " + controlDir);
+var touchFile = function(fpath) {
+    fs.closeSync(fs.openSync(fpath, 'w'));
+};
 
-// Create control directory
-fs.mkdirSync(controlDir);
+var toControlFile = function(controlString) {
+    return path.join(data.controlDir, controlString);
+};
 
-console.info("argv");
-console.info(argv);
+var controlWriteExposure = function() {
+    var exposureString = "control_gain_" + data.exposure;
+    touchFile(toControlFile(exposureString));
+};
+
+var performStartupActions = function() {
+    data.controlDir = path.join("/tmp", randomstring.generate(20));
+
+    console.info("Control directory: " + data.controlDir);
+
+    // Create control directory
+    fs.mkdirSync(data.controlDir);
+
+    // Write exposure
+    controlWriteExposure();
+
+    console.info("argv");
+    console.info(argv);
+}
 
 var bodyUnload = function() {
-    fsExtra.removeSync(controlDir);
+    fsExtra.removeSync(data.controlDir);
 };
 
 var pathToUrl = function(pname) {
@@ -42,3 +65,7 @@ var loadImage = function(targetId, imagePath) {
     // Add the node
     elem.appendChild(img);
 };
+
+// Call initialization ========================================================
+
+performStartupActions();
