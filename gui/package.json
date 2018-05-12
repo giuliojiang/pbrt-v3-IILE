@@ -13,6 +13,7 @@
     "electron": "^2.0.0"
   },
   "dependencies": {
+    "fs-extra": "^6.0.1",
     "randomstring": "^1.1.5"
   }
 }

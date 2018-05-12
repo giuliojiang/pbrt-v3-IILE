@@ -3,18 +3,23 @@ staticdir = __dirname;
 var url = require("url");
 var randomstring = require("randomstring");
 var remote = require("electron").remote;
+var fs = require("fs");
+var fsExtra = require("fs-extra");
 
 var argv = remote.getGlobal("argv").argv;
 
-var theRandomString = randomstring.generate(20);
+controlDir = "/tmp/" + randomstring.generate(20);
 
-console.info("A random string: " + theRandomString);
+console.info("Control directory: " + controlDir);
+
+// Create control directory
+fs.mkdirSync(controlDir);
 
 console.info("argv");
 console.info(argv);
 
 var bodyUnload = function() {
-    alert("unloading!");
+    fsExtra.removeSync(controlDir);
 };
 
 var pathToUrl = function(pname) {
