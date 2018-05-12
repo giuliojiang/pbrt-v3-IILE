@@ -76,6 +76,8 @@ public:
     // Write using PBRT methods
     void pbrt_write_image(std::string filename);
 
+    void writeLDR(std::string filename, float gain);
+
     // Get Width ==============================================================
     int get_width() {
         return width;

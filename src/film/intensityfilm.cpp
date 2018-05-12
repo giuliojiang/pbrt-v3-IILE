@@ -33,6 +33,14 @@ void IntensityFilm::pbrt_write(std::string filename)
 }
 
 // ============================================================================
+// Tonemap LDR with exposure and gamma
+// Write to PNG file
+void IntensityFilm::writeLDR(std::string filename, float gain)
+{
+    film->writeLDR(filename, gain);
+}
+
+// ============================================================================
 
 // Get a pixel
 // Uses image coordinates: Y is from top to bottom

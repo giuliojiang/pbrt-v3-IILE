@@ -72,7 +72,8 @@ Rendering options:
                        Number of indirect tasks to be rendered
   --iileDirect=<samples>
                        Number of direct pass samples
-
+  --iileControl=<controlDirPath>
+                       Enable and set control directory for use with IILE GUI
 
 Logging options:
   --logdir <dir>       Specify directory that log files should be written to.

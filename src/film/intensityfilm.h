@@ -51,6 +51,8 @@ public:
 
     void pbrt_write(std::string filename);
 
+    void writeLDR(std::string filename, float gain);
+
     // Get Image Film =========================================================
 
     std::shared_ptr<ImageFilm> get_image_film() {

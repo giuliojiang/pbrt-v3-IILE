@@ -6,6 +6,7 @@
 #include <string>
 #include <dirent.h>
 #include <stdio.h>
+#include <chrono>
 
 namespace pbrt {
 namespace iile {
@@ -29,6 +30,16 @@ static std::unique_ptr<std::vector<std::string>> listDir(std::string dirName) {
         closedir(d);
     }
     return res;
+}
+
+static void sleepMillis(long millis)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(millis));
+}
+
+static bool startsWith(std::string a, std::string b)
+{
+    return a.find(b) == 0;
 }
 
 }

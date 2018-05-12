@@ -446,6 +446,11 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
                     )
                 );
 
+    // Create and start the directory control thread
+    std::thread controlThread ([this, film_monitor_indirect, film_monitor_direct]() {
+        directoryControlThread(film_monitor_indirect, film_monitor_direct);
+    });
+
     // Create thread pool for indirect pass
     unsigned noCpus = iile::cpusCountHalf();
     // noCpus = 1;
@@ -512,6 +517,16 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
     std::cerr << "iispt.cpp: saving combined EXR\n";
 
     mergedFilm->to_intensity_film()->pbrt_write(PbrtOptions.imageFile);
+
+    // Stall the thread if directory control is enabled
+    if (PbrtOptions.iileControl != NULL) {
+        std::cerr << "Rendering finished. Directory control is active, main thread is going to sleep...\n";
+        while (1) {
+            iile::sleepMillis(5000);
+        }
+    }
+
+    controlThread.join();
 
 }
 
@@ -818,6 +833,53 @@ void IISPTIntegrator::Li_reference(const RayDifferential &ray,
 
     });
 
+}
+
+// ============================================================================
+// Auxiliary directory-control thread
+// This function is meant to be running in a separate thread
+void IISPTIntegrator::directoryControlThread(
+        std::shared_ptr<IisptFilmMonitor> indirectFilmMonitor,
+        std::shared_ptr<IisptFilmMonitor> directFilmMonitor
+        )
+{
+    // Check if directory control is enabled
+    if (PbrtOptions.iileControl == NULL) {
+        std::cerr << "iispt.cpp: Stopping directory control thread as it's not enabled\n";
+        return;
+    }
+
+    std::cerr << "iispt.cpp: Directory control thread started\n";
+
+    std::string controlDir (PbrtOptions.iileControl);
+    int controlGain = 0;
+    std::string indirectOutPath (controlDir + std::string("/out_indirect.png"));
+    std::string directOutPath (controlDir + std::string("/out_direct.png"));
+    std::string combinedOutPath (controlDir + std::string("/out_combined.png"));
+
+    while (1) {
+        iile::sleepMillis(2000); // Sleep for 2 seconds each time
+
+        // Read the gain value from the directory
+        std::unique_ptr<std::vector<std::string>> dirContent =
+                iile::listDir(controlDir);
+        for (int i = 0; i < dirContent->size(); i++) {
+            if (iile::startsWith(dirContent->operator[](i), std::string("control_gain_"))) {
+                std::string aStr = dirContent->operator[](i);
+                controlGain = std::stoi(aStr.substr(13));
+                std::cerr << "iispt.cpp: Control set gain to " << controlGain << std::endl;
+            }
+        }
+
+        // Write the indirect film and direct film
+        indirectFilmMonitor->to_intensity_film()->writeLDR(indirectOutPath, controlGain);
+        directFilmMonitor->to_intensity_film()->writeLDR(directOutPath, controlGain);
+
+        // Generate temporary combined
+        std::shared_ptr<IisptFilmMonitor> combinedFilm =
+                indirectFilmMonitor->merge_into(directFilmMonitor.get());
+        combinedFilm->to_intensity_film()->writeLDR(combinedOutPath, controlGain);
+    }
 }
 
 // Creator ====================================================================

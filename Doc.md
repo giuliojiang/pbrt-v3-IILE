@@ -336,6 +336,19 @@ Weight_i = DistanceWeight_i * NormalWeight_i + eps
 
 `info_complete` Signals that rendering has finished
 
+## Positional arguments
+
+* 2 PBRT executable path (nodejs version)
+* 3 input .pbrt file
+* 4 indirect tasks
+* 5 direct samples
+
+Example execution
+
+```
+node_modules/electron/dist/electron main.js /home/gj/git/pbrt-v3-IISPT/bin/pbrt /home/gj/git/pbrt-v3-scenes-extra/cornell-box/scene.pbrt 16 16
+```
+
 # TODO
 
 ## NN evaluation on test patches (unseen scenes)
@@ -357,8 +370,8 @@ Metrics vs ground truth: 1spp path, gaussian blur, NN predicted
 
 ## Selected test scenes
 
-Extra dining room
-
 White room daytime
 
 Extra bedroom
+
+Veach ajar

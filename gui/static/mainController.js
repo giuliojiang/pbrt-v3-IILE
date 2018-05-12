@@ -31,7 +31,7 @@ mainApp.controller("main_controller", function($scope) {
 
     // Exposure controls ======================================================
 
-    $scope.exposure = 20;
+    $scope.exposure = 0;
 
     $scope.buttonExposureApply = function() {
         console.info("Updating exposure control");

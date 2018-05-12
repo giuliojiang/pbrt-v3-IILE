@@ -12,7 +12,7 @@ var argv = remote.getGlobal("argv").argv;
 
 var data = {};
 data.controlDir = "";
-data.exposure = 20;
+data.exposure = 0;
 data.pbrtStatus = "Idle";
 data.pbrtProc = null;
 
@@ -107,9 +107,21 @@ priv.startPbrt = function() {
     var indirectTasks = argv[4];
     var directTasks = argv[5];
 
-    data.pbrtProc = spawn(pbrtExecPath, [inputPath, "--iileIndirect=" + indirectTasks, "--iileDirect=" + directTasks, "--iileControl=" + data.controlDir]);
+    // CD into input pbrt file's directory
+    var inputDir = path.dirname(inputPath);
+    process.chdir(inputDir);
+
+    data.pbrtProc = spawn("node", [pbrtExecPath, inputPath, "--iileIndirect=" + indirectTasks, "--iileDirect=" + directTasks, "--iileControl=" + data.controlDir]);
 
     data.pbrtStatus = "Starting";
+
+    data.pbrtProc.stdout.on("data", (data) => {
+        console.info("STDOUT " + data);
+    });
+
+    data.pbrtProc.stderr.on("data", (data) => {
+        console.info("STDOUT " + data);
+    });
 
     data.pbrtProc.on("close", function(code, signal) {
         data.pbrtStatus = "Exited ["+ code +"] ["+ signal +"]";
