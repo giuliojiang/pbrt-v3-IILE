@@ -3,16 +3,46 @@
         <meta charset="UTF-8">
         <title>Hello World!</title>
 
+        <link rel="stylesheet" href="lib/w3.css">
+
         <link rel="stylesheet" type="text/css" href="css/custom.css">
 
-        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+        <script src="lib/angular.min.js"></script>
 
         <script src="root.js"></script>
 
         <script src="mainController.js"></script>
     </head>
     <body ng-app="mainApp" ng-controller="main_controller">
-        <h1>{{title}}</h1>
-        <p class="j_p">Hi</p>
+
+        <div class="j_v_box">
+            <!--Title-->
+            <div class="j_item">
+                <h1>{{title}}</h1>
+            </div>
+            <!--Indirect, Direct, Combined buttons-->
+            <div class="j_item">
+                <div class="j_h_box">
+                    <div class="j_item">
+                        <a class="w3-button w3-black">Indirect</a>
+                    </div>
+                    <div class="j_item">
+                        <a class="w3-button w3-black">Direct</a>
+                    </div>
+                    <div class="j_item">
+                        <a class="w3-button w3-black" ng-click="buttonCombined()">Combined</a>
+                    </div>
+                </div>
+            </div>
+            <!--Image previews-->
+            <div class="j_item">
+                <div id="img_main"></div>
+            </div>
+            <!--Exposure settings-->
+            <div class="j_item">
+                <p>Exposure settings</p>
+            </div>
+        </div>
+
     </body>
 </html>
