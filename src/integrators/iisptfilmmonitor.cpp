@@ -202,11 +202,18 @@ std::shared_ptr<IntensityFilm> IisptFilmMonitor::to_intensity_film_reversed()
 
 // ============================================================================
 
-void IisptFilmMonitor::merge_from(
+std::shared_ptr<IisptFilmMonitor> IisptFilmMonitor::merge_into(
         IisptFilmMonitor* other
         )
 {
+    // Acquire lock on BOTH films
     std::unique_lock<std::recursive_mutex> lock (mutex);
+    std::unique_lock<std::recursive_mutex> lock2 (other->mutex);
+
+    // Create result film
+    std::shared_ptr<IisptFilmMonitor> res (
+                new IisptFilmMonitor(film_bounds)
+                );
 
     if (!iispt::bounds2i_equals(
                 this->film_bounds,
@@ -221,18 +228,24 @@ void IisptFilmMonitor::merge_from(
             execute_on_pixel([&](int fx, int fy) {
                 IisptPixel pix = (pixels[fy])[fx];
                 IisptPixel ot = (other->pixels[fy])[fx];
+                IisptPixel resultPixel;
 
                 // Normalize the pixels
                 pix.normalize();
                 ot.normalize();
 
-                pix.r += ot.r;
-                pix.g += ot.g;
-                pix.b += ot.b;
-                (pixels[fy])[fx] = pix;
+                resultPixel.r = pix.r + ot.r;
+                resultPixel.g = pix.g + ot.g;
+                resultPixel.b = pix.b + ot.b;
+                resultPixel.weight = 1.0;
+
+                (res->pixels[fy])[fx] = resultPixel;
+
             }, x, y);
         }
     }
+
+    return res;
 
 }
 

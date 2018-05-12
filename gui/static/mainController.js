@@ -49,6 +49,8 @@ mainApp.controller("main_controller", function($scope) {
         console.info("Reloading image...");
         // Reload current image
         $scope.reloadImage();
-    }, 10000); // Every 10 seconds
+        $scope.status = data.pbrtStatus;
+        $scope.$apply();
+    }, 5000); // Every 5 seconds
 
 });

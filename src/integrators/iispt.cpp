@@ -506,11 +506,12 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     std::cerr << "iispt.cpp: merging...\n";
 
-    film_monitor_direct->merge_from(film_monitor_indirect.get());
+    std::shared_ptr<IisptFilmMonitor> mergedFilm =
+            film_monitor_direct->merge_into(film_monitor_indirect.get());
 
     std::cerr << "iispt.cpp: saving combined EXR\n";
 
-    film_monitor_direct->to_intensity_film()->pbrt_write(PbrtOptions.imageFile);
+    mergedFilm->to_intensity_film()->pbrt_write(PbrtOptions.imageFile);
 
 }
 

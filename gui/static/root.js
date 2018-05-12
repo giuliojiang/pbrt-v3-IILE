@@ -6,12 +6,17 @@ var remote = require("electron").remote;
 var fs = require("fs");
 var fsExtra = require("fs-extra");
 var path = require("path");
+const { spawn } = require('child_process');
 
 var argv = remote.getGlobal("argv").argv;
 
 var data = {};
 data.controlDir = "";
 data.exposure = 20;
+data.pbrtStatus = "Idle";
+data.pbrtProc = null;
+
+var priv = {};
 
 var touchFile = function(fpath) {
     fs.closeSync(fs.openSync(fpath, 'w'));
@@ -49,6 +54,8 @@ var performStartupActions = function() {
 
     console.info("argv");
     console.info(argv);
+
+    priv.startPbrt();
 }
 
 var bodyUnload = function() {
@@ -85,6 +92,28 @@ var loadImage = function(targetId, imagePath) {
         // Add the node
         elem.appendChild(img);
     }
+};
+
+priv.startPbrt = function() {
+    console.info("Starting PBRT...");
+
+    if (argv.length != 6) {
+        alert("Expected 6 positional arguments. Got " + argv.length);
+        return;
+    }
+
+    var pbrtExecPath = argv[2];
+    var inputPath = argv[3];
+    var indirectTasks = argv[4];
+    var directTasks = argv[5];
+
+    data.pbrtProc = spawn(pbrtExecPath, [inputPath, "--iileIndirect=" + indirectTasks, "--iileDirect=" + directTasks, "--iileControl=" + data.controlDir]);
+
+    data.pbrtStatus = "Starting";
+
+    data.pbrtProc.on("close", function(code, signal) {
+        data.pbrtStatus = "Exited ["+ code +"] ["+ signal +"]";
+    });
 };
 
 // Call initialization ========================================================
