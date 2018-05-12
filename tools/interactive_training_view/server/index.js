@@ -131,6 +131,11 @@ priv.parseSecondFloatFixed = function(line) {
     return parseFloat(sp1).toFixed(3);
 }
 
+priv.parseSecondString = function(line) {
+    sp = line.split(" ");
+    return sp[1];
+}
+
 priv.start_python_subprocess = function() {
     var interactive_py_path = path.join(__dirname, "..", "..", "..", "ml", "main_interactive_view.py");
     prc.proc = spawn("python3", [interactive_py_path]);
@@ -156,6 +161,8 @@ priv.start_python_subprocess = function() {
             prc.metrics.pred.l1 = priv.parseSecondFloatFixed(line);
         } else if (line.startsWith("#RESSS")) {
             prc.metrics.pred.ss = priv.parseSecondFloatFixed(line);
+        } else if (line.startsWith("#NAME")) {
+            prc.metrics.name = priv.parseSecondString(line);
         }
     });
     emitLines(prc.proc.stdout);

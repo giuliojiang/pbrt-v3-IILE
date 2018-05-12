@@ -115,6 +115,9 @@ def main():
         print_force("#RESL1 {}".format(resultL1))
         print_force("#RESSS {}".format(resultSs))
 
+        # Output filename
+        print_force("#NAME {}".format(item["p_name"]))
+
         print_force("#EVALUATECOMPLETE")
 
 
