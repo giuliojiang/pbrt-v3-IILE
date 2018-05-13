@@ -61,7 +61,8 @@ def main():
     statResultSs = []
 
     # Loop for each test example
-    for i in range(20):
+    print("Processing {} items".format(selected_set_len))
+    for i in range(selected_set_len):
 
         print("Processing index {}".format(i))
 
