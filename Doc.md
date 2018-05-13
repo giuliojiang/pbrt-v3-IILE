@@ -86,6 +86,8 @@ The IntensityFilm object handles the Y direction in the same way as PBRT, mainta
 
 `IISPT_RNG_SEED` Initial RNG seed.
 
+`IILE_PATH_SAMPLES_OVERRIDE` Overrides the Path integrator's sampler to use Sobol at the specified samples per pixel
+
 # IISPT Render Algorithm
 
 ## Classes

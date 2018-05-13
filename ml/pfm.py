@@ -207,13 +207,15 @@ class PfmImage:
     
     # -------------------------------------------------------------------------
     # Write out to LDR PNG file, with exposure and gamma settings
-    def save_png(self, out_path, exposure, gamma):
+    def save_png(self, out_path, exposure, gamma, reverse=False):
         exposure = float(exposure)
         gamma = float(gamma)
         # Create bytebuffer
         height, width, channels = self.data.shape
         buff = bytearray()
         for y in range(height):
+            if reverse:
+                y = height - 1 - y
             for x in range(width):
                 arr_pix = []
                 if channels == 1:
@@ -256,19 +258,13 @@ class PfmImage:
         height, width, channels = self.data.shape
         while True:
             clippedCount = 0.0
-            totalCount = float(width * height)
-            for y in range(height):
-                for x in range(width):
-                    pixelSum = 0.0
-                    pixelCount = float(channels)
-                    for c in range(channels):
-                        pixelSum += self.data[y, x, c]
-                    pixelAvg = pixelSum / pixelCount
-                    # Compute exposed value
-                    exposedPixel = pixelAvg * (2.0**currentExposure)
-                    if exposedPixel > 1.0:
-                        clippedCount += 1.0
-            clippedRatio = clippedCount / totalCount
+            totalCount = float(width * height * channels)
+
+            multiplier = 2.0**currentExposure
+            t = self.data * multiplier
+            clippedCount = (t > 1.0).sum()
+            clippedRatio = float(clippedCount) / totalCount
+
             if clippedRatio < 0.10:
                 return currentExposure
             else:
