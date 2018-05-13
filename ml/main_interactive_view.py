@@ -109,7 +109,7 @@ def main():
         print_force("#GAUSSL1 {}".format(gaussianBlurredL1))
         print_force("#GAUSSSS {}".format(gaussianBlurredSs))
 
-        # Compute emtrics on NN predicted
+        # Compute metrics on NN predicted
         resultL1 = result_image.computeL1Loss(expected_image)
         resultSs = result_image.computeStructuralSimilarity(expected_image)
         print_force("#RESL1 {}".format(resultL1))

@@ -420,8 +420,6 @@ void IISPTIntegrator::Render(const Scene &scene) {
         std::cerr << "Starting reference render" << std::endl;
         render_reference(scene);
     }
-
-    iile::NnConnectorManager::getInstance().stopAll();
 }
 
 // ============================================================================
@@ -494,12 +492,13 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
     }
 
     // Direct pass
-
     if (runner0 == nullptr) {
         std::cerr << "iispt.cpp: Error, runner0 is NULL\n";
         std::raise(SIGKILL);
     }
     runner0->run_direct(scene);
+
+    iile::NnConnectorManager::getInstance().stopAll();
 
     std::cerr << "iispt.cpp: saving indirect EXR\n";
 

@@ -59,6 +59,10 @@ var performStartupActions = function() {
 }
 
 var bodyUnload = function() {
+    if (data.pbrtProc) {
+        data.pbrtProc.kill();
+    }
+
     fsExtra.removeSync(data.controlDir);
 };
 

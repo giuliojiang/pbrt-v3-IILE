@@ -51,6 +51,6 @@ mainApp.controller("main_controller", function($scope) {
         $scope.reloadImage();
         $scope.status = data.pbrtStatus;
         $scope.$apply();
-    }, 5000); // Every 5 seconds
+    }, 1500); // Every 5 seconds
 
 });
