@@ -21,47 +21,46 @@ class IISPTNet(torch.nn.Module):
         # In 32x32
         self.encoder0 = nn.Sequential(
             # Input 32x32
+            nn.Dropout2d(0.2),
             nn.Conv2d(7, 24, 3, stride=1, padding=1),
             nn.ELU(),
-            nn.Dropout2d(0.2),
             nn.Conv2d(24, 64, 3, stride=1, padding=1),
-            nn.ELU(),
-            nn.Dropout2d(0.2)
+            nn.ELU()
         )
         # Out 32x32
 
         # In 32x32
         self.encoder1 = nn.Sequential(
+            nn.Dropout2d(0.2),
             nn.MaxPool2d(2),
             nn.Conv2d(64, 72, 3, stride=1, padding=1),
             nn.ELU(),
-            nn.Dropout2d(0.2),
             nn.Conv2d(72, 84, 3, stride=1, padding=1),
-            nn.ELU(),
-            nn.Dropout2d(0.2)
+            nn.ELU()
         )
         # Out 16x16
 
         # In 16x16
         self.encoder2 = nn.Sequential(
+            nn.Dropout2d(0.2),
             nn.MaxPool2d(2), # 8x8
             nn.Conv2d(84, 112, 3, stride=1, padding=1),
-            nn.ELU(),
-            nn.Dropout2d(0.2)
+            nn.ELU()
         )
         # Out 8x8
 
         # In 8x8
         self.encoder3 = nn.Sequential(
+            nn.Dropout2d(0.2),
             nn.MaxPool2d(2),
             nn.Conv2d(112, 256, 3, stride=1, padding=1),
-            nn.ELU(),
-            nn.Dropout2d(0.2)
+            nn.ELU()
         )
         # Out 4x4
 
         # In 4x4
         self.decoder0 = nn.Sequential(
+            nn.Dropout2d(0.2),
             nn.Conv2d(256, 112, 3, stride=1, padding=1),
             nn.ELU(),
             nn.Upsample(scale_factor=2, mode="bilinear")
@@ -70,6 +69,7 @@ class IISPTNet(torch.nn.Module):
 
         # In 8x8
         self.decoder1 = nn.Sequential(
+            nn.Dropout2d(0.2),
             nn.Conv2d(224, 84, 3, stride=1, padding=1), # 8x8
             nn.ELU(),
             nn.Upsample(scale_factor=2, mode="bilinear") # 16x16
@@ -78,9 +78,9 @@ class IISPTNet(torch.nn.Module):
 
         # In 16x16
         self.decoder2 = nn.Sequential(
+            nn.Dropout2d(0.2),
             nn.Conv2d(168, 72, 3, stride=1, padding=1),
             nn.ELU(),
-            nn.Dropout2d(0.2),
             nn.Conv2d(72, 64, 3, stride=1, padding=1),
             nn.ELU(),
             nn.Upsample(scale_factor=2, mode="bilinear") # 32x32
@@ -89,9 +89,9 @@ class IISPTNet(torch.nn.Module):
 
         # In 32x32
         self.decoder3 = nn.Sequential(
+            nn.Dropout2d(0.2),
             nn.Conv2d(128, 36, 3, stride=1, padding=1),
             nn.ELU(),
-            nn.Dropout2d(0.2),
             nn.Conv2d(36, 16, 3, stride=1, padding=1),
             nn.ELU(),
             nn.Conv2d(16, 3, 3, stride=1, padding=1),
