@@ -18,10 +18,10 @@ rootdir = os.path.abspath(os.path.join(__file__, "..", ".."))
 print(rootdir)
 os.chdir(rootdir)
 
-TRAINING_TIME_MINUTES = 3.0 * 60.0
-BATCH_SIZE = 64
+TRAINING_TIME_MINUTES = 2.0 * 60.0
+BATCH_SIZE = 32
 NO_WORKERS = 4
-LEARNING_RATE = 9e-05
+LEARNING_RATE = 0.000135
 
 log_dir = os.path.join('/tmp/runs', datetime.now().strftime('%b%d_%H-%M-%S'))
 writer = SummaryWriter(log_dir=log_dir)
