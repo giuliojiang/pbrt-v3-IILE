@@ -3,7 +3,7 @@ from torch import nn, optim
 from torch.autograd.variable import Variable
 from torchvision import transforms, datasets
 
-K = 32
+K = 16
 
 class IISPTNet(torch.nn.Module):
 
@@ -25,8 +25,7 @@ class IISPTNet(torch.nn.Module):
             nn.Conv2d(7, K, 3, stride=1, padding=1),
             nn.LeakyReLU(0.2),
             nn.Conv2d(K, K, 3, stride=1, padding=1),
-            nn.LeakyReLU(0.2),
-            nn.Dropout2d(0.25)
+            nn.LeakyReLU(0.2)
         )
         # Out 32x32
 
@@ -37,8 +36,7 @@ class IISPTNet(torch.nn.Module):
             nn.LeakyReLU(0.2),
             nn.BatchNorm2d(2*K),
             nn.Conv2d(2*K, 2*K, 3, stride=1, padding=1),
-            nn.LeakyReLU(0.2),
-            nn.Dropout2d(0.25)
+            nn.LeakyReLU(0.2)
         )
         # Out 16x16
 
@@ -49,8 +47,7 @@ class IISPTNet(torch.nn.Module):
             nn.LeakyReLU(0.2),
             nn.BatchNorm2d(4*K),
             nn.Conv2d(4*K, 4*K, 3, stride=1, padding=1),
-            nn.LeakyReLU(0.2),
-            nn.Dropout2d(0.25)
+            nn.LeakyReLU(0.2)
         )
         # Out 8x8
 
@@ -68,7 +65,6 @@ class IISPTNet(torch.nn.Module):
 
         # In 8x8 + skip from encoder2
         self.decoder0 = nn.Sequential(
-            nn.Dropout2d(0.25),
             nn.ConvTranspose2d(8*K, 4*K, 3, stride=1, padding=1),
             nn.LeakyReLU(0.2),
             nn.BatchNorm2d(4*K),
@@ -80,7 +76,6 @@ class IISPTNet(torch.nn.Module):
 
         # In 16x16 + skip from encoder1
         self.decoder1 = nn.Sequential(
-            nn.Dropout2d(0.25),
             nn.ConvTranspose2d(4*K, 2*K, 3, stride=1, padding=1),
             nn.LeakyReLU(0.2),
             nn.BatchNorm2d(2*K),
@@ -92,7 +87,6 @@ class IISPTNet(torch.nn.Module):
 
         # In 32x32 + skip from encoder0
         self.decoder2 = nn.Sequential(
-            nn.Dropout2d(0.25),
             nn.ConvTranspose2d(2*K, K, 3, stride=1, padding=1),
             nn.LeakyReLU(0.2),
             nn.ConvTranspose2d(K, K, 3, stride=1, padding=1),

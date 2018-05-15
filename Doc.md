@@ -351,6 +351,50 @@ Example execution
 node_modules/electron/dist/electron main.js /home/gj/git/pbrt-v3-IISPT/bin/pbrt /home/gj/git/pbrt-v3-scenes-extra/cornell-box/scene.pbrt 16 16
 ```
 
+# Blender to PBRT
+
+Blender export to OBJ/MTL with Y forward -Z up
+
+```
+/home/gj/git/build-pbrt-v3-IISPT-Desktop-Default/obj2pbrt cbox.obj cbox.pbrt
+/home/gj/git/build-pbrt-v3-IISPT-Desktop-Default/pbrt --toply cbox.pbrt > cboxScene.pbrt
+```
+
+In the scenefile add
+
+```
+Integrator "path"
+Sampler "sobol" "integer pixelsamples" 1
+
+Scale -1 1 1
+Rotate 112 0.725 0.506 -0.467
+Translate 0 12 0
+
+
+Camera "perspective" "float fov" 49
+
+WorldBegin
+
+...
+
+WorldEnd
+```
+
+Camera translation
+
+X -> X
+Y -> -Y
+
+Blender Y becomes PBRT -Y
+
+Blender Z becomes PBRT Z
+
+Blender export command
+
+```
+bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.obj", axis_forward="Y", axis_up="-Z", use_materials=True)
+```
+
 # TODO
 
 ## NN evaluation on test patches (unseen scenes)
