@@ -356,8 +356,8 @@ node_modules/electron/dist/electron main.js /home/gj/git/pbrt-v3-IISPT/bin/pbrt 
 Blender export to OBJ/MTL with Y forward -Z up
 
 ```
-/home/gj/git/build-pbrt-v3-IISPT-Desktop-Default/obj2pbrt cbox.obj cbox.pbrt
-/home/gj/git/build-pbrt-v3-IISPT-Desktop-Default/pbrt --toply cbox.pbrt > cboxScene.pbrt
+/home/gj/git/build-pbrt-v3-IISPT-Desktop-Default/obj2pbrt exp.obj exp.pbrt
+/home/gj/git/build-pbrt-v3-IISPT-Desktop-Default/pbrt --toply exp.pbrt > scene.pbrt
 ```
 
 In the scenefile add
