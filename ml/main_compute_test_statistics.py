@@ -85,6 +85,11 @@ def main():
 
         lowImg = pfm.load(item["d_name"])
 
+        # Normalize the maps according to their mean for better statistics
+        resultImg.divideMean()
+        expectedImg.divideMean()
+        lowImg.divideMean()
+
         gaussianImg = lowImg.makeCopy()
         gaussianImg.gaussianBlur(1.0)
 

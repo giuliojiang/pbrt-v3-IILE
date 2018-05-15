@@ -177,6 +177,12 @@ class PfmImage:
     def normalize_distance_downstream_full(self):
         mean = numpy.mean(self.data)
         self.map(iispt_transforms.DistanceDownstreamSequence(mean))
+
+    # -------------------------------------------------------------------------
+    def divideMean(self):
+        mean = numpy.mean(self.data)
+        if mean > 0.0:
+            self.data = self.data / mean
     
     # -------------------------------------------------------------------------
     # Write out to .pfm file
