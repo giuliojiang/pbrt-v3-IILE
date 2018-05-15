@@ -3,7 +3,7 @@ import subprocess
 import os
 import time
 
-NO_PROCESSES = 2
+NO_PROCESSES = 4
 
 argv = sys.argv[1:]
 

@@ -196,6 +196,21 @@ Spectrum PathIntegrator::Li(const RayDifferential &r, const Scene &scene,
 PathIntegrator *CreatePathIntegrator(const ParamSet &params,
                                      std::shared_ptr<Sampler> sampler,
                                      std::shared_ptr<const Camera> camera) {
+    std::shared_ptr<Sampler> theSampler = sampler;
+
+    // Override sampler if necessary
+    char* samplerOverride = std::getenv("IILE_PATH_SAMPLES_OVERRIDE");
+    if (samplerOverride != NULL) {
+        int spp = std::stoi(std::string(samplerOverride));
+        theSampler = std::shared_ptr<Sampler>(
+                    CreateSobolSampler(
+                        camera->film->GetSampleBounds(),
+                        spp
+                        )
+                    );
+        std::cerr << "path.cpp: Created override sampler with ["<< spp <<"] spp\n";
+    }
+
     int maxDepth = params.FindOneInt("maxdepth", 5);
     int np;
     const int *pb = params.FindInt("pixelbounds", &np);
@@ -214,7 +229,7 @@ PathIntegrator *CreatePathIntegrator(const ParamSet &params,
     Float rrThreshold = params.FindOneFloat("rrthreshold", 1.);
     std::string lightStrategy =
         params.FindOneString("lightsamplestrategy", "spatial");
-    return new PathIntegrator(maxDepth, camera, sampler, pixelBounds,
+    return new PathIntegrator(maxDepth, camera, theSampler, pixelBounds,
                               rrThreshold, lightStrategy);
 }
 

@@ -86,6 +86,8 @@ The IntensityFilm object handles the Y direction in the same way as PBRT, mainta
 
 `IISPT_RNG_SEED` Initial RNG seed.
 
+`IILE_PATH_SAMPLES_OVERRIDE` Overrides the Path integrator's sampler to use Sobol at the specified samples per pixel
+
 # IISPT Render Algorithm
 
 ## Classes
@@ -318,18 +320,104 @@ The final weight is
 Weight_i = DistanceWeight_i * NormalWeight_i + eps
 ```
 
+# GUI
+
+## Directory based controls
+
+`control_gain_XXX` XXX is an integer for the exposure gain. GUI->CPP
+
+`out_indirect.png` Output indirect component
+
+`out_direct.png` Output direct component
+
+`out_combined.png` Output combined component
+
+`info_current_XXX` XXX is the current indirect task being processed
+
+`info_total_XXX` XXX is the total number of indirect tasks
+
+`info_complete` Signals that rendering has finished
+
+## Positional arguments
+
+* 2 PBRT executable path (nodejs version)
+* 3 input .pbrt file
+* 4 indirect tasks
+* 5 direct samples
+
+Example execution
+
+```
+node_modules/electron/dist/electron main.js /home/gj/git/pbrt-v3-IISPT/bin/pbrt /home/gj/git/pbrt-v3-scenes-extra/cornell-box/scene.pbrt 16 16
+```
+
+# Blender to PBRT
+
+Blender export to OBJ/MTL with Y forward -Z up
+
+```
+/home/gj/git/build-pbrt-v3-IISPT-Desktop-Default/obj2pbrt exp.obj exp.pbrt
+/home/gj/git/build-pbrt-v3-IISPT-Desktop-Default/pbrt --toply exp.pbrt > scene.pbrt
+```
+
+In the scenefile add
+
+```
+Integrator "path"
+Sampler "sobol" "integer pixelsamples" 1
+
+Scale -1 1 1
+Rotate 112 0.725 0.506 -0.467
+Translate 0 12 0
+
+
+Camera "perspective" "float fov" 49
+
+WorldBegin
+
+...
+
+WorldEnd
+```
+
+Camera translation
+
+X -> X
+Y -> -Y
+
+Blender Y becomes PBRT -Y
+
+Blender Z becomes PBRT Z
+
+Blender export command
+
+```
+bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.obj", axis_forward="Y", axis_up="-Z", use_materials=True)
+```
+
 # TODO
 
-Report: net structure for model 7.
+## NN evaluation on test patches (unseen scenes)
 
-Report: downstream/upstream graph for model 7.
+Display:
 
-Prevent overfitting: dropout and recording loss on test data
+* Normals map
+* Distance map
+* 1spp path
+* Gaussian blur
+* NN predicted
+* Path ground truth
 
-Rewrite the main_stdio python system. Move the normalization stuff to C++ entirely for efficiency.
+Metrics vs ground truth: 1spp path, gaussian blur, NN predicted
 
-Test the 2 interpolation methods.
+* L1 Loss
+* Cross Correlation
+* Structural similarity
 
-do mean stddev analysis in the image film
+## Selected test scenes
 
-remove CDFs code
+White room daytime
+
+Extra bedroom
+
+Veach ajar

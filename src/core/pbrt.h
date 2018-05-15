@@ -176,6 +176,8 @@ struct Options {
     // IILE quality settings
     int iileIndirectTasks = 16;
     int iileDirectSamples = 16;
+    // IILE control directory
+    char* iileControl = NULL;
 };
 
 extern Options PbrtOptions;

@@ -3,6 +3,8 @@ from torch import nn, optim
 from torch.autograd.variable import Variable
 from torchvision import transforms, datasets
 
+K = 64
+
 class IISPTNet(torch.nn.Module):
 
     def __init__(self):
@@ -20,57 +22,77 @@ class IISPTNet(torch.nn.Module):
 
         # In 32x32
         self.encoder0 = nn.Sequential(
-            # Input 32x32
-            nn.Conv2d(7, 16, 3, stride=1, padding=1),
-            nn.ELU(),
-            nn.Dropout2d(0.1),
-            nn.Conv2d(16, 24, 3, stride=1, padding=1),
-            nn.ELU()
+            nn.Conv2d(7, K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.Conv2d(K, K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2)
         )
         # Out 32x32
 
         # In 32x32
         self.encoder1 = nn.Sequential(
             nn.MaxPool2d(2),
-            nn.Conv2d(24, 38, 3, stride=1, padding=1),
-            nn.ELU(),
-            nn.Conv2d(38, 42, 3, stride=1, padding=1),
-            nn.ELU()
+            nn.Conv2d(K, 2*K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(2*K),
+            nn.Conv2d(2*K, 2*K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2)
         )
         # Out 16x16
 
         # In 16x16
         self.encoder2 = nn.Sequential(
-            nn.MaxPool2d(2), # 8x8
-            nn.Conv2d(42, 64, 3, stride=1, padding=1),
-            nn.ELU()
+            nn.MaxPool2d(2),
+            nn.Conv2d(2*K, 4*K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(4*K),
+            nn.Conv2d(4*K, 4*K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2)
         )
         # Out 8x8
 
-        # In 8x8
+        # In 8x8 -> 4x4
+        self.encoder3 = nn.Sequential(
+            nn.MaxPool2d(2),
+            nn.Conv2d(4*K, 8*K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(8*K),
+            nn.Conv2d(8*K, 4*K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.Upsample(scale_factor=2, mode="bilinear")
+        )
+        # Out 8x8
+
+        # In 8x8 + skip from encoder2
         self.decoder0 = nn.Sequential(
-            nn.ConvTranspose2d(64, 42, 3, stride=1, padding=1), # 8x8
-            nn.ELU(),
-            nn.Upsample(scale_factor=2, mode="bilinear") # 16x16
+            nn.ConvTranspose2d(8*K, 4*K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(4*K),
+            nn.ConvTranspose2d(4*K, 2*K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.Upsample(scale_factor=2, mode="bilinear"),
         )
         # Out 16x16
 
-        # In 16x16
+        # In 16x16 + skip from encoder1
         self.decoder1 = nn.Sequential(
-            nn.ConvTranspose2d(84, 42, 3, stride=1, padding=1),
-            nn.ELU(),
-            nn.ConvTranspose2d(42, 24, 3, stride=1, padding=1),
-            nn.ELU(),
-            nn.Upsample(scale_factor=2, mode="bilinear") # 32x32
+            nn.ConvTranspose2d(4*K, 2*K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(2*K),
+            nn.ConvTranspose2d(2*K, K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.Upsample(scale_factor=2, mode="bilinear"),
         )
         # Out 32x32
 
-        # In 32x32
+        # In 32x32 + skip from encoder0
         self.decoder2 = nn.Sequential(
-            nn.ConvTranspose2d(48, 24, 3, stride=1, padding=1),
-            nn.ELU(),
-            nn.ConvTranspose2d(24, 3, 3, stride=1, padding=1),
-            nn.ELU()
+            nn.ConvTranspose2d(2*K, K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.ConvTranspose2d(K, K, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.Conv2d(K, 3, 1, stride=1, padding=0),
+            nn.ReLU()
         )
         # Out 32x32
 
@@ -78,8 +100,10 @@ class IISPTNet(torch.nn.Module):
         x0 = self.encoder0(x)
         x1 = self.encoder1(x0)
         x2 = self.encoder2(x1)
+        x3 = self.encoder3(x2)
 
-        x3 = self.decoder0(x2)
-        x4 = self.decoder1(torch.cat((x3, x1), 1))
-        x5 = self.decoder2(torch.cat((x4, x0), 1))
-        return x5
+        x4 = self.decoder0(torch.cat((x3, x2), 1))
+        x5 = self.decoder1(torch.cat((x4, x1), 1))
+        x6 = self.decoder2(torch.cat((x5, x0), 1))
+
+        return x6

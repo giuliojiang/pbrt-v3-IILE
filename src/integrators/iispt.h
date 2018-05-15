@@ -49,6 +49,7 @@
 #include "tools/threadpool.h"
 #include "tools/generalutils.h"
 #include "tools/nnconnectormanager.h"
+#include "integrators/iisptfilmmonitor.h"
 
 namespace pbrt {
 
@@ -131,6 +132,11 @@ private:
             ) const;
 
     void write_info_file(std::string out_filename);
+
+    void directoryControlThread(
+            std::shared_ptr<IisptFilmMonitor> indirectFilmMonitor,
+            std::shared_ptr<IisptFilmMonitor> directFilmMonitor
+            );
 
 };
 

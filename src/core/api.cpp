@@ -1084,7 +1084,7 @@ void pbrtIntegrator(const std::string &name, const ParamSet &params) {
     VERIFY_OPTIONS("Integrator");
     renderOptions->IntegratorName = name;
     std::cerr << "api.cpp: pbrtIntegrator name is " << name << std::endl;
-    if (name == std::string("iispt")) {
+    if (name == std::string("iispt") && PbrtOptions.referenceTiles == -1) {
         // Initialize NN connectors
         iile::NnConnectorManager::getInstance().start(iile::cpusCountHalf());
     }

@@ -120,6 +120,44 @@ void ImageFilm::pbrt_write_image(std::string filename) {
 }
 
 // ============================================================================
+void ImageFilm::writeLDR(std::string filename, float gain)
+{
+    Bounds2i cropped_pixel_bounds (
+                Point2i(0, 0),
+                Point2i(width, height)
+                );
+
+    Point2i full_resolution (
+                width, height
+                );
+
+    std::unique_ptr<Float[]> rgb (
+                new Float[get_components() * cropped_pixel_bounds.Area()]
+                );
+
+    // Populate the array
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            PfmItem item = get(x, y);
+            if (num_components == 1) {
+                Float it = item.get_single_component();
+                rgb[y*width + x] = it;
+            } else {
+                Float r, g, b;
+                item.get_triple_component(r, g, b);
+                int pix_index = y * width + x;
+                int array_index = 3 * pix_index;
+                rgb[array_index + 0] = r * (std::pow(2.0, gain));
+                rgb[array_index + 1] = g * (std::pow(2.0, gain));
+                rgb[array_index + 2] = b * (std::pow(2.0, gain));
+            }
+        }
+    }
+
+    pbrt::WriteImage(filename, &rgb[0], cropped_pixel_bounds, full_resolution);
+}
+
+// ============================================================================
 
 void ImageFilm::set_all(
         PfmItem pix

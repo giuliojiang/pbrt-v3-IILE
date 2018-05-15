@@ -10,6 +10,9 @@ import scipy.misc
 import PIL
 import array
 import sys
+import scipy.signal
+from skimage.measure import compare_ssim as ssim
+import scipy.ndimage
 
 import iispt_transforms
 
@@ -27,6 +30,16 @@ class PfmImage:
     def __init__(self, data, location):
         self.data = data
         self.location = location
+    
+    # -------------------------------------------------------------------------
+    def makeCopy(self):
+        height, width, channels = self.data.shape
+        newData = numpy.zeros((height, width, channels), dtype=numpy.float32)
+        for y in range(height):
+            for x in range(width):
+                for c in range(channels):
+                    newData[y, x, c] = self.data[y, x, c]
+        return PfmImage(newData, self.location)
     
     # -------------------------------------------------------------------------
     def print_shape(self):
@@ -164,6 +177,12 @@ class PfmImage:
     def normalize_distance_downstream_full(self):
         mean = numpy.mean(self.data)
         self.map(iispt_transforms.DistanceDownstreamSequence(mean))
+
+    # -------------------------------------------------------------------------
+    def divideMean(self):
+        mean = numpy.mean(self.data)
+        if mean > 0.0:
+            self.data = self.data / mean
     
     # -------------------------------------------------------------------------
     # Write out to .pfm file
@@ -194,11 +213,15 @@ class PfmImage:
     
     # -------------------------------------------------------------------------
     # Write out to LDR PNG file, with exposure and gamma settings
-    def save_png(self, out_path, exposure, gamma):
+    def save_png(self, out_path, exposure, gamma, reverse=False):
+        exposure = float(exposure)
+        gamma = float(gamma)
         # Create bytebuffer
-        width, height, channels = self.data.shape
+        height, width, channels = self.data.shape
         buff = bytearray()
         for y in range(height):
+            if reverse:
+                y = height - 1 - y
             for x in range(width):
                 arr_pix = []
                 if channels == 1:
@@ -231,6 +254,113 @@ class PfmImage:
             bytes(buff)
         )
         im.save(out_path)
+
+    # -------------------------------------------------------------------------
+    # Compute autoexposure
+    # Steps exposure values one at a time starting from 20
+    # Until less than 10% of the pixels are clipped in the upper bound
+    def computeAutoexposure(self):
+        currentExposure = 20.0
+        height, width, channels = self.data.shape
+        while True:
+            clippedCount = 0.0
+            totalCount = float(width * height * channels)
+
+            multiplier = 2.0**currentExposure
+            t = self.data * multiplier
+            clippedCount = (t > 1.0).sum()
+            clippedRatio = float(clippedCount) / totalCount
+
+            if clippedRatio < 0.10:
+                return currentExposure
+            else:
+                currentExposure -= 1.0
+    
+    # -------------------------------------------------------------------------
+    # Compute L1 loss
+    # Average of absolute differences
+    def computeL1Loss(self, other):
+        height, width, channels = self.data.shape
+        totalCount = float(height * width * channels)
+
+        differenceSum = 0.0
+
+        for y in range(height):
+            for x in range(width):
+                for c in range(channels):
+                    va = self.data[y, x, c]
+                    vb = other.data[y, x, c]
+                    differenceSum += abs(va - vb)
+        
+        return differenceSum / totalCount
+    
+    # -------------------------------------------------------------------------
+    # Compute cross correlation
+    def computeCrossCorrelation(self, other):
+        height, width, channels = self.data.shape
+
+        crossCorrelation = 0.0
+
+        for c in range(channels):
+            imgA = numpy.zeros((height, width), dtype=numpy.float32)
+            imgB = numpy.zeros((height, width), dtype=numpy.float32)
+            for y in range(height):
+                for x in range(width):
+                    imgA[y, x] = self.data[y, x, c]
+                    imgB[y, x] = other.data[y, x, c]
+            # Normalize the 2 images
+            imgAMean = numpy.mean(imgA)
+            imgAStd = numpy.std(imgA)
+            imgA = imgA - imgAMean
+            if imgAStd > 0.0:
+                imgA = imgA / imgAStd
+            imgBMean = numpy.mean(imgB)
+            imgBStd = numpy.std(imgB)
+            imgB = imgB - imgBMean
+            if imgBStd > 0.0:
+                imgB = imgB / imgBStd
+            crossCorrelation += numpy.mean(scipy.signal.correlate2d(imgA, imgB))
+        
+        return crossCorrelation
+
+    # -------------------------------------------------------------------------
+    # Compute structural similarity
+    # <other> should be the ground truth
+    def computeStructuralSimilarity(self, other):
+        height, width, channels = self.data.shape
+        similarityMeasures = 0.0
+
+        for c in range(channels):
+            imgA = numpy.zeros((height, width), dtype=numpy.float32)
+            imgB = numpy.zeros((height, width), dtype=numpy.float32)
+            for y in range(height):
+                for x in range(width):
+                    imgA[y, x] = self.data[y, x, c]
+                    imgB[y, x] = other.data[y, x, c]
+            aSimil = ssim(
+                imgA,
+                imgB
+            )
+            similarityMeasures += aSimil
+
+        return similarityMeasures / float(channels)
+
+    # -------------------------------------------------------------------------
+    def gaussianBlur(self, sd):
+        height, width, channels = self.data.shape
+
+        for c in range(channels):
+            tempArray = numpy.zeros((height, width), dtype=numpy.float32)
+            for y in range(height):
+                for x in range(width):
+                    tempArray[y, x] = self.data[y, x, c]
+            
+            blurred = scipy.ndimage.gaussian_filter(tempArray, sigma=sd)
+
+            for y in range(height):
+                for x in range(width):
+                    self.data[y, x, c] = blurred[y, x]
+
 
 # =============================================================================
 # Utilities
@@ -328,19 +458,33 @@ def loadFromConvOutNpArray(vals):
 
 def test_main():
     files = [
-        "/home/gj/git/pbrt-v3-IISPT/TMP_P_ORIGINAL.pfm",
-        "/home/gj/git/pbrt-v3-IISPT/TMP_P_NORM.pfm",
-        "/home/gj/git/pbrt-v3-IISPT/TMP_D_ORIGINAL.pfm",
-        "/home/gj/git/pbrt-v3-IISPT/TMP_D_NORM.pfm",
-        "/home/gj/git/pbrt-v3-IISPT/TMP_Z_ORIGINAL.pfm",
-        "/home/gj/git/pbrt-v3-IISPT/TMP_Z_NORM.pfm"
+        "/home/gj/git/pbrt-v3-IISPT-dataset-indirect/bathroom-0/p_448_168.pfm",
+        "/home/gj/git/pbrt-v3-IISPT-dataset-indirect/bathroom-0/z_64_72.pfm",
+        "/home/gj/git/pbrt-v3-IISPT-dataset-indirect/bathroom-0/n_64_288.pfm",
+        "/home/gj/git/pbrt-v3-IISPT-dataset-indirect/bathroom-0/d_544_408.pfm"
     ]
 
+    pPfm = load("/home/gj/git/pbrt-v3-IISPT-dataset-indirect/bathroom-0/p_448_168.pfm")
+
+    nameCount = 0
+
     for f in files:
+        print()
+        nameCount += 1
         print(f)
         p = load(f)
-        p.print_shape()
-        p.print_samples()
-        print("Mean is : {}\n\n\n".format(p.get_mean()))
+        autoExposure = p.computeAutoexposure()
+        print("Autoexposure computed {}".format(autoExposure))
+        p.save_png("/tmp/testmain{}.png".format(nameCount), autoExposure, 1.8)
+        l1loss = p.computeL1Loss(pPfm)
+        print("Loss compared to P is {}".format(l1loss))
+        crossCorr = p.computeCrossCorrelation(pPfm)
+        print("CrossCorrelation is {}".format(crossCorr))
+        similarity = p.computeStructuralSimilarity(pPfm)
+        print("Structural similarity is {}".format(similarity))
+
+        aCopy = p.makeCopy()
+        aCopy.gaussianBlur(1.0)
+        aCopy.save_png("/tmp/testblur{}.png".format(nameCount), autoExposure, 1.8)
 
 # test_main()

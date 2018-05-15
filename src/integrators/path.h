@@ -42,6 +42,7 @@
 #include "pbrt.h"
 #include "integrator.h"
 #include "lightdistrib.h"
+#include "samplers/sobol.h"
 
 namespace pbrt {
 

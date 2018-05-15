@@ -63,7 +63,7 @@ public:
 
     std::shared_ptr<IntensityFilm> to_intensity_film_reversed();
 
-    void merge_from(IisptFilmMonitor* other);
+    std::shared_ptr<IisptFilmMonitor> merge_into(IisptFilmMonitor* other);
 
     void addFromIntensityFilm(
             IntensityFilm* intensityFilm

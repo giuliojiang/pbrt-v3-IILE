@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Hello World!</title>
+
+        <link rel="stylesheet" href="lib/w3.css">
+
+        <link rel="stylesheet" type="text/css" href="css/custom.css">
+
+        <script src="lib/angular.min.js"></script>
+
+        <script src="root.js"></script>
+
+        <script src="mainController.js"></script>
+    </head>
+    <body ng-app="mainApp" ng-controller="main_controller" onunload="bodyUnload()">
+        <div class="j_v_box">
+            <!--Title-->
+            <div class="j_item">
+                <h1>{{title}}</h1>
+            </div>
+            <!--Indirect, Direct, Combined buttons-->
+            <div class="j_item">
+                <div class="j_h_box">
+                    <div class="j_item">
+                        <a class="w3-button w3-black" ng-click="buttonIndirect()">Indirect</a>
+                    </div>
+                    <div class="j_item">
+                        <a class="w3-button w3-black" ng-click="buttonDirect()">Direct</a>
+                    </div>
+                    <div class="j_item">
+                        <a class="w3-button w3-black" ng-click="buttonCombined()">Combined</a>
+                    </div>
+                </div>
+            </div>
+            <!--Exposure settings and status-->
+            <div class="j_item">
+                <div class="j_h_box">
+                    <div class="j_item">
+                        <p class="j_p">Exposure</p>
+                    </div>
+                    <!--Exposure input-->
+                    <div class="j_item">
+                        <input type="number" step="1" min="-20" max="20" ng-model="exposure">
+                    </div>
+                    <!--Apply button-->
+                    <div class="j_item">
+                        <a class="w3-button w3-black" ng-click="buttonExposureApply()">Apply</a>
+                    </div>
+                    <!--Status-->
+                    <div class="j_item">
+                        <p class="j_p">Status: {{status}}</p>
+                    </div>
+                </div>
+            </div>
+            <!--Image previews-->
+            <div class="j_item">
+                <div id="img_main"></div>
+            </div>
+        </div>
+    </body>
+</html>

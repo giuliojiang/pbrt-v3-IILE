@@ -9,7 +9,8 @@ rootdir = os.path.abspath(os.path.join(__file__, "..", ".."))
 multiprocess_reference_py = os.path.join(rootdir, "tools", "multiprocess_reference.py")
 
 TASK_LIST = [
-    "/home/gj/git/pbrt-v3-scenes-extra/cornell-box/scene.pbrt"
+    "/home/gj/git/pbrt-v3-custom-scenes/fireplace1/scene.pbrt",
+    "/home/gj/git/pbrt-v3-custom-scenes/fireplace2/scene.pbrt"
 ]
 
 for task in TASK_LIST:
@@ -22,8 +23,8 @@ for task in TASK_LIST:
     cmd.append("python3")
     cmd.append(multiprocess_reference_py)
     cmd.append(task)
-    cmd.append("--reference=20")
-    cmd.append("--reference_samples=4")
+    cmd.append("--reference=18")
+    cmd.append("--reference_samples=1024")
 
     print("Executing cmd {}".format(cmd))
     subprocess.call(cmd)

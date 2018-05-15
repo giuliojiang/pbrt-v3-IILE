@@ -77,38 +77,18 @@ def concatenate_conv_np_arrays(intensity, normals, distance):
     intData = intensity.data
     normData = normals.data
     distData = distance.data
-    height, width, _ = intData.shape
-    res = numpy.zeros((7, height, width), dtype=numpy.float32)
 
-    for y in range(height):
-        for x in range(width):
-            # Copy intensity data
-            res[0, y, x] = intData[y, x, 0]
-            res[1, y, x] = intData[y, x, 1]
-            res[2, y, x] = intData[y, x, 2]
-            # Copy normals data
-            res[3, y, x] = normData[y, x, 0]
-            res[4, y, x] = normData[y, x, 1]
-            res[5, y, x] = normData[y, x, 2]
-            # Copy distance data
-            res[6, y, x] = distData[y, x, 0]
+    cIntensity = numpy.transpose(intData, (2, 0, 1))
+    cNormals = numpy.transpose(normData, (2, 0, 1))
+    cDistance = numpy.transpose(distData, (2, 0, 1))
+    res2 = numpy.concatenate([cIntensity, cNormals, cDistance], axis=0)
 
-    return res
+    return res2
 
 # -----------------------------------------------------------------------------
 # Takes a single PfmImage and returns a ConvOutNpArray
 def pfm_to_conv_np_array(intensity):
-    intData = intensity.data
-    height, width, _ = intData.shape
-    res = numpy.zeros((3, height, width), dtype=numpy.float32)
-
-    for y in range(height):
-        for x in range(width):
-            res[0, y, x] = intData[y, x, 0]
-            res[1, y, x] = intData[y, x, 1]
-            res[2, y, x] = intData[y, x, 2]
-    return res
-
+    return numpy.transpose(intensity.data, (2, 0, 1))
 
 # =============================================================================
 class IISPTDataset(Dataset):
@@ -135,6 +115,8 @@ class IISPTDataset(Dataset):
     #   t        nparray net input flattened and processed
     #   p_name   path to p file
     #   d_name   path to d file
+    #   n_name   path to n file
+    #   z_name   path to z file
     #   mean     mean of D, returned by d_pfm normalize intensity downstream full
     # }
     def __getitem__(self, idx):
@@ -181,6 +163,10 @@ class IISPTDataset(Dataset):
         result["p_name"] = p_name
 
         result["d_name"] = d_name
+
+        result["n_name"] = n_name
+
+        result["z_name"] = z_name
 
         result["mean"] = dmean
 
