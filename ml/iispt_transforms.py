@@ -148,6 +148,22 @@ class Subtract:
         return x - self.amount
 
 # -----------------------------------------------------------------------------
+class LinearLDR:
+
+    def __init__(self, exposure, gamma):
+        self.exposure = exposure
+        self.gamma = gamma
+    
+    def __call__(self, x):
+        x *= 2.0**self.exposure
+        if x < 0.0:
+            x = 0.0
+        if x > 1.0:
+            x = 1.0
+        x = x**(1.0 / self.gamma)
+        return int(255.0 * x)
+
+# -----------------------------------------------------------------------------
 class Sequence:
 
     def __init__(self, ts):

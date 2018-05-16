@@ -219,39 +219,32 @@ class PfmImage:
         # Create bytebuffer
         height, width, channels = self.data.shape
         buff = bytearray()
-        for y in range(height):
-            if reverse:
-                y = height - 1 - y
-            for x in range(width):
-                arr_pix = []
-                if channels == 1:
-                    v = self.data[y, x, 0]
-                    rgb = [v, v, v]
-                elif channels == 3:
-                    rgb = [
-                        self.data[y, x, 0],
-                        self.data[y, x, 1],
-                        self.data[y, x, 2]
-                    ]
-                else:
-                    raise Exception("Number of channels is neither 1 nor 3 but it's {}".format(channels))
 
-                for v in rgb:
-                    # Adjust exposure
-                    v *= 2.0**exposure
-                    # Clamp
-                    if v < 0.0:
-                        v = 0.0
-                    if v > 1.0:
-                        v = 1.0
-                    # Gamma
-                    v = v**(1.0 / gamma)
-                    buff.append(int(255.0 * v))
+        # Triplicate values if single channel
+        if channels == 1:
+            d = numpy.concatenate([self.data, self.data, self.data], axis=2)
+        elif channels == 3:
+            d = self.data
+        else:
+            raise Exception("Unsupported channels {}".format(channels))
+        
+        # Adjust according to exposure and gamma
+        d = numpy.vectorize(iispt_transforms.LinearLDR(exposure, gamma))(d)
+
+        # Flip Y if necessary
+        if reverse:
+            d = numpy.flip(d, 0)
+
+        # Flatten
+        d = d.flatten()
+
+        # Change type
+        d = d.astype(numpy.uint8)
 
         im = PIL.Image.frombytes(
             "RGB",
             (width, height),
-            bytes(buff)
+            d.tobytes()
         )
         im.save(out_path)
 
