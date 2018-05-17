@@ -7,6 +7,7 @@ import torch
 from torch import nn
 from torch.autograd.variable import Variable
 import numpy
+import scipy.stats
 
 import plotly
 import plotly.plotly as py
@@ -126,4 +127,36 @@ def main():
     plot(statLowL1, statGaussianL1, statResultL1, "L1")
     plot(statLowSs, statGaussianSs, statResultSs, "Structural Similarity")
 
-main()
+    # Compute P values for L1
+    data = {
+        'a': statGaussianL1,
+        'b': statResultL1
+    }
+    t, p =  scipy.stats.f_oneway(*data.values())
+    print("P value L1 gaussian-predicted {}".format(p))
+    
+    # Compute P values for Ss
+    data = {
+        'a': statGaussianSs,
+        'b': statResultSs
+    }
+    t, p =  scipy.stats.f_oneway(*data.values())
+    print("P value Ss gaussian-predicted {}".format(p))
+
+    # Compute P values for L1
+    data = {
+        'a': statLowL1,
+        'b': statResultL1
+    }
+    t, p =  scipy.stats.f_oneway(*data.values())
+    print("P value L1 low-predicted {}".format(p))
+    
+    # Compute P values for Ss
+    data = {
+        'a': statLowSs,
+        'b': statResultSs
+    }
+    t, p =  scipy.stats.f_oneway(*data.values())
+    print("P value Ss low-predicted {}".format(p))
+
+# main()
