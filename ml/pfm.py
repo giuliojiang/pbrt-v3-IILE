@@ -354,6 +354,18 @@ class PfmImage:
                 for x in range(width):
                     self.data[y, x, c] = blurred[y, x]
 
+    # -------------------------------------------------------------------------
+    def vflip(self):
+        self.data = numpy.flip(self.data, 0)
+
+    # -------------------------------------------------------------------------
+    def hflip(self):
+        self.data = numpy.flip(self.data, 1)
+
+    # -------------------------------------------------------------------------
+    def rotate(self, times):
+        self.data = numpy.rot90(self.data, times)
+
 
 # =============================================================================
 # Utilities

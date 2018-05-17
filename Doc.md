@@ -43,6 +43,15 @@ The data that the C++ process sends to main_stdio_net is already transformed and
 
 The output of the main_stdio process does not apply the upstream transformations, as those are handled by the C++ process.
 
+## ML data loader augmentations
+
+* 0-3 No flip
+* 4-7 Vertical flip
+* 8-11 Horizontal flip
+* 12-15 Both flip
+
+Each group has 4 indexes for rotations of 0 90 180 270 degrees
+
 ## Performance
 
 ```

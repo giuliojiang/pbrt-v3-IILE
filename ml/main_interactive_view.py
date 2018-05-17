@@ -11,6 +11,7 @@ import config
 import iispt_dataset
 import pfm
 import iispt_net
+import iispt_transforms
 
 GAMMA = 1.8
 
@@ -61,6 +62,7 @@ def main():
         item_input = item["t"]
         item_input = item_input.unsqueeze(0)
         item_expected = item["p"]
+        aug = item["aug"]
 
         # Run the network on the data
         input_variable = Variable(item_input)
@@ -74,7 +76,7 @@ def main():
 
         # Save the expected result
         expected_image = pfm.load(item["p_name"])
-        # expected_image = pfm.load_from_flat_numpy(item_expected.numpy())
+        iispt_transforms.augmentList([expected_image], aug)
         expectedExposure = expected_image.computeAutoexposure()
         expected_image.save_png("interactiveExpected.png", expectedExposure, GAMMA)
 
@@ -83,14 +85,17 @@ def main():
 
         # Save the normals map
         normalsImage = pfm.load(item["n_name"])
+        iispt_transforms.augmentList([normalsImage], aug)
         normalsImage.save_png("interactiveNormals.png", normalsImage.computeAutoexposure(), GAMMA)
 
         # Save the distance map
         distanceImage = pfm.load(item["z_name"])
+        iispt_transforms.augmentList([distanceImage], aug)
         distanceImage.save_png("interactiveDistance.png", distanceImage.computeAutoexposure(), GAMMA)
 
         # Save 1SPP path
         lowSamplesImage = pfm.load(item["d_name"])
+        iispt_transforms.augmentList([lowSamplesImage], aug)
         lowSamplesImage.save_png("interactiveLow.png", expectedExposure, GAMMA)
 
         # Make gaussian blur of 1SPP

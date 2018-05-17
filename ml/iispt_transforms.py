@@ -1,6 +1,47 @@
 import math
 
 # =============================================================================
+# Augmentations
+def augmentList(thePfms, aug):
+
+    for aPfm in thePfms:
+
+        # Perform data augmentation: flipping
+        flipIndex = int(aug / 4)
+        if flipIndex == 0:
+            # No flip
+            pass
+        elif flipIndex == 1:
+            # Vertical flip
+            aPfm.vflip()
+        elif flipIndex == 2:
+            # Horizontal flip
+            aPfm.hflip()
+        elif flipIndex == 3:
+            # Vertical and horizontal flip
+            aPfm.vflip()
+            aPfm.hflip()
+        else:
+            raise Exception("Unknown flip index {} from aug index {}".format(flipIndex, aug))
+
+        # Perform data augmentation: rotation
+        rotationIndex = int(aug % 4)
+        if rotationIndex == 0:
+            # No rotation
+            pass
+        elif rotationIndex == 1:
+            # 90
+            aPfm.rotate(1)
+        elif rotationIndex == 2:
+            # 180
+            aPfm.rotate(2)
+        elif rotationIndex == 3:
+            # 270
+            aPfm.rotate(3)
+        else:
+            raise Exception("Unknown rotation index {} from aug index {}".format(rotationIndex, aug))
+
+# =============================================================================
 # Math wrappers
 
 def safelog(x):
