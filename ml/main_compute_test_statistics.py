@@ -68,6 +68,10 @@ def main():
         print("Processing index {}".format(i))
 
         item = selected_set.__getitem__(i)
+        aug = item["aug"]
+        if aug != 0:
+            # Only process un-augmented samples
+            continue
         item_input = item["t"]
         item_input = item_input.unsqueeze(0)
 

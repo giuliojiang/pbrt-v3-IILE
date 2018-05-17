@@ -19,6 +19,7 @@ print(rootdir)
 os.chdir(rootdir)
 
 TRAINING_TIME_MINUTES = 0.16 * 60.0
+TRAINING_TIME_MINUTES = 0.2
 BATCH_SIZE = 32
 NO_WORKERS = 4
 LEARNING_RATE = 0.0001
@@ -66,18 +67,25 @@ def main():
 
     print("Target train duration is {} hours".format(TRAINING_TIME_MINUTES / 60.0))
 
+    trainingComplete = False
+
     while True:
 
         if epoch >= MAX_EPOCHS:
             break
 
-        elapsed_minutes = minutes_elapsed()
-        print("Training: elapsed {} minutes".format(elapsed_minutes))
-        if elapsed_minutes > TRAINING_TIME_MINUTES:
+        if trainingComplete:
             break
 
         # each i is a batch
         for i, data in enumerate(trainloader, 0):
+
+            if i % 10 == 0:
+                elapsed_minutes = minutes_elapsed()
+                print("Training: elapsed {} minutes".format(elapsed_minutes))
+                if elapsed_minutes > TRAINING_TIME_MINUTES:
+                    trainingComplete = True
+                    break
 
             # Get the inputs
             input_x = data["t"]
@@ -106,6 +114,9 @@ def main():
         
         # compute loss on the testset
         for i, data in enumerate(testloader, 0):
+
+            if i > 10:
+                break
 
             # Get the inputs
             input_x = data["t"]
