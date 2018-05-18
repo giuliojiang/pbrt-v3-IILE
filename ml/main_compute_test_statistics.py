@@ -163,4 +163,4 @@ def main():
     t, p =  scipy.stats.f_oneway(*data.values())
     print("P value Ss low-predicted {}".format(p))
 
-# main()
+main()

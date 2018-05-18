@@ -50,6 +50,7 @@
 #include "tools/generalutils.h"
 #include "tools/nnconnectormanager.h"
 #include "integrators/iisptfilmmonitor.h"
+#include "samplers/random.h"
 
 namespace pbrt {
 

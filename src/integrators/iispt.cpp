@@ -906,11 +906,15 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
     std::string lightStrategy =
         params.FindOneString("lightsamplestrategy", "spatial");
 
+//    std::shared_ptr<Sampler> sampler (
+//                CreateSobolSampler(
+//                pixelBounds,
+//                PbrtOptions.iileDirectSamples
+//                ));
+
     std::shared_ptr<Sampler> sampler (
-                CreateSobolSampler(
-                pixelBounds,
-                PbrtOptions.iileDirectSamples
-                ));
+                new RandomSampler(PbrtOptions.iileDirectSamples)
+                );
 
     return new IISPTIntegrator(maxDepth, camera, pixelBounds,
         dcamera, sampler, rrThreshold, lightStrategy);

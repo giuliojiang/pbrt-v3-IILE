@@ -406,22 +406,20 @@ bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.
 
 # TODO
 
-## NN evaluation on test patches (unseen scenes)
+Finish writing about implementation.
 
-Display:
+Do ablation testing for NN
 
-* Normals map
-* Distance map
-* 1spp path
-* Gaussian blur
-* NN predicted
-* Path ground truth
+Render progressive quality of IILE images
 
-Metrics vs ground truth: 1spp path, gaussian blur, NN predicted
+Blender plugin:
 
-* L1 Loss
-* Cross Correlation
-* Structural similarity
+* glossy material
+* mirror material
+* camera fov
+* film size
+* glass material
+* texture mapping
 
 ## Selected test scenes
 
