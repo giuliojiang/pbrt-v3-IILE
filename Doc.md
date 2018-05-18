@@ -412,6 +412,8 @@ Do ablation testing for NN
 
 Render progressive quality of IILE images
 
+Regenerate part of the dataset because sampler for iispt_d is now random
+
 Blender plugin:
 
 * glossy material

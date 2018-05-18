@@ -11,7 +11,7 @@ import time
 inputFiles = [
     ["/home/gj/git/pbrt-v3-scenes/white-room/whiteroom-daytime.pbrt", 8],
     ["/home/gj/git/pbrt-v3-scenes-extra/veach-ajar/scene.pbrt", 2],
-    ["/home/gj/git/pbrt-v3-custom-scenes/mbed1/scene.pbrt", 16]
+    ["/home/gj/git/pbrt-v3-custom-scenes/mbed1/scene.pbrt", 32]
 ]
 
 outputDir = "/home/gj/git/pbrt-v3-IISPT/tmpiile"
@@ -77,10 +77,13 @@ def processFileAtQuality(fdata, spp):
     statFile.close()
 
 def processFile(fdata):
-    spp = 1
+    spp = 0
     while spp <= maxSpp:
         processFileAtQuality(fdata, spp)
-        spp *= 2
+        if spp == 0:
+            spp = 1
+        else:
+            spp *= 2
 
 def main():
     for fdata in inputFiles:

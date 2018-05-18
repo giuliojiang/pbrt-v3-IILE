@@ -46,6 +46,7 @@
 #include "film/normalfilm.h"
 #include "lightdistrib.h"
 #include "film/intensityfilm.h"
+#include "samplers/random.h"
 
 namespace pbrt {
 
