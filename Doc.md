@@ -415,6 +415,12 @@ real	0m36.624s
 
 After optimization
 real	0m30.438s
+
+1 thread
+real	0m23.856s
+
+2 threads
+real	0m26.131s
 ```
 
 Do ablation testing for NN
@@ -431,6 +437,8 @@ Y axis, independently:
 ```
 
 Regenerate part of the dataset because sampler for iispt_d is now random
+
+recheck rejection with the new sampler
 
 Blender plugin:
 

@@ -103,6 +103,7 @@ def process_one(net):
 
 def main():
     print_stderr("main_stdio_net.py: Startup")
+    torch.set_num_threads(1)
     # Load model
     net = iispt_net.IISPTNet()
     net.load_state_dict(torch.load(config.model_path))
