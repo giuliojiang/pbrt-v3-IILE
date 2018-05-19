@@ -321,6 +321,9 @@ class PfmImage:
     # <other> should be the ground truth
     def computeStructuralSimilarity(self, other):
         height, width, channels = self.data.shape
+        h2, w2, _ = other.data.shape
+        height = min(height, h2)
+        width = min(width, w2)
         similarityMeasures = 0.0
 
         for c in range(channels):

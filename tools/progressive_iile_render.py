@@ -62,8 +62,6 @@ def processFileAtQuality(fdata, spp):
     cmd.append(outFilePath)
     cmd.append("--iileIndirect={}".format(spp))
     cmd.append("--iileDirect={}".format(directSpp))
-
-    cmd.append()
     runProcess(cmd)
 
     # End timer

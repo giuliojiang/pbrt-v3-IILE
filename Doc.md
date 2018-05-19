@@ -406,11 +406,20 @@ bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.
 
 # TODO
 
-Finish writing about implementation.
+Optimize main_stdio_net!
 
 Do ablation testing for NN
 
 Render progressive quality of IILE images
+
+```
+Chart:
+X axis: number of tasks/samples
+Y axis, independently:
+    - rendering time
+    - entropy (noise)
+    - HDR VPD 2 vs reference
+```
 
 Regenerate part of the dataset because sampler for iispt_d is now random
 
@@ -418,10 +427,16 @@ Blender plugin:
 
 * glossy material
 * mirror material
-* camera fov
-* film size
 * glass material
 * texture mapping
+* add sampler options for path
+
+GUI:
+
+* fix refresh flickering
+* display progress bars
+* exposure control based on python not C++
+* make compatible with other integrator's output location
 
 ## Selected test scenes
 
