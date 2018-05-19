@@ -408,6 +408,15 @@ bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.
 
 Optimize main_stdio_net!
 
+```
+Before optimization 
+time pbrt scene.pbrt --iileDirect=1 --iileIndirect=8 out.exr
+real	0m36.624s
+
+After optimization
+real	0m30.438s
+```
+
 Do ablation testing for NN
 
 Render progressive quality of IILE images

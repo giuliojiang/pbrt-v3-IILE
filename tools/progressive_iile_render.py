@@ -9,9 +9,9 @@ import time
 # - filepath
 # - directSpp
 inputFiles = [
-    ["/home/gj/git/pbrt-v3-scenes/white-room/whiteroom-daytime.pbrt", 8],
-    ["/home/gj/git/pbrt-v3-scenes-extra/veach-ajar/scene.pbrt", 2],
-    ["/home/gj/git/pbrt-v3-custom-scenes/mbed1/scene.pbrt", 32]
+    ["/home/gj/git/pbrt-v3-scenes/white-room/whiteroom-daytime.pbrt", 16],
+    # ["/home/gj/git/pbrt-v3-scenes-extra/veach-ajar/scene.pbrt", 2],
+    ["/home/gj/git/pbrt-v3-custom-scenes/mbed1/scene.pbrt", 64]
 ]
 
 outputDir = "/home/gj/git/pbrt-v3-IISPT/tmpiile"

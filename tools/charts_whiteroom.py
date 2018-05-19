@@ -22,7 +22,7 @@ yEntropy = [
     1168, #128
     1160, #256
     1160, #512
-] # TODO
+]
 
 ySsim = [
     0.15, # 0
@@ -36,7 +36,7 @@ ySsim = [
     0.20, #128
     0.20, #256
     0.21, #512
-] # TODO
+]
 
 traceRenderTime = go.Scatter(
     x=xData,

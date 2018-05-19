@@ -37,24 +37,13 @@ os.chdir(rootdir)
 def print_stderr(s):
     sys.stderr.write(s + "\n")
 
-def read_float():
-    return struct.unpack('f', sys.stdin.buffer.read(4))[0]
-
-def write_float(x):
-    sys.stdout.buffer.write(struct.pack("f", x))
-
-def write_float_array(xs):
-    data = struct.pack("{}f".format(len(xs)), *xs)
-    sys.stdout.buffer.write(data)
-    sys.stdout.flush()
-
 def write_char(c):
     sys.stdout.buffer.write(c.encode())
 
-# <return> a python array
+# <return> a numpy 1D array
 def read_float_array(num):
     buff = sys.stdin.buffer.read(num * 4)
-    return struct.unpack('{}f'.format(num), buff)
+    return numpy.frombuffer(buff, dtype=numpy.float32)
 
 # <return> a (7, height, width) shaped ndarray
 def read_input():
@@ -67,47 +56,30 @@ def read_input():
     # Read distance data
     distanceArray = read_float_array(IISPT_IMAGE_SIZE * IISPT_IMAGE_SIZE * 1)
 
-    # Create final numpy ndarray
-    res = numpy.zeros(
-        shape=(7, IISPT_IMAGE_SIZE, IISPT_IMAGE_SIZE),
-        dtype=numpy.float32
-    )
+    # Reshape read arrays into (height, width, channels)
+    intensityArray = intensityArray.reshape((IISPT_IMAGE_SIZE, IISPT_IMAGE_SIZE, 3))
+    normalsArray = normalsArray.reshape((IISPT_IMAGE_SIZE, IISPT_IMAGE_SIZE, 3))
+    distanceArray = distanceArray.reshape((IISPT_IMAGE_SIZE, IISPT_IMAGE_SIZE, 1))
 
-    # Populate data values
-    height = IISPT_IMAGE_SIZE
-    width = IISPT_IMAGE_SIZE
-    for y in range(height):
-        for x in range(width):
-            # Compute flattened index
-            idx = y * width + x
-            idx3 = 3 * idx
-            # Intensity
-            res[0, y, x] = intensityArray[idx3 + 0]
-            res[1, y, x] = intensityArray[idx3 + 1]
-            res[2, y, x] = intensityArray[idx3 + 2]
-            # Normals
-            res[3, y, x] = normalsArray[idx3 + 0]
-            res[4, y, x] = normalsArray[idx3 + 1]
-            res[5, y, x] = normalsArray[idx3 + 2]
-            # Distance
-            res[6, y, x] = distanceArray[idx]
+    # Transpose into (channels, height, width)
+    intensityArray = intensityArray.transpose((2, 0, 1))
+    normalsArray = normalsArray.transpose((2, 0, 1))
+    distanceArray = distanceArray.transpose((2, 0, 1))
 
-    return res
+    # Concatenate into single multiarray
+    return numpy.concatenate([intensityArray, normalsArray, distanceArray], axis=0)
 
 # =============================================================================
 # <nparray> a shape (channel, height, width) 3D ndarray
 # Outputted as an image with dimensions order as (height, width, channel)
 def output_to_stdout(nparray):
-    channels, height, width = nparray.shape
-    writeCount = 0
-    for y in range(height):
-        for x in range(width):
-            for c in range(channels):
-                write_float(nparray[c, y, x])
-                writeCount += 1
-
+    # Reshape into (height, width, channel)
+    data = numpy.transpose(nparray, (1, 2, 0))
+    buff = data.tobytes()
+    sys.stdout.buffer.write(buff)
     write_char("x")
     write_char("\n")
+    sys.stdout.flush()
 
 # =============================================================================
 # Processing function
@@ -115,6 +87,7 @@ def process_one(net):
 
     # Read input from stdin
     inputNdArray = read_input()
+
     torchData = torch.from_numpy(inputNdArray).float()
     torchData = torchData.unsqueeze(0)
     inputVariable = Variable(torchData)
