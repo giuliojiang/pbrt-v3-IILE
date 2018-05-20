@@ -26,6 +26,3 @@ function createWindow () {
 
 app.on('ready', createWindow);
 
-setInterval(function() {
-    console.info("ping");
-}, 10000);

@@ -75,6 +75,8 @@ window.onbeforeunload = (e) => {
         log.info("Sent SIGINT to PBRT");
     }
 
+    shd.win.hide();
+
     setTimeout(function() {
         log.info("Ready to close...");
         fsExtra.removeSync(data.controlDir);
