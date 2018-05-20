@@ -30,7 +30,7 @@
 # Each value is a PfmImage object
 #
 # The dataset contains a list of objects:
-# {directory, x, y, log_normalization, sqrt_normalization}
+# {directory, x, y, log_normalization, sqrt_normalization, aug}
 # These files are loaded from disk when requested only
 
 # =============================================================================
@@ -45,6 +45,7 @@ from torch.utils.data import Dataset, DataLoader
 import pfm
 import km
 import config
+import iispt_transforms
 
 # Ignore warnings
 import warnings
@@ -126,6 +127,7 @@ class IISPTDataset(Dataset):
         y = datum["y"]
         log_normalization = datum["log_normalization"]
         sqrt_normalization = datum["sqrt_normalization"]
+        aug = datum["aug"]
 
         # Generate file names
         p_name, d_name, n_name, z_name = generate_pfm_filenames(dirname, x, y)
@@ -136,10 +138,12 @@ class IISPTDataset(Dataset):
         n_pfm = pfm.load(n_name)
         z_pfm = pfm.load(z_name)
 
-        # p_pfm.save_pfm("TMP_P_ORIGINAL.pfm")
-        # d_pfm.save_pfm("TMP_D_ORIGINAL.pfm")
-        # n_pfm.save_pfm("TMP_N_ORIGINAL.pfm")
-        # z_pfm.save_pfm("TMP_Z_ORIGINAL.pfm")
+        thePfms = [p_pfm, d_pfm, n_pfm, z_pfm]
+
+        # Data augmentation ---------------------------------------------------
+        iispt_transforms.augmentList(thePfms, aug)
+
+        # Data transformations ------------------------------------------------
 
         # Transform P
         p_pfm.normalize_intensity_downstream_half()
@@ -169,6 +173,8 @@ class IISPTDataset(Dataset):
         result["z_name"] = z_name
 
         result["mean"] = dmean
+
+        result["aug"] = aug
 
         return result
 
@@ -301,11 +307,13 @@ def load_dataset(root_directory, validation_probability):
     results_train = []
     results_validation = []
     for k in results_dict:
-        v = results_dict[k]
-        if v["validation"]:
-            results_validation.append(v)
-        else:
-            results_train.append(v)
+        for aug in range(16):
+            v = results_dict[k].copy()
+            v["aug"] = aug
+            if v["validation"]:
+                results_validation.append(v)
+            else:
+                results_train.append(v)
     
     # Create Dataset object
     r_t, r_v = (IISPTDataset(results_train), IISPTDataset(results_validation))

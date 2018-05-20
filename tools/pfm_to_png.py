@@ -30,7 +30,7 @@ def processOne(inputPath):
     # Load the PFM
     img = pfm.load(inputPath)
     autoExposure = img.computeAutoexposure()
-    img.save_png(outFilepath, autoExposure, 1.8, reverse=True)
+    img.save_png(outFilepath, autoExposure, 2.2, reverse=True)
 
 for anArg in argv:
     processOne(anArg)

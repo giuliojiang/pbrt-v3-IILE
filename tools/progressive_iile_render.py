@@ -5,15 +5,18 @@ import time
 # =============================================================================
 # Constants and settings
 
+# Each has:
+# - filepath
+# - directSpp
 inputFiles = [
-    "/home/gj/git/pbrt-v3-scenes/white-room/whiteRoomDaytimePath.pbrt",
-    "/home/gj/git/pbrt-v3-scenes-extra/veach-ajar/scenePath.pbrt",
-    "/home/gj/git/pbrt-v3-custom-scenes/mbed1/scenePath.pbrt"
+    # ["/home/gj/git/pbrt-v3-scenes/white-room/whiteroom-daytime.pbrt", 16],
+    ["/home/gj/git/pbrt-v3-scenes-extra/veach-ajar/scene.pbrt", 2],
+    # ["/home/gj/git/pbrt-v3-custom-scenes/mbed1/scene.pbrt", 64]
 ]
 
-outputDir = "/home/gj/git/pbrt-v3-IISPT/tmp"
+outputDir = "/home/gj/git/pbrt-v3-IISPT/tmpiile"
 
-maxSpp = 2048
+maxSpp = 256
 
 # =============================================================================
 # Directories configuration
@@ -30,9 +33,9 @@ def runProcess(cmd):
     print(">>> {}".format(cmd))
     subprocess.call(cmd, shell=False)
 
-def processFileAtQuality(fpath, spp):
-    # Set environment variable
-    os.environ["IILE_PATH_SAMPLES_OVERRIDE"] = "{}".format(spp)
+def processFileAtQuality(fdata, spp):
+
+    fpath, directSpp = fdata
 
     # Generate output file name
     fdir = os.path.dirname(fpath)
@@ -57,6 +60,8 @@ def processFileAtQuality(fpath, spp):
     cmd.append(pbrtPath)
     cmd.append(fpath)
     cmd.append(outFilePath)
+    cmd.append("--iileIndirect={}".format(spp))
+    cmd.append("--iileDirect={}".format(directSpp))
     runProcess(cmd)
 
     # End timer
@@ -69,15 +74,18 @@ def processFileAtQuality(fpath, spp):
     statFile.write("{}\n".format(secondsElapsed))
     statFile.close()
 
-def processFile(fpath):
-    spp = 1
+def processFile(fdata):
+    spp = 0
     while spp <= maxSpp:
-        processFileAtQuality(fpath, spp)
-        spp *= 2
+        processFileAtQuality(fdata, spp)
+        if spp == 0:
+            spp = 1
+        else:
+            spp *= 2
 
 def main():
-    for fp in inputFiles:
-        processFile(fp)
+    for fdata in inputFiles:
+        processFile(fdata)
 
 # =============================================================================
 # Main

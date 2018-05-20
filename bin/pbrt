@@ -9,11 +9,11 @@ var chalk = require("chalk");
 var log_dir = "/tmp/pbrt";
 var out_dir = "out";
 
-var PBRT_EXEC_PATH = '/home/gj/git/build-pbrt-v3-IISPT-Desktop-Default/pbrt';
-
 var dirname = __dirname; // root/bin
 var rootdir = path.dirname(dirname);
 var mldir = path.join(rootdir, "ml");
+var builddir = path.join(rootdir, "build")
+var PBRT_EXEC_PATH = path.join(builddir, "pbrt")
 
 // Utilities ------------------------------------------------------------------
 
@@ -81,8 +81,10 @@ var simple_exec = function(cmd, cmd_args, callback, no_output) {
 
     process.on('SIGINT', function() {
         console.log("Caught interrupt signal");
-        proc.kill();
-        process.exit();
+        proc.kill("SIGINT");
+        setTimeout(function() {
+            process.exit();
+        }, 500);
     });
 };
 

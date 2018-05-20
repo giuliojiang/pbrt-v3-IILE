@@ -392,7 +392,7 @@ std::shared_ptr<IISPTdIntegrator> CreateIISPTdIntegrator(
                 );
 
     std::shared_ptr<Sampler> sampler (
-                CreateHaltonSampler(1, pixelBounds)
+                new RandomSampler(1)
                 );
 
     std::shared_ptr<IISPTdIntegrator> result (new IISPTdIntegrator(maxDepth, camera, sampler, pixelBounds));

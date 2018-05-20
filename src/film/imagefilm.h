@@ -106,8 +106,6 @@ public:
     // Compute mean
     float computeMean();
 
-    float purgeAndComputeMean();
-
     // ========================================================================
     float computeMax();
 

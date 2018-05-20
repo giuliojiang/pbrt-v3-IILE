@@ -1,14 +1,17 @@
 staticdir = __dirname;
+var path = require("path");
+guiDir = path.dirname(staticdir);
 
 var url = require("url");
 var randomstring = require("randomstring");
 var remote = require("electron").remote;
 var fs = require("fs");
 var fsExtra = require("fs-extra");
-var path = require("path");
 const { spawn } = require('child_process');
 
-var argv = remote.getGlobal("argv").argv;
+var shd = remote.getGlobal("shd");
+var argv = shd.argv;
+var log = shd.console;
 
 var data = {};
 data.controlDir = "";
@@ -33,7 +36,7 @@ var controlWriteExposure = function() {
         if (dircontent[i].startsWith("control_gain_")) {
             var fullPath = path.join(data.controlDir, dircontent[i]);
             fsExtra.removeSync(fullPath);
-            console.info("Removing: " + dircontent[i]);
+            log.info("Removing: " + dircontent[i]);
         }
     }
 
@@ -44,7 +47,7 @@ var controlWriteExposure = function() {
 var performStartupActions = function() {
     data.controlDir = path.join("/tmp", randomstring.generate(20));
 
-    console.info("Control directory: " + data.controlDir);
+    log.info("Control directory: " + data.controlDir);
 
     // Create control directory
     fs.mkdirSync(data.controlDir);
@@ -52,54 +55,37 @@ var performStartupActions = function() {
     // Write exposure
     controlWriteExposure();
 
-    console.info("argv");
-    console.info(argv);
+    log.info("argv");
+    log.info(argv);
 
     priv.startPbrt();
 }
 
-var bodyUnload = function() {
+window.onbeforeunload = (e) => {
+    log.info("Window close event");
+
+    // Unlike usual browsers that a message box will be prompted to users, returning
+    // a non-void value will silently cancel the close.
+    // It is recommended to use the dialog API to let the user confirm closing the
+    // application.
+    e.returnValue = false // equivalent to `return false` but not recommended
+
     if (data.pbrtProc) {
-        data.pbrtProc.kill();
+        data.pbrtProc.kill("SIGINT");
+        log.info("Sent SIGINT to PBRT");
     }
 
-    fsExtra.removeSync(data.controlDir);
-};
+    shd.win.hide();
 
-var pathToUrl = function(pname) {
-    return url.format({
-        pathname: pname,
-        protocol: "file:",
-        slashes: true
-    }) + "?" + new Date().getTime();
-};
-
-var loadImage = function(targetId, imagePath) {
-
-    var elem = document.getElementById(targetId);
-    // Remove all children of the target element
-    while (elem.firstChild) {
-        elem.removeChild(elem.firstChild);
-    }
-
-    // Check if imagePath exists
-    if (!fs.existsSync(imagePath)) {
-        // Display unavailable text
-        var txt = document.createElement("p");
-        txt.innerHTML = "unavailable";
-        elem.appendChild(txt);
-        return;
-    } else {
-        // Create new IMG node
-        var img = document.createElement("img");
-        img.src = pathToUrl(imagePath);
-        // Add the node
-        elem.appendChild(img);
-    }
-};
+    setTimeout(function() {
+        log.info("Ready to close...");
+        fsExtra.removeSync(data.controlDir);
+        shd.win.destroy();
+    }, 1000);
+}
 
 priv.startPbrt = function() {
-    console.info("Starting PBRT...");
+    log.info("Starting PBRT...");
 
     if (argv.length != 6) {
         alert("Expected 6 positional arguments. Got " + argv.length);
@@ -115,16 +101,18 @@ priv.startPbrt = function() {
     var inputDir = path.dirname(inputPath);
     process.chdir(inputDir);
 
-    data.pbrtProc = spawn("node", [pbrtExecPath, inputPath, "--iileIndirect=" + indirectTasks, "--iileDirect=" + directTasks, "--iileControl=" + data.controlDir]);
+    data.pbrtProc = spawn("node", [pbrtExecPath, inputPath, "--iileIndirect=" + indirectTasks, "--iileDirect=" + directTasks, "--iileControl=" + data.controlDir], {
+        detached: true
+    });
 
     data.pbrtStatus = "Starting";
 
     data.pbrtProc.stdout.on("data", (data) => {
-        console.info("STDOUT " + data);
+        log.info("STDOUT " + data);
     });
 
     data.pbrtProc.stderr.on("data", (data) => {
-        console.info("STDOUT " + data);
+        log.info("STDERR " + data);
     });
 
     data.pbrtProc.on("close", function(code, signal) {

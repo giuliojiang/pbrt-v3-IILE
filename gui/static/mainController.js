@@ -26,7 +26,7 @@ mainApp.controller("main_controller", function($scope) {
     };
 
     $scope.reloadImage = function() {
-        loadImage("img_main", toControlFile($scope.d.activePreview));
+        domUtils.loadImage("img_main", toControlFile($scope.d.activePreview));
     };
 
     // Exposure controls ======================================================

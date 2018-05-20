@@ -33,3 +33,31 @@
     border: 0;
     padding: 1px;
 }
+
+.j_cl_bg {
+    background-color: #727272;
+}
+
+.j_cl_btn {
+    background-color: #969696;
+}
+
+.j_fscr {
+    padding: 0;
+    margin: 0;
+    border: 0;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: fixed;
+    z-index: 0;
+}
+
+.j_top_top {
+    height: 10vh;
+}
+
+.j_top_bot {
+    height: 90vh;
+}

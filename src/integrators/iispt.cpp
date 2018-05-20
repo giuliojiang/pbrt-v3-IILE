@@ -43,7 +43,6 @@
 #include "progressreporter.h"
 #include "cameras/hemispheric.h"
 #include "pbrt.h"
-#include "samplers/sobol.h"
 #include "integrators/path.h"
 #include "integrators/volpath.h"
 #include "integrators/iispt_estimator_integrator.h"
@@ -116,89 +115,21 @@ static std::shared_ptr<PathIntegrator> create_aux_path_integrator(
                 Point2i(0, 0),
                 Point2i(PbrtOptions.iisptHemiSize, PbrtOptions.iisptHemiSize)
                 );
-    std::shared_ptr<Sampler> path_sobol_sampler (CreateSobolSampler(path_sample_bounds, path_pixel_samples));
+    std::shared_ptr<Sampler> pathSampler (
+                new RandomSampler(path_pixel_samples)
+                );
     int path_max_depth = IISPT_REFERENCE_PATH_MAX_DEPTH;
     Float path_rr_threshold = 1.0;
     std::string path_light_strategy = "spatial";
 
     std::shared_ptr<PathIntegrator> path_integrator
-            (CreatePathIntegrator(path_sobol_sampler,
+            (CreatePathIntegrator(pathSampler,
                                   pathCamera,
                                   path_max_depth,
                                   path_sample_bounds,
                                   path_rr_threshold,
                                   path_light_strategy
                                   ));
-    return path_integrator;
-}
-
-static std::shared_ptr<VolPathIntegrator> create_aux_volpath_integrator(
-        int pixel_samples,
-        std::string output_filename,
-        std::shared_ptr<Camera> dcamera,
-        Ray auxRay,
-        Point2i pixel
-        )
-{
-    std::shared_ptr<HemisphericCamera> pathCamera (
-                CreateHemisphericCamera(
-                    PbrtOptions.iisptHemiSize,
-                    PbrtOptions.iisptHemiSize,
-                    dcamera->medium,
-                    auxRay.o,
-                    auxRay.d,
-                    output_filename
-                    )
-                );
-
-    const Bounds2i path_sample_bounds (
-                Point2i(0, 0),
-                Point2i(PbrtOptions.iisptHemiSize, PbrtOptions.iisptHemiSize)
-                );
-    std::shared_ptr<Sampler> path_sobol_sampler (
-                CreateSobolSampler(path_sample_bounds, pixel_samples));
-    int path_max_depth = IISPT_REFERENCE_PATH_MAX_DEPTH;
-    Float path_rr_threshold = 0.5;
-    std::string path_light_strategy = "spatial";
-
-    std::shared_ptr<VolPathIntegrator> path_integrator
-            (CreateVolPathIntegrator(path_sobol_sampler,
-                                  pathCamera,
-                                  path_max_depth,
-                                  path_sample_bounds,
-                                  path_rr_threshold,
-                                  path_light_strategy
-                                  ));
-    return path_integrator;
-}
-
-static std::shared_ptr<VolPathIntegrator> create_aux_volpath_integrator_perspective(
-        std::shared_ptr<const Camera> camera
-        )
-{
-    const Bounds2i path_sample_bounds = camera->film->GetSampleBounds();
-
-    std::shared_ptr<Sampler> path_sobol_sampler (
-                CreateSobolSampler(
-                    path_sample_bounds, 1
-                    )
-                );
-
-    int path_max_depth = IISPT_REFERENCE_PATH_MAX_DEPTH;
-    Float path_rr_threshold = 0.5;
-    std::string path_light_strategy = "spatial";
-
-    std::shared_ptr<VolPathIntegrator> path_integrator (
-                CreateVolPathIntegrator(
-                    path_sobol_sampler,
-                    camera,
-                    path_max_depth,
-                    path_sample_bounds,
-                    path_rr_threshold,
-                    path_light_strategy
-                    )
-                );
-
     return path_integrator;
 }
 
@@ -763,14 +694,7 @@ void IISPTIntegrator::Li_reference(const RayDifferential &ray,
 
     // Create 1spp sampler
     std::unique_ptr<Sampler> one_spp_sampler (
-                CreateSobolSampler(
-                    Bounds2i(
-                        Point2i(0, 0),
-                        Point2i(PbrtOptions.iisptHemiSize,
-                                PbrtOptions.iisptHemiSize)
-                        ),
-                    1
-                    )
+                new RandomSampler(1)
                 );
 
     // In Reference mode, save the rendered view ------------------------------
@@ -810,14 +734,7 @@ void IISPTIntegrator::Li_reference(const RayDifferential &ray,
 
         // Create 1spp sampler
         std::unique_ptr<Sampler> high_spp_sampler (
-                    CreateSobolSampler(
-                        Bounds2i(
-                            Point2i(0, 0),
-                            Point2i(PbrtOptions.iisptHemiSize,
-                                    PbrtOptions.iisptHemiSize)
-                            ),
-                        PbrtOptions.referencePixelSamples
-                        )
+                    new RandomSampler(PbrtOptions.referencePixelSamples)
                     );
 
         this->dintegrator->RenderView(
@@ -907,10 +824,8 @@ IISPTIntegrator *CreateIISPTIntegrator(const ParamSet &params,
         params.FindOneString("lightsamplestrategy", "spatial");
 
     std::shared_ptr<Sampler> sampler (
-                CreateSobolSampler(
-                pixelBounds,
-                PbrtOptions.iileDirectSamples
-                ));
+                new RandomSampler(PbrtOptions.iileDirectSamples)
+                );
 
     return new IISPTIntegrator(maxDepth, camera, pixelBounds,
         dcamera, sampler, rrThreshold, lightStrategy);

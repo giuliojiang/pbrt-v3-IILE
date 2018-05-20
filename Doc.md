@@ -43,6 +43,15 @@ The data that the C++ process sends to main_stdio_net is already transformed and
 
 The output of the main_stdio process does not apply the upstream transformations, as those are handled by the C++ process.
 
+## ML data loader augmentations
+
+* 0-3 No flip
+* 4-7 Vertical flip
+* 8-11 Horizontal flip
+* 12-15 Both flip
+
+Each group has 4 indexes for rotations of 0 90 180 270 degrees
+
 ## Performance
 
 ```
@@ -52,6 +61,21 @@ Full time from C++, optimized read and writes: 47ms/iteration
 NN evaluation time: 27ms/iteration
 NN evaluation from/to random numpy arrays: 27ms/iteration
 NN evaluation with all transforms: 34ms/iteration
+```
+
+```
+Before optimization 
+time pbrt scene.pbrt --iileDirect=1 --iileIndirect=8 out.exr
+real	0m36.624s
+
+After optimization
+real	0m30.438s
+
+1 thread
+real	0m23.856s
+
+2 threads
+real	0m26.131s
 ```
 
 # Saved images and PBRT internal image representation
@@ -397,22 +421,37 @@ bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.
 
 # TODO
 
-## NN evaluation on test patches (unseen scenes)
+Do ablation testing for NN
 
-Display:
+Render progressive quality of IILE images
 
-* Normals map
-* Distance map
-* 1spp path
-* Gaussian blur
-* NN predicted
-* Path ground truth
+```
+Chart:
+X axis: number of tasks/samples
+Y axis, independently:
+    - rendering time
+    - entropy (noise)
+    - HDR VPD 2 vs reference
+```
 
-Metrics vs ground truth: 1spp path, gaussian blur, NN predicted
+Regenerate part of the dataset because sampler for iispt_d is now random
 
-* L1 Loss
-* Cross Correlation
-* Structural similarity
+recheck rejection with the new sampler
+
+Blender plugin:
+
+* glossy material
+* mirror material
+* glass material
+* texture mapping
+* add sampler options for path
+
+GUI:
+
+* fix refresh flickering
+* display progress bars
+* exposure control based on python not C++
+* make compatible with other integrator's output location
 
 ## Selected test scenes
 
