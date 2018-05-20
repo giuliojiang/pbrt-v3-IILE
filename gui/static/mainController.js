@@ -136,4 +136,49 @@ mainApp.controller("main_controller", function($scope) {
 
     $scope.autoupdate.run();
 
+    // ========================================================================
+    // Progress
+
+    $scope.progress = {};
+    $scope.progress.finish = false;
+    $scope.progress.dir = 0;
+    $scope.progress.ind = 0;
+
+    // ========================================================================
+    // Startup
+
+    $scope.startupFunc = function() {
+        performStartupActions();
+        priv.startPbrt(
+            // onPbrtExit
+            function(code, signal) {
+
+            },
+            // onRenderFinish
+            function() {
+                $scope.progress.ind = 100;
+                $scope.progress.dir = 100;
+                $scope.$apply();
+                // Stop autoupdate after 10 seconds
+                setTimeout(function() {
+                    console.info("Render finished, disabling autoupdate");
+                    $scope.autoupdate.enable = false;
+                }, 10000);
+            },
+            // onIndirectProgress
+            function(progress) {
+                $scope.progress.ind = 100 * progress;
+                $scope.$apply();
+            },
+            // onDirectProgress
+            function(progress) {
+                $scope.progress.ind = 100;
+                $scope.progress.dir = 100 * progress;
+                $scope.$apply();
+            }
+        );
+    };
+
+    $scope.startupFunc();
+
 });

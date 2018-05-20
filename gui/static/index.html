@@ -11,6 +11,8 @@
 
         <script src="lib/async.min.js"></script>
 
+        <script src="util/emitLines.js"></script>
+
         <script src="root.js"></script>
 
         <script src="util/urlUtils.js"></script>
@@ -31,8 +33,12 @@
                         <div class="j_item j_d_stretch_h" style="height: 80vh;">
                             <div class="j_v_box j_d_stretch_h">
                                 <!--Autoexpose-->
-                                <div class="j_item">
-                                    <a class="w3-button j_cl_btn" ng-click="buttonAutoexpose()">Autoexpose</a>
+                                <div class="j_item j_d_stretch_h">
+                                    <div class="j_h_box j_f_spaced j_d_stretch_h">
+                                        <div class="j_item">
+                                            <a class="w3-button j_cl_btn" ng-click="buttonAutoexpose()">Autoexpose</a>
+                                        </div>
+                                    </div>
                                 </div>
                                 <!--Text-->
                                 <div class="j_item j_d_stretch_h">
@@ -67,9 +73,18 @@
                         </div>
                         <!--Bottom - Statistics-->
                         <div class="j_item" style="height: 20vh;">
-                            <p class="j_p">
-                                Progress and statistics
-                            </p>
+                            <div class="j_v_box">
+                                <div class="j_item">
+                                    <p class="j_p">
+                                        {{progress.ind}}
+                                    </p>
+                                </div>
+                                <div class="j_item">
+                                    <p class="j_p">
+                                        {{progress.dir}}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

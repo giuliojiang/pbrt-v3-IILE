@@ -16,7 +16,6 @@ var log = shd.console;
 
 var data = {};
 data.controlDir = "";
-data.pbrtStatus = "Idle";
 data.pbrtProc = null;
 
 var priv = {};
@@ -39,8 +38,6 @@ var performStartupActions = function() {
 
     log.info("argv");
     log.info(argv);
-
-    priv.startPbrt();
 }
 
 window.onbeforeunload = (e) => {
@@ -66,7 +63,15 @@ window.onbeforeunload = (e) => {
     }, 1000);
 }
 
-priv.startPbrt = function() {
+// <onPbrtExit> a callback(code, signal) when the subprocess PBRT
+// exits
+//
+// <onRenderFinish> callback() called when rendering completes
+//
+// <onIndirectProgress> function(p) p is a Float
+//
+// <onDirectProgress> function(p) p is a Float
+priv.startPbrt = function(onPbrtExit, onRenderFinish, onIndirectProgress, onDirectProgress) {
     log.info("Starting PBRT...");
 
     if (argv.length != 6) {
@@ -79,6 +84,28 @@ priv.startPbrt = function() {
     var indirectTasks = argv[4];
     var directTasks = argv[5];
 
+    var parseLine = function(line) {
+        if (line.startsWith("#")) {
+            var splt = line.split("!");
+            if (splt.length != 2) {
+                return;
+            }
+
+            var key = splt[0];
+            var value = splt[1];
+
+            if (key == "#DIRECTPROGRESS") {
+                var ratio = parseFloat(value);
+                onDirectProgress(ratio);
+            } else if (key == "#INDPROGRESS") {
+                var ratio = parseFloat(value);
+                onIndirectProgress(ratio);
+            } else if (key == "#FINISH") {
+                onRenderFinish();
+            }
+        }
+    }
+
     // CD into input pbrt file's directory
     var inputDir = path.dirname(inputPath);
     process.chdir(inputDir);
@@ -87,21 +114,19 @@ priv.startPbrt = function() {
         detached: true
     });
 
-    data.pbrtStatus = "Starting";
-
-    data.pbrtProc.stdout.on("data", (data) => {
-        log.info("STDOUT " + data);
+    data.pbrtProc.stdout.on("line", (line) => {
+        log.info("LINE " + line);
+        parseLine(line);
     });
+
+    emitLines(data.pbrtProc.stdout);
 
     data.pbrtProc.stderr.on("data", (data) => {
         log.info("STDERR " + data);
     });
 
     data.pbrtProc.on("close", function(code, signal) {
-        data.pbrtStatus = "Exited ["+ code +"] ["+ signal +"]";
+        log.info("Exited ["+ code +"] ["+ signal +"]");
+        onPbrtExit(code, signal);
     });
 };
-
-// Call initialization ========================================================
-
-performStartupActions();

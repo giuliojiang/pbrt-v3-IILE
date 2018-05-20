@@ -89,6 +89,34 @@ ProgressReporter::~ProgressReporter() {
 }
 
 void ProgressReporter::PrintBar() {
+    if (PbrtOptions.iileControl != NULL) {
+
+        std::chrono::milliseconds sleepDuration(250);
+        int iterCount = 0;
+
+        while (!exitThread) {
+            std::this_thread::sleep_for(sleepDuration);
+
+            // Periodically increase sleepDuration to reduce overhead of
+            // updates.
+            ++iterCount;
+            if (iterCount == 10)
+                // Up to 0.5s after ~2.5s elapsed
+                sleepDuration *= 2;
+            else if (iterCount == 70)
+                // Up to 1s after an additional ~30s have elapsed.
+                sleepDuration *= 2;
+            else if (iterCount == 520)
+                // After 15m, jump up to 5s intervals
+                sleepDuration *= 5;
+
+            Float ratioDone = Float(workDone) / Float(totalWork);
+            std::cout << "#DIRECTPROGRESS!" << ratioDone << std::endl;
+        }
+
+        return;
+    }
+
     int barLength = TerminalWidth() - 28;
     int totalPlusses = std::max(2, barLength - (int)title.size());
     int plussesPrinted = 0;

@@ -448,6 +448,8 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     mergedFilm->to_intensity_film()->pbrt_write(PbrtOptions.imageFile);
 
+    std::cout << "#FINISH!" << std::endl;
+
     // Stall the thread if directory control is enabled
     if (PbrtOptions.iileControl != NULL) {
         std::cerr << "Rendering finished. Directory control is active, main thread is going to sleep...\n";

@@ -449,9 +449,6 @@ Blender plugin:
 GUI:
 
 * display progress bars
-* make compatible with other integrator's output location
-* default to combined
-* save png
 * allow to stop autoupdates, stop autoupdate after rendering finishes
 
 ## Selected test scenes

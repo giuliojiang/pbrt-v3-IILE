@@ -240,6 +240,13 @@ void IisptRenderRunner::run(const Scene &scene)
         // sm_task end points are exclusive
         std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Task ["<< sm_task.taskNumber + 1 <<"] of ["<< PbrtOptions.iileIndirectTasks <<"]\n";
 
+        float progress = 1.0;
+        if (PbrtOptions.iileIndirectTasks > 0) {
+            progress = ((float) sm_task.taskNumber) / PbrtOptions.iileIndirectTasks;
+        }
+
+        std::cout << "#INDPROGRESS!" << progress << std::endl;
+
         // Use a HashMap to store the hemi points
         std::unordered_map<
                 IisptPoint2i,
