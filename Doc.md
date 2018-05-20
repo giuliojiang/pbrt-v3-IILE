@@ -63,6 +63,21 @@ NN evaluation from/to random numpy arrays: 27ms/iteration
 NN evaluation with all transforms: 34ms/iteration
 ```
 
+```
+Before optimization 
+time pbrt scene.pbrt --iileDirect=1 --iileIndirect=8 out.exr
+real	0m36.624s
+
+After optimization
+real	0m30.438s
+
+1 thread
+real	0m23.856s
+
+2 threads
+real	0m26.131s
+```
+
 # Saved images and PBRT internal image representation
 
 In PBRT, images coordiantes X and Y:
@@ -405,23 +420,6 @@ bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.
 ```
 
 # TODO
-
-Optimize main_stdio_net!
-
-```
-Before optimization 
-time pbrt scene.pbrt --iileDirect=1 --iileIndirect=8 out.exr
-real	0m36.624s
-
-After optimization
-real	0m30.438s
-
-1 thread
-real	0m23.856s
-
-2 threads
-real	0m26.131s
-```
 
 Do ablation testing for NN
 

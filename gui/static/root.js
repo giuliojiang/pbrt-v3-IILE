@@ -66,38 +66,6 @@ var bodyUnload = function() {
     fsExtra.removeSync(data.controlDir);
 };
 
-var pathToUrl = function(pname) {
-    return url.format({
-        pathname: pname,
-        protocol: "file:",
-        slashes: true
-    }) + "?" + new Date().getTime();
-};
-
-var loadImage = function(targetId, imagePath) {
-
-    var elem = document.getElementById(targetId);
-    // Remove all children of the target element
-    while (elem.firstChild) {
-        elem.removeChild(elem.firstChild);
-    }
-
-    // Check if imagePath exists
-    if (!fs.existsSync(imagePath)) {
-        // Display unavailable text
-        var txt = document.createElement("p");
-        txt.innerHTML = "unavailable";
-        elem.appendChild(txt);
-        return;
-    } else {
-        // Create new IMG node
-        var img = document.createElement("img");
-        img.src = pathToUrl(imagePath);
-        // Add the node
-        elem.appendChild(img);
-    }
-};
-
 priv.startPbrt = function() {
     console.info("Starting PBRT...");
 
