@@ -1080,6 +1080,13 @@ void pbrtAccelerator(const std::string &name, const ParamSet &params) {
     }
 }
 
+void iileSigintHandler(int x) {
+    std::cerr << "api.cpp: SIGINT received. Stopping IILE processes...\n";
+    iile::NnConnectorManager::getInstance().stopAll();
+    std::cerr << "api.cpp: All NN Connections stopped. Exiting now...\n";
+    std::exit(0);
+}
+
 void pbrtIntegrator(const std::string &name, const ParamSet &params) {
     VERIFY_OPTIONS("Integrator");
     renderOptions->IntegratorName = name;
@@ -1087,6 +1094,8 @@ void pbrtIntegrator(const std::string &name, const ParamSet &params) {
     if (name == std::string("iispt") && PbrtOptions.referenceTiles == -1) {
         // Initialize NN connectors
         iile::NnConnectorManager::getInstance().start(iile::cpusCountHalf());
+        // Register SIGINT handler
+        std::signal(SIGINT, iileSigintHandler);
     }
     renderOptions->IntegratorParams = params;
     if (PbrtOptions.cat || PbrtOptions.toPly) {
