@@ -215,7 +215,6 @@ class PfmImage:
     # -------------------------------------------------------------------------
     # Write out to LDR PNG file, with exposure and gamma settings
     def save_png(self, out_path, exposure, gamma, reverse=False):
-        s = time.time()
 
         exposure = float(exposure)
         gamma = float(gamma)
@@ -231,16 +230,13 @@ class PfmImage:
         else:
             raise Exception("Unsupported channels {}".format(channels))
 
-        e = time.time()
-        print("numpy concatenation {}".format(e-s))
-        
         # Adjust according to exposure and gamma
-        s = time.time()
-        d = numpy.vectorize(iispt_transforms.LinearLDR(exposure, gamma))(d)
-        e = time.time()
-        print("exp gamma {}".format(e-s))
-
-        s = time.time();
+        exposureMult = 2.0**exposure
+        d = d * exposureMult
+        d = numpy.clip(d, 0.0, 1.0)
+        gammaPow = 1.0 / gamma
+        d = numpy.power(d, gammaPow)
+        d = d * 255.0
 
         # Flip Y if necessary
         if reverse:
@@ -252,8 +248,6 @@ class PfmImage:
         # Change type
         d = d.astype(numpy.uint8)
 
-
-
         im = PIL.Image.frombytes(
             "RGB",
             (width, height),
@@ -261,8 +255,6 @@ class PfmImage:
         )
         im.save(out_path)
 
-        e = time.time()
-        print("png out {}".format(e-s))
 
     # -------------------------------------------------------------------------
     # Compute autoexposure
@@ -400,23 +392,15 @@ def read_line(f):
         else:
             buff += c
 
-def read_float_32(f):
-    return struct.unpack('f', f.read(4))[0]
+# <return> a numpy 1D array
+def read_float_array(num, f):
+    buff = f.read(num * 4)
+    return numpy.frombuffer(buff, dtype=numpy.float32)
 
 def write_float_32(f, v):
     data = struct.pack('f', v)
     f.write(data)
 
-def load_pixel(f, y, x, channels, data):
-    for p in range(channels):
-        val = read_float_32(f)
-        data[y, x, p] = val
-
-def load_row(f, y, width, channels, data):
-    # 2 dimensions: width, channels
-    for x in range(width):
-        load_pixel(f, y, x, channels, data)
-    
 # =============================================================================
 # Load
 
@@ -448,10 +432,9 @@ def load(file_path):
 
     # Read pixel values
     # The array has 3 dimensions: Height, Width, Channels
-    data = numpy.zeros(shape=(height, width, channels), dtype=numpy.float32)
-    for y in range(height):
-        load_row(f, y, width, channels, data)
-    
+    data = read_float_array(height * width * channels, f)
+    data = data.reshape((height, width, channels))
+
     f.close()
 
     # Create final object

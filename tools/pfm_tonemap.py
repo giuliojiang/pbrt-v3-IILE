@@ -16,7 +16,6 @@ import sys
 sys.path.append(mlDir)
 
 import pfm
-import time
 
 # =============================================================================
 argv = sys.argv[1:]
@@ -35,21 +34,12 @@ outFilename = "{}.png".format(stem)
 outFilepath = os.path.join(inputDir, outFilename)
 
 # Load the PFM
-s = time.time()
 img = pfm.load(inputPath)
-e = time.time()
-print("Loading {}".format(e-s))
 
 # Autoexposure or manual exposure
 if len(argv) == 2:
     exposure = float(argv[1])
 else:
-    s = time.time()
     exposure = img.computeAutoexposure()
-    e = time.time()
-    print("Autoexposure {}".format(e-s))
 
-s = time.time()
 img.save_png(outFilepath, exposure, 2.2, reverse=True)
-e = time.time()
-print("Save PNG {}".format(e-s))
