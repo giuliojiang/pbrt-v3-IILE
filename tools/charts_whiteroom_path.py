@@ -24,18 +24,18 @@ yEntropy = [
     916 # 1024
 ]
 
-ySsim = [
-    0.05, #1
-    0.08, #2
-    0.10, #4
-    0.14, #8
-    0.20, #16
-    0.26, #32
-    0.32, #64
-    0.41, #128
-    0.51, #256
-    0.64, #512
-    0.82, #1024
+yPSNR = [
+    176.64, #1
+    181.41, #2
+    185.49, #4
+    190.41, #8
+    196.23, #16
+    201.44, #32
+    207.25, #64
+    213.96, #128
+    221.13, #256
+    228.16, #512
+    235.12 # 1024
 ]
 
 traceRenderTime = go.Scatter(
@@ -52,37 +52,43 @@ traceEntropy = go.Scatter(
     yaxis="y2"
 )
 
-traceSsim = go.Scatter(
+tracePSNR = go.Scatter(
     x=xData,
-    y=ySsim,
-    name="Structural Similarity",
+    y=yPSNR,
+    name="PSNR",
     yaxis="y3"
 )
 
-data = [traceRenderTime, traceEntropy, traceSsim]
+data = [traceRenderTime, traceEntropy, tracePSNR]
+
+title = "Path White Room Daytime"
+xAxisLabel = "SPP"
 
 layout = go.Layout(
-    title="IILE White Room Daytime",
+    title=title,
     xaxis=dict(
-        title="Tasks",
+        title=xAxisLabel,
         domain=[0.25, 0.7],
         type="log"
     ),
     yaxis=dict(
-        title="seconds"
+        title="Render time (seconds)",
+        range=[0, 2500]
     ),
     yaxis2=dict(
-        title="entropy",
+        title="Entropy (kB)",
         overlaying="y",
         anchor="free",
         side="left",
-        position=0.15
+        position=0.15,
+        range=[0, 2000]
     ),
     yaxis3=dict(
-        title="similarity",
+        title="PSNR (dB)",
         overlaying="y",
         anchor="x",
-        side="right"
+        side="right",
+        range=[170, 240]
     )
 )
 
