@@ -448,7 +448,6 @@ Blender plugin:
 
 GUI:
 
-* fix refresh flickering
 * display progress bars
 * exposure control based on python not C++
 * make compatible with other integrator's output location
