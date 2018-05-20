@@ -449,8 +449,10 @@ Blender plugin:
 GUI:
 
 * display progress bars
-* exposure control based on python not C++
 * make compatible with other integrator's output location
+* default to combined
+* save png
+* allow to stop autoupdates, stop autoupdate after rendering finishes
 
 ## Selected test scenes
 

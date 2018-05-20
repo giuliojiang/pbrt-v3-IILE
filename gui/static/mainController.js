@@ -8,7 +8,7 @@ mainApp.controller("main_controller", function($scope) {
 
     // Preview images =========================================================
 
-    $scope.d.activePreview = "out_indirect";
+    $scope.d.activePreview = "out_combined";
 
     $scope.buttonCombined = function() {
         $scope.d.activePreview = "out_combined";
@@ -81,6 +81,24 @@ mainApp.controller("main_controller", function($scope) {
         console.info("Enable autoexposure");
         $scope.exposure.auto = true;
         $scope.autoupdate.run();
+    };
+
+    $scope.buttonSaveAs = function() {
+        console.info("Save as...");
+        var savePath = remote.dialog.showSaveDialog({
+            title: "Save Image As PNG",
+            filters: [
+                {
+                    name: "PNG Image",
+                    extensions: [".png"]
+                }
+            ]
+        });
+        console.info("Savepath is " + savePath);
+        fs.copyFileSync(
+            toControlFile($scope.d.activePreview + ".png"),
+            savePath
+        );
     };
 
     // ========================================================================

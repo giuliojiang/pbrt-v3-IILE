@@ -26,28 +26,40 @@
             <div class="j_h_box">
                 <!--Left side-->
                 <div class="j_item" style="width: 20vw;">
-                    <div class="j_v_box">
+                    <div class="j_v_box j_d_stretch_h">
                         <!--Top - Settings-->
-                        <div class="j_item" style="height: 80vh;">
-                            <div class="j_v_box">
+                        <div class="j_item j_d_stretch_h" style="height: 80vh;">
+                            <div class="j_v_box j_d_stretch_h">
                                 <!--Autoexpose-->
                                 <div class="j_item">
                                     <a class="w3-button j_cl_btn" ng-click="buttonAutoexpose()">Autoexpose</a>
                                 </div>
                                 <!--Text-->
-                                <div class="j_item">
-                                    <p class="j_p">
-                                        Exposure:
-                                    </p>
+                                <div class="j_item j_d_stretch_h">
+                                    <div class="j_h_box j_f_spaced j_d_stretch_h">
+                                        <div class="j_item">
+                                            <p class="j_p">
+                                                Exposure:
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                                 <!--Exposure control-->
-                                <div class="j_item">
-                                    <div class="j_h_box j_f_spaced">
+                                <div class="j_item j_d_stretch_h">
+                                    <div class="j_h_box j_f_spaced j_d_stretch_h">
                                         <div class="j_item">
                                             <input type="number" step="1" min="-20" max="20" ng-model="exposure.value">
                                         </div>
                                         <div class="j_item">
                                             <a class="w3-button j_cl_btn" ng-click="buttonExposureApply()">Apply</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--Save as -->
+                                <div class="j_item j_d_stretch_h">
+                                    <div class="j_h_box j_f_spaced j_d_stretch_h">
+                                        <div class="j_item">
+                                            <a class="w3-button j_cl_btn" ng-click="buttonSaveAs()">Save As</a>
                                         </div>
                                     </div>
                                 </div>
@@ -65,7 +77,7 @@
                 <div class="j_item" style="width: 80vw;">
                     <div class="j_v_box">
                         <!--Selector buttons-->
-                        <div class="j_item" style="height: 10vh;">
+                        <div class="j_item" style="height: 40px;">
                             <div class="j_h_box j_f_spaced">
                                 <div class="j_item">
                                     <a class="w3-button j_cl_btn" ng-click="buttonIndirect()">Indirect</a>
@@ -79,7 +91,7 @@
                             </div>
                         </div>
                         <!--Image preview-->
-                        <div class="j_item" style="height: 90vh; width: 100%;">
+                        <div class="j_item" style="height: calc(100vh - 40px); width: 100%;">
                             <div class="j_d_imgpreview j_d_stretch">
                                 <img id="img_main">
                             </div>
