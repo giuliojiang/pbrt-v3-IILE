@@ -221,26 +221,6 @@ float ImageFilm::computeMean()
     return sum / count;
 }
 
-// ============================================================================
-// Compute mean while purging extraordinarily out-of-range values
-
-float ImageFilm::purgeAndComputeMean()
-{
-    if (num_components != 3) {
-        std::cerr << "imagefilm.cpp: ERROR purgeAndComputeMean() only supported on image film with 3 channels\n";
-        std::raise(SIGKILL);
-    }
-
-    float theMax = computeMax();
-
-    if (theMax > 10000) {
-        std::cerr << "imagefilm.cpp: out\n";
-        set_all(PfmItem(0.0, 0.0, 0.0));
-        return 0.0;
-    }
-
-    return computeMean();
-}
 
 // ============================================================================
 

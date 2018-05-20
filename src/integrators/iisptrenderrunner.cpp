@@ -1137,7 +1137,7 @@ float IisptRenderRunner::normalizeMapsDownstream(
 
     // Compute mean of intensity
     std::shared_ptr<ImageFilm> intensityFilm = intensity->get_image_film();
-    float intensityMean = intensityFilm->purgeAndComputeMean();
+    float intensityMean = intensityFilm->computeMean();
 
     // Divide by 10*mean
     float multRatio = intensityMean == 0.0 ?
