@@ -768,33 +768,21 @@ void IISPTIntegrator::directoryControlThread(
     std::cerr << "iispt.cpp: Directory control thread started\n";
 
     std::string controlDir (PbrtOptions.iileControl);
-    int controlGain = 0;
-    std::string indirectOutPath (controlDir + std::string("/out_indirect.png"));
-    std::string directOutPath (controlDir + std::string("/out_direct.png"));
-    std::string combinedOutPath (controlDir + std::string("/out_combined.png"));
+    std::string indirectOutPath (controlDir + std::string("/out_indirect.pfm"));
+    std::string directOutPath (controlDir + std::string("/out_direct.pfm"));
+    std::string combinedOutPath (controlDir + std::string("/out_combined.pfm"));
 
     while (1) {
         iile::sleepMillis(2000); // Sleep for 2 seconds each time
 
-        // Read the gain value from the directory
-        std::unique_ptr<std::vector<std::string>> dirContent =
-                iile::listDir(controlDir);
-        for (int i = 0; i < dirContent->size(); i++) {
-            if (iile::startsWith(dirContent->operator[](i), std::string("control_gain_"))) {
-                std::string aStr = dirContent->operator[](i);
-                controlGain = std::stoi(aStr.substr(13));
-                std::cerr << "iispt.cpp: Control set gain to " << controlGain << std::endl;
-            }
-        }
-
         // Write the indirect film and direct film
-        indirectFilmMonitor->to_intensity_film()->writeLDR(indirectOutPath, controlGain);
-        directFilmMonitor->to_intensity_film()->writeLDR(directOutPath, controlGain);
+        indirectFilmMonitor->to_intensity_film()->pbrt_write(indirectOutPath);
+        directFilmMonitor->to_intensity_film()->pbrt_write(directOutPath);
 
         // Generate temporary combined
         std::shared_ptr<IisptFilmMonitor> combinedFilm =
                 indirectFilmMonitor->merge_into(directFilmMonitor.get());
-        combinedFilm->to_intensity_film()->writeLDR(combinedOutPath, controlGain);
+        combinedFilm->to_intensity_film()->pbrt_write(combinedOutPath);
     }
 }
 

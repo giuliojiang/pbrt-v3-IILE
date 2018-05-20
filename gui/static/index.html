@@ -9,11 +9,15 @@
 
         <script src="lib/angular.min.js"></script>
 
+        <script src="lib/async.min.js"></script>
+
         <script src="root.js"></script>
 
         <script src="util/urlUtils.js"></script>
 
         <script src="util/domUtils.js"></script>
+
+        <script src="util/tonemap.js"></script>
 
         <script src="mainController.js"></script>
     </head>
@@ -40,7 +44,7 @@
                                 <div class="j_item">
                                     <div class="j_h_box j_f_spaced">
                                         <div class="j_item">
-                                            <input type="number" step="1" min="-20" max="20" ng-model="exposure">
+                                            <input type="number" step="1" min="-20" max="20" ng-model="exposure.value">
                                         </div>
                                         <div class="j_item">
                                             <a class="w3-button j_cl_btn" ng-click="buttonExposureApply()">Apply</a>

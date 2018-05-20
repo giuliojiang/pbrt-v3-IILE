@@ -1,6 +1,7 @@
 staticdir = __dirname;
 var path = require("path");
 guiDir = path.dirname(staticdir);
+rootDir = path.dirname(guiDir);
 
 var url = require("url");
 var randomstring = require("randomstring");
@@ -15,7 +16,6 @@ var log = shd.console;
 
 var data = {};
 data.controlDir = "";
-data.exposure = 0;
 data.pbrtStatus = "Idle";
 data.pbrtProc = null;
 
@@ -29,21 +29,6 @@ var toControlFile = function(controlString) {
     return path.join(data.controlDir, controlString);
 };
 
-var controlWriteExposure = function() {
-    // Clear existing exposure controls
-    var dircontent = fs.readdirSync(data.controlDir);
-    for (var i = 0; i < dircontent.length; i++) {
-        if (dircontent[i].startsWith("control_gain_")) {
-            var fullPath = path.join(data.controlDir, dircontent[i]);
-            fsExtra.removeSync(fullPath);
-            log.info("Removing: " + dircontent[i]);
-        }
-    }
-
-    var exposureString = "control_gain_" + data.exposure;
-    touchFile(toControlFile(exposureString));
-};
-
 var performStartupActions = function() {
     data.controlDir = path.join("/tmp", randomstring.generate(20));
 
@@ -51,9 +36,6 @@ var performStartupActions = function() {
 
     // Create control directory
     fs.mkdirSync(data.controlDir);
-
-    // Write exposure
-    controlWriteExposure();
 
     log.info("argv");
     log.info(argv);

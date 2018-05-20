@@ -13,6 +13,7 @@ import sys
 import scipy.signal
 from skimage.measure import compare_ssim as ssim
 import scipy.ndimage
+import time
 
 import iispt_transforms
 
@@ -214,6 +215,8 @@ class PfmImage:
     # -------------------------------------------------------------------------
     # Write out to LDR PNG file, with exposure and gamma settings
     def save_png(self, out_path, exposure, gamma, reverse=False):
+        s = time.time()
+
         exposure = float(exposure)
         gamma = float(gamma)
         # Create bytebuffer
@@ -227,9 +230,17 @@ class PfmImage:
             d = self.data
         else:
             raise Exception("Unsupported channels {}".format(channels))
+
+        e = time.time()
+        print("numpy concatenation {}".format(e-s))
         
         # Adjust according to exposure and gamma
+        s = time.time()
         d = numpy.vectorize(iispt_transforms.LinearLDR(exposure, gamma))(d)
+        e = time.time()
+        print("exp gamma {}".format(e-s))
+
+        s = time.time();
 
         # Flip Y if necessary
         if reverse:
@@ -241,12 +252,17 @@ class PfmImage:
         # Change type
         d = d.astype(numpy.uint8)
 
+
+
         im = PIL.Image.frombytes(
             "RGB",
             (width, height),
             d.tobytes()
         )
         im.save(out_path)
+
+        e = time.time()
+        print("png out {}".format(e-s))
 
     # -------------------------------------------------------------------------
     # Compute autoexposure
