@@ -19,48 +19,68 @@
     </head>
     <body ng-app="mainApp" ng-controller="main_controller" onunload="bodyUnload()">
         <div class="j_cl_bg j_fscr">
-            <div class="j_v_box">
-                <!--Title-->
-                <div class="j_item">
-                    <h1>{{title}}</h1>
-                </div>
-                <!--Indirect, Direct, Combined buttons-->
-                <div class="j_item">
-                    <div class="j_h_box">
-                        <div class="j_item">
-                            <a class="w3-button j_cl_btn" ng-click="buttonIndirect()">Indirect</a>
+            <div class="j_h_box">
+                <!--Left side-->
+                <div class="j_item" style="width: 20vw;">
+                    <div class="j_v_box">
+                        <!--Top - Settings-->
+                        <div class="j_item" style="height: 80vh;">
+                            <div class="j_v_box">
+                                <!--Autoexpose-->
+                                <div class="j_item">
+                                    <a class="w3-button j_cl_btn" ng-click="buttonAutoexpose()">Autoexpose</a>
+                                </div>
+                                <!--Text-->
+                                <div class="j_item">
+                                    <p class="j_p">
+                                        Exposure:
+                                    </p>
+                                </div>
+                                <!--Exposure control-->
+                                <div class="j_item">
+                                    <div class="j_h_box j_f_spaced">
+                                        <div class="j_item">
+                                            <input type="number" step="1" min="-20" max="20" ng-model="exposure">
+                                        </div>
+                                        <div class="j_item">
+                                            <a class="w3-button j_cl_btn" ng-click="buttonExposureApply()">Apply</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="j_item">
-                            <a class="w3-button j_cl_btn" ng-click="buttonDirect()">Direct</a>
-                        </div>
-                        <div class="j_item">
-                            <a class="w3-button j_cl_btn" ng-click="buttonCombined()">Combined</a>
+                        <!--Bottom - Statistics-->
+                        <div class="j_item" style="height: 20vh;">
+                            <p class="j_p">
+                                Progress and statistics
+                            </p>
                         </div>
                     </div>
                 </div>
-                <!--Exposure settings and status-->
-                <div class="j_item">
-                    <div class="j_h_box">
-                        <div class="j_item">
-                            <p class="j_p">Exposure</p>
+                <!--Right side-->
+                <div class="j_item" style="width: 80vw;">
+                    <div class="j_v_box">
+                        <!--Selector buttons-->
+                        <div class="j_item" style="height: 10vh;">
+                            <div class="j_h_box j_f_spaced">
+                                <div class="j_item">
+                                    <a class="w3-button j_cl_btn" ng-click="buttonIndirect()">Indirect</a>
+                                </div>
+                                <div class="j_item">
+                                    <a class="w3-button j_cl_btn" ng-click="buttonDirect()">Direct</a>
+                                </div>
+                                <div class="j_item">
+                                    <a class="w3-button j_cl_btn" ng-click="buttonCombined()">Combined</a>
+                                </div>
+                            </div>
                         </div>
-                        <!--Exposure input-->
-                        <div class="j_item">
-                            <input type="number" step="1" min="-20" max="20" ng-model="exposure">
-                        </div>
-                        <!--Apply button-->
-                        <div class="j_item">
-                            <a class="w3-button w3-black" ng-click="buttonExposureApply()">Apply</a>
-                        </div>
-                        <!--Status-->
-                        <div class="j_item">
-                            <p class="j_p">Status: {{status}}</p>
+                        <!--Image preview-->
+                        <div class="j_item" style="height: 90vh; width: 100%;">
+                            <div class="j_d_imgpreview j_d_stretch">
+                                <img id="img_main">
+                            </div>
                         </div>
                     </div>
-                </div>
-                <!--Image previews-->
-                <div class="j_item">
-                    <img id="img_main">
                 </div>
             </div>
         </div>
