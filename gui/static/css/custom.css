@@ -69,6 +69,14 @@
     background-color: #969696;
 }
 
+.j_cl_inputbg {
+    background-color: #ababab;
+}
+
+.j_cl_inputfg {
+    background-color: #757575;
+}
+
 .j_fscr {
     padding: 0;
     margin: 0;
