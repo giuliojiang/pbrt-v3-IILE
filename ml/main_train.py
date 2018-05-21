@@ -38,10 +38,10 @@ def minutes_elapsed():
 def main():
 
     trainset, _ = iispt_dataset.load_dataset(config.dataset, 0.0)
-
+    # Cache for trainset
+    iispt_dataset.populateCache(trainset)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NO_WORKERS)
-    # testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NO_WORKERS)
-    
+
     _, testset = iispt_dataset.load_dataset(config.testset, 0.0)
     testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NO_WORKERS)
 
@@ -105,11 +105,14 @@ def main():
 
             # Print statistics
             running_loss = loss.data[0]
-            print("Epoch [{}] example [{}] Running loss [{}]".format(epoch, i * BATCH_SIZE, running_loss))
 
             # Log train/loss to TensorBoard at every iteration
             writer.add_scalar('train/loss', loss.data[0], n_iter)
             n_iter += 1
+
+            if i > 500:
+                print("Epoch [{}] example [{}] Running loss [{}]".format(epoch, i * BATCH_SIZE, running_loss))
+                break
         
         # compute loss on the testset
         for i, data in enumerate(testloader, 0):

@@ -42,6 +42,7 @@ import numpy
 import random
 from torch.utils.data import Dataset, DataLoader
 import psutil
+import time
 
 import pfm
 import km
@@ -103,8 +104,6 @@ class IISPTDataset(Dataset):
     def __init__(self, data_list):
         # [{directory, x, y, log_normalization, sqrt_normalization, validation}]
         self.data_list = data_list
-        self.requests = 0
-        self.cache = True
     
     # -------------------------------------------------------------------------
     def __len__(self):
@@ -128,16 +127,12 @@ class IISPTDataset(Dataset):
     #   mean     mean of D, returned by d_pfm normalize intensity downstream full
     # }
     def __getitem__(self, idx):
-        self.requests += 1
-
-        # Check whether to turn off caching due to low system memory
-        if self.cache and (self.requests % 1000 == 0) and (availableRamMb() < 1000.0):
-            self.cache = False
 
         datum = self.data_list[idx]
 
         # Check if there is a cached result
         if "cached" in datum:
+            print("cache hit!")
             return datum["cached"]
 
         dirname = datum["directory"]
@@ -193,9 +188,6 @@ class IISPTDataset(Dataset):
         result["mean"] = dmean
 
         result["aug"] = aug
-
-        if self.cache:
-            datum["cached"] = result
 
         return result
 
@@ -340,6 +332,29 @@ def load_dataset(root_directory, validation_probability):
     r_t, r_v = (IISPTDataset(results_train), IISPTDataset(results_validation))
     print("Loaded {} training, {} validation examples".format(r_t.__len__(), r_v.__len__()))
     return (r_t, r_v)
+
+# -----------------------------------------------------------------------------
+def populateCache(dataset):
+    datasetLen = dataset.__len__()
+    lastTime = 0.0
+    for i in range(datasetLen):
+
+        # Check when to stop
+        if i % 1000 == 0:
+            timeDiff = time.time() - lastTime
+            lastTime = time.time()
+            speed = 1000.0 / timeDiff
+            ratio = 100.0 * float(i) / float(datasetLen)
+            print("Caching progress {}% Speed {}Ex/s".format(ratio, speed))
+            if availableRamMb() < 3000.0:
+                print("Caching finished, memory full")
+                return
+
+        datum = dataset.get_datum(i)
+        item = dataset.__getitem__(i)
+        datum["cached"] = item
+
+    print("Caching finished, all data in memory")
 
 # =============================================================================
 

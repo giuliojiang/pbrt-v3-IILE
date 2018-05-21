@@ -120,8 +120,7 @@ class PfmImage:
     # Remaps everything into the [-1, +1] range
     # And clips any values that stay outside
     def normalize(self, min_val, max_val):
-        t = iispt_transforms.NormalizeTransform(min_val, max_val)
-        self.map(t)
+        self.data = iispt_transforms.npNormalize(self.data, min_val, max_val)
     
     # -------------------------------------------------------------------------
     # Applies a natural logarithm on the value
@@ -156,7 +155,13 @@ class PfmImage:
     # <return> mean
     def normalize_intensity_downstream_full(self):
         mean = numpy.mean(self.data)
-        self.map(iispt_transforms.IntensityDownstreamFullSequence(mean))
+        # Divide by 10 mean
+        self.data = iispt_transforms.npDivide(self.data, 10.0*mean)
+        # Log transform
+        self.data = iispt_transforms.npLog(self.data)
+        # Subtract 0.1
+        self.data = iispt_transforms.npSub(self.data, 0.1)
+        # return
         return mean
 
     # -------------------------------------------------------------------------
@@ -165,7 +170,10 @@ class PfmImage:
     # Log
     def normalize_intensity_downstream_half(self):
         mean = numpy.mean(self.data)
-        self.map(iispt_transforms.IntensityDownstreamHalfSequence(mean))
+        # Divide by 10 mean
+        self.data = iispt_transforms.npDivide(self.data, 10.0*mean)
+        # Log transform
+        self.data = iispt_transforms.npLog(self.data)
     
     # -------------------------------------------------------------------------
     # Inv Log
@@ -177,7 +185,14 @@ class PfmImage:
     # -------------------------------------------------------------------------
     def normalize_distance_downstream_full(self):
         mean = numpy.mean(self.data)
-        self.map(iispt_transforms.DistanceDownstreamSequence(mean))
+        # Add 1
+        self.data = iispt_transforms.npAdd(self.data, 1.0)
+        # Divide by (10 * (mean + 1))
+        self.data = iispt_transforms.npDivide(self.data, (10.0 * (mean + 1.0)))
+        # Log
+        self.data = iispt_transforms.npLog(self.data)
+        # Subtract 0.1
+        self.data = iispt_transforms.npSub(self.data, 0.1)
 
     # -------------------------------------------------------------------------
     def divideMean(self):
@@ -494,4 +509,22 @@ def test_main():
         aCopy.gaussianBlur(1.0)
         aCopy.save_png("/tmp/testblur{}.png".format(nameCount), autoExposure, 1.8)
 
+def test_main2():
+    fp = "/home/gj/git/pbrt-v3-IISPT-dataset-indirect/custom-fireplace1/d_426_160.pfm"
+    imgOld = load(fp)
+    imgNew = load(fp)
+
+    imgOld.normalize_distance_downstream_full()
+    imgNew.normalize_distance_downstream_full_new()
+
+    allClose = numpy.allclose(imgOld.data, imgNew.data, rtol=0.0001, atol=0.0001)
+    print("All close {}".format(allClose))
+
+    print("OLD SYSTEM")
+    print(imgOld.data)
+
+    print("NEW SYSTEM")
+    print(imgNew.data)
+
 # test_main()
+# test_main2()

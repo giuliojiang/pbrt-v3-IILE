@@ -78,6 +78,13 @@ real	0m23.856s
 real	0m26.131s
 ```
 
+__Optimizing Transforms__
+
+```
+Before optimization caching: 85 examples / second
+After optimization caching: 2700 examples / second
+```
+
 # Saved images and PBRT internal image representation
 
 In PBRT, images coordiantes X and Y:
