@@ -130,11 +130,6 @@ class IISPTDataset(Dataset):
 
         datum = self.data_list[idx]
 
-        # Check if there is a cached result
-        if "cached" in datum:
-            print("cache hit!")
-            return datum["cached"]
-
         dirname = datum["directory"]
         x = datum["x"]
         y = datum["y"]
@@ -334,7 +329,7 @@ def load_dataset(root_directory, validation_probability):
     return (r_t, r_v)
 
 # -----------------------------------------------------------------------------
-def populateCache(dataset):
+def populateCache(dataset, maxRatio):
     datasetLen = dataset.__len__()
     lastTime = 0.0
     for i in range(datasetLen):
@@ -343,11 +338,12 @@ def populateCache(dataset):
         if i % 1000 == 0:
             timeDiff = time.time() - lastTime
             lastTime = time.time()
-            speed = 1000.0 / timeDiff
-            ratio = 100.0 * float(i) / float(datasetLen)
-            print("Caching progress {}% Speed {}Ex/s".format(ratio, speed))
-            if availableRamMb() < 3000.0:
-                print("Caching finished, memory full")
+            speed = int(1000.0 / timeDiff)
+            ratio = float(i) / float(datasetLen)
+            percentage = int(100.0 * ratio)
+            print("Caching progress {}% Speed {}Ex/s".format(percentage, speed))
+            if ratio > maxRatio:
+                print("Caching finished, Ratio limit reached")
                 return
 
         datum = dataset.get_datum(i)

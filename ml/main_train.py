@@ -23,6 +23,7 @@ BATCH_SIZE = 32
 NO_WORKERS = 4
 LEARNING_RATE = 0.0001
 MAX_EPOCHS = 6
+TARGET_VALIDATION_STEP = 587
 
 log_dir = os.path.join('/tmp/runs', datetime.now().strftime('%b%d_%H-%M-%S'))
 writer = SummaryWriter(log_dir=log_dir)
@@ -39,7 +40,6 @@ def main():
 
     trainset, _ = iispt_dataset.load_dataset(config.dataset, 0.0)
     # Cache for trainset
-    iispt_dataset.populateCache(trainset)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NO_WORKERS)
 
     _, testset = iispt_dataset.load_dataset(config.testset, 0.0)
@@ -79,7 +79,7 @@ def main():
         # each i is a batch
         for i, data in enumerate(trainloader, 0):
 
-            if i % 10 == 0:
+            if i % 100 == 0:
                 elapsed_minutes = minutes_elapsed()
                 print("Training: elapsed {} minutes".format(elapsed_minutes))
                 if elapsed_minutes > TRAINING_TIME_MINUTES:
@@ -110,15 +110,11 @@ def main():
             writer.add_scalar('train/loss', loss.data[0], n_iter)
             n_iter += 1
 
-            if i > 500:
+            if i % 500 == 0:
                 print("Epoch [{}] example [{}] Running loss [{}]".format(epoch, i * BATCH_SIZE, running_loss))
-                break
         
         # compute loss on the testset
         for i, data in enumerate(testloader, 0):
-
-            if i > 10:
-                break
 
             # Get the inputs
             input_x = data["t"]
@@ -137,11 +133,16 @@ def main():
 
             # Statistics
             running_tloss = loss.data[0]
-            print("Epoch [{}] __testset__ [{}] Loss [{}]".format(epoch, i * BATCH_SIZE, running_tloss))
+            if i % 100 == 0:
+                print("Epoch [{}] __testset__ [{}] Loss [{}]".format(epoch, i * BATCH_SIZE, running_tloss))
 
             # Log to TensorBoard
             writer.add_scalar('train/testloss', loss.data[0], t_iter)
             t_iter += 1
+
+            if i >= TARGET_VALIDATION_STEP:
+                trainingComplete = True
+                break
         
         epoch_loss.append(running_loss)
         epoch_tloss.append(running_tloss)
