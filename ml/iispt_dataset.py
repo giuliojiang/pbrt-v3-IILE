@@ -122,6 +122,11 @@ class IISPTDataset(Dataset):
     # }
     def __getitem__(self, idx):
         datum = self.data_list[idx]
+
+        # Check if there is a cached result
+        if "cached" in datum:
+            return datum["cached"]
+
         dirname = datum["directory"]
         x = datum["x"]
         y = datum["y"]
@@ -175,6 +180,8 @@ class IISPTDataset(Dataset):
         result["mean"] = dmean
 
         result["aug"] = aug
+
+        datum["cached"] = result
 
         return result
 
