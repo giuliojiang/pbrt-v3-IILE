@@ -41,6 +41,7 @@ import torch
 import numpy
 import random
 from torch.utils.data import Dataset, DataLoader
+import psutil
 
 import pfm
 import km
@@ -62,6 +63,10 @@ GAMMA_VALUE = 1.2
 
 # =============================================================================
 # Utilities
+
+# -----------------------------------------------------------------------------
+def availableRamMb():
+    return psutil.virtual_memory().available / 1000000.0
 
 # -----------------------------------------------------------------------------
 def generate_pfm_filenames(dirname, x, y):
@@ -98,6 +103,8 @@ class IISPTDataset(Dataset):
     def __init__(self, data_list):
         # [{directory, x, y, log_normalization, sqrt_normalization, validation}]
         self.data_list = data_list
+        self.requests = 0
+        self.cache = True
     
     # -------------------------------------------------------------------------
     def __len__(self):
@@ -121,6 +128,12 @@ class IISPTDataset(Dataset):
     #   mean     mean of D, returned by d_pfm normalize intensity downstream full
     # }
     def __getitem__(self, idx):
+        self.requests += 1
+
+        # Check whether to turn off caching due to low system memory
+        if self.cache and (self.requests % 1000 == 0) and (availableRamMb() < 1000.0):
+            self.cache = False
+
         datum = self.data_list[idx]
 
         # Check if there is a cached result
@@ -181,7 +194,8 @@ class IISPTDataset(Dataset):
 
         result["aug"] = aug
 
-        datum["cached"] = result
+        if self.cache:
+            datum["cached"] = result
 
         return result
 
