@@ -3,7 +3,7 @@ from torch import nn, optim
 from torch.autograd.variable import Variable
 from torchvision import transforms, datasets
 
-K = 32
+K = 64
 
 class IISPTNet(torch.nn.Module):
 

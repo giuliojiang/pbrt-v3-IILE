@@ -21,9 +21,8 @@ os.chdir(rootdir)
 TRAINING_TIME_MINUTES = 0.5 * 60.0
 BATCH_SIZE = 32
 NO_WORKERS = 4
-LEARNING_RATE = 0.0001
-MAX_EPOCHS = 6
-TARGET_VALIDATION_STEP = 587
+LEARNING_RATE = 6e-5
+MAX_EPOCHS = 3
 
 log_dir = os.path.join('/tmp/runs', datetime.now().strftime('%b%d_%H-%M-%S'))
 writer = SummaryWriter(log_dir=log_dir)
@@ -79,7 +78,7 @@ def main():
         # each i is a batch
         for i, data in enumerate(trainloader, 0):
 
-            if i % 100 == 0:
+            if i % 500 == 0:
                 elapsed_minutes = minutes_elapsed()
                 print("Training: elapsed {} minutes".format(elapsed_minutes))
                 if elapsed_minutes > TRAINING_TIME_MINUTES:
@@ -139,10 +138,6 @@ def main():
             # Log to TensorBoard
             writer.add_scalar('train/testloss', loss.data[0], t_iter)
             t_iter += 1
-
-            if i >= TARGET_VALIDATION_STEP:
-                trainingComplete = True
-                break
         
         epoch_loss.append(running_loss)
         epoch_tloss.append(running_tloss)
