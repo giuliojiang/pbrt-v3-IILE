@@ -423,33 +423,21 @@ bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.
 
 Do ablation testing for NN
 
-Render progressive quality of IILE images
-
-```
-Chart:
-X axis: number of tasks/samples
-Y axis, independently:
-    - rendering time
-    - entropy (noise)
-    - HDR VPD 2 vs reference
-```
-
-Regenerate part of the dataset because sampler for iispt_d is now random
-
-recheck rejection with the new sampler
-
 Blender plugin:
 
 * glossy material
 * mirror material
 * glass material
-* texture mapping
-* add sampler options for path
 
 GUI:
 
-* display progress bars
-* allow to stop autoupdates, stop autoupdate after rendering finishes
+* allow to stop autoupdates
+
+Try the K=32
+
+Implement ablation testing in data loader
+
+Do the 3 ablation tests + the 1 reference normal test
 
 ## Selected test scenes
 
