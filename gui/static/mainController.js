@@ -145,6 +145,34 @@ mainApp.controller("main_controller", function($scope) {
     $scope.progress.ind = 0;
 
     // ========================================================================
+    // Zoom
+
+    $scope.zoom = {};
+    $scope.zoom.scale = 1.0;
+
+    $scope.zoom.buttonMinus = function() {
+        $scope.zoom.scale *= 0.85;
+        if ($scope.zoom.scale < 0.05) {
+            $scope.zoom.scale = 0.05;
+        }
+        domUtils.resizeImage("img_main", $scope.zoom.scale);
+    };
+
+    $scope.zoom.buttonPlus = function() {
+        $scope.zoom.scale *= 1.2;
+        domUtils.resizeImage("img_main", $scope.zoom.scale);
+    };
+
+    $scope.zoom.button100 = function() {
+        $scope.zoom.scale = 1.0;
+        domUtils.resizeImage("img_main", $scope.zoom.scale);
+    };
+
+    $scope.zoom.getPercentage = function() {
+        return (100 * $scope.zoom.scale).toFixed(2);
+    };
+
+    // ========================================================================
     // Startup
 
     $scope.startupFunc = function() {

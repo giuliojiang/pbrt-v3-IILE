@@ -13,3 +13,16 @@ domUtils.loadImage = function(targetId, imagePath) {
     }
 
 }
+
+domUtils.resizeImage = function(targetId, ratio) {
+    var elem = document.getElementById(targetId);
+
+    elem.style.width = "auto";
+    elem.style.height = "auto";
+
+    var realWidth = elem.width;
+
+    var scaledWidth = ratio * realWidth;
+
+    elem.style.width = scaledWidth;
+}

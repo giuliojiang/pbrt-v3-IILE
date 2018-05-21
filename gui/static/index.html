@@ -54,7 +54,7 @@
                                 <div class="j_item j_d_stretch_h">
                                     <div class="j_h_box j_f_spaced j_d_stretch_h">
                                         <div class="j_item">
-                                            <input type="number" step="1" min="-20" max="20" ng-model="exposure.value">
+                                            <input class="w3-input w3-border-0 j_cl_inputbg" type="number" step="1" min="-20" max="20" ng-model="exposure.value">
                                         </div>
                                         <div class="j_item">
                                             <a class="w3-button j_cl_btn" ng-click="buttonExposureApply()">Apply</a>
@@ -102,6 +102,25 @@
                                 </div>
                                 <div class="j_item">
                                     <a class="w3-button j_cl_btn" ng-click="buttonCombined()">Combined</a>
+                                </div>
+                                <!--Spacer-->
+                                <div class="j_item" style="width:20px;"></div>
+                                <!--Zoom-->
+                                <div class="j_item">
+                                    <!--Zoom level-->
+                                    <p class="j_p">Zoom: {{zoom.getPercentage()}}</p>
+                                </div>
+                                <div class="j_item">
+                                    <!--Minus button-->
+                                    <a class="w3-button j_cl_btn" ng-click="zoom.buttonMinus()">-</a>
+                                </div>
+                                <div class="j_item">
+                                    <!--100% button-->
+                                    <a class="w3-button j_cl_btn" ng-click="zoom.button100()">100%</a>
+                                </div>
+                                <div class="j_item">
+                                    <!--Plus button-->
+                                    <a class="w3-button j_cl_btn" ng-click="zoom.buttonPlus()">+</a>
                                 </div>
                             </div>
                         </div>
