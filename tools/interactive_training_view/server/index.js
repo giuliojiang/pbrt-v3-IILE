@@ -169,9 +169,13 @@ priv.start_python_subprocess = function() {
     prc.proc.stderr.on("line", (line) => {
         console.info("STDERR: ["+ line +"]");
     });
+    emitLines(prc.proc.stderr);
     prc.proc.on("close", function(code, signal) {
         console.info("Exited with ["+ code +"] ["+ signal +"]");
         prc.proc = null;
+    });
+    prc.proc.on("error", function(err) {
+        console.error("Error " + err);
     });
 };
 

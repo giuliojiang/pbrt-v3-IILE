@@ -62,6 +62,9 @@ random.seed(0)
 TYPE_PREFIXES = ["p", "d", "n", "z"]
 GAMMA_VALUE = 1.2
 
+ABLATE_NORMALS = True
+ABLATE_DISTANCE = False
+
 # =============================================================================
 # Utilities
 
@@ -104,6 +107,10 @@ class IISPTDataset(Dataset):
     def __init__(self, data_list):
         # [{directory, x, y, log_normalization, sqrt_normalization, validation}]
         self.data_list = data_list
+        if ABLATE_NORMALS:
+            print("<><><> WARNING <><><> Normals ablation is active")
+        if ABLATE_DISTANCE:
+            print("<><><> WARNING <><><> Distance ablation is active")
     
     # -------------------------------------------------------------------------
     def __len__(self):
@@ -161,9 +168,13 @@ class IISPTDataset(Dataset):
 
         # Transform N
         n_pfm.normalize(-1.0, 1.0)
+        if ABLATE_NORMALS:
+            n_pfm.clear()
 
         # Transform Z
         z_pfm.normalize_distance_downstream_full()
+        if ABLATE_DISTANCE:
+            z_pfm.clear()
 
         # Convert from numpy to tensors and create results
         result = {}

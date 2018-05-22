@@ -428,8 +428,6 @@ bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.
 
 # TODO
 
-Do ablation testing for NN
-
 Blender plugin:
 
 * glossy material
@@ -440,11 +438,9 @@ GUI:
 
 * allow to stop autoupdates
 
-Try the K=32
+Make automated package installer including blender plugin installer
 
-Implement ablation testing in data loader
-
-Do the 3 ablation tests + the 1 reference normal test
+Make more scenes for training and validation
 
 ## Selected test scenes
 

@@ -34,13 +34,13 @@ class PfmImage:
     
     # -------------------------------------------------------------------------
     def makeCopy(self):
-        height, width, channels = self.data.shape
-        newData = numpy.zeros((height, width, channels), dtype=numpy.float32)
-        for y in range(height):
-            for x in range(width):
-                for c in range(channels):
-                    newData[y, x, c] = self.data[y, x, c]
+        newData = numpy.copy(self.data)
         return PfmImage(newData, self.location)
+
+    # -------------------------------------------------------------------------
+    def clear(self):
+        shape = self.data.shape
+        self.data = numpy.zeros(shape, dtype=numpy.float32)
     
     # -------------------------------------------------------------------------
     def print_shape(self):
