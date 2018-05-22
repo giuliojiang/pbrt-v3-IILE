@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import subprocess
 
 toolsDir = os.path.abspath(os.path.dirname(__file__))
 rootDir = os.path.dirname(toolsDir)
@@ -43,6 +44,7 @@ PBRT-IILE
             ...
     iile
         bin
+            pbrt
         build
         ml
         ...
@@ -73,3 +75,20 @@ def packageIILE(iileDir):
             shutil.copy(sourcePath, destPath)
 
 packageIILE(os.path.join(pIileDir, "iile"))
+
+def installNode(destDir):
+    nodeArchivePath = "/tmp/node.tar.xz"
+    subprocess.call(["wget", "-O", nodeArchivePath, nodejsDownloadLink])
+    parentDir = os.path.dirname(destDir)
+    destBasename = os.path.basename(destDir)
+    os.chdir(parentDir)
+    subprocess.call(["tar", "-vxf", nodeArchivePath])
+    content = os.listdir(parentDir)
+    for c in content:
+        if c.startswith("node"):
+            subprocess.call(["mv", c, destBasename])
+
+installNode(os.path.join(pIileDir, "node"))
+
+# Create symlink
+os.symlink(os.path.join(pIileDir, "iile", "bin", "pbrt"), os.path.join(pIileDir, "pbrt"))
