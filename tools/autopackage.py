@@ -90,5 +90,8 @@ def installNode(destDir):
 
 installNode(os.path.join(pIileDir, "node"))
 
-# Create symlink
-os.symlink(os.path.join(pIileDir, "iile", "bin", "pbrt"), os.path.join(pIileDir, "pbrt"))
+# Create launcher link
+shutil.copy(
+    os.path.join(toolsDir, "resources", "pbrt"),
+    os.path.join(pIileDir, "pbrt")
+)
