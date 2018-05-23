@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 
-minicondaUrl = "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86.sh"
+minicondaUrl = "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
 
 os.chdir("/tmp")
 
