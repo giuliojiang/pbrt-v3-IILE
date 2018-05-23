@@ -3,16 +3,24 @@ import sys
 import subprocess
 import time
 
-def run_required(cmd):
+def run_required(cmd, msg=None):
     print(">>> {}".format(" ".join(cmd)))
     code = subprocess.call(cmd, shell=False)
     if code != 0:
-        print("Error, command {} exited with {}".format(cmd, code))
+        if msg is None:
+            msg = "Error, command {} exited with {}"
+        print(msg.format(cmd, code))
         sys.exit(1)
 
-run_required(["apt", "update"])
+run_required(
+    ["apt", "update"],
+    msg="Could not run {}. Please re-run this script using sudo"
+)
 
-run_required(["apt", "install", "libgconf-2-4"])
+run_required(
+    ["apt", "install", "libgconf-2-4"],
+    msg="Could not run {}. Please re-run this script using sudo"
+)
 
 print("By proceeding you agree to the miniconda license agreement! Press ENTER to continue")
 input()
@@ -85,6 +93,11 @@ subprocess.call([
     "pytorch"
 ], env=env)
 
+subprocess.call([
+    condaExec,
+    "install",
+    "scikit-image"
+])
 
 print("Installation complete. Please LOGOUT and log back in for the environment to take effect")
 time.sleep(2)
