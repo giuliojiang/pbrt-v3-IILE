@@ -19,6 +19,12 @@ for pbrt.
 
 This version has been modified to implement IILE.
 
+# IILE
+
+Intelligent Indirect Light Estimation uses machine learning to obtain high-quality
+radiance maps of indirect illumination. This integrator accelerates
+rendering of scenes with high amounts of global illumination.
+
 Example scenes
 --------------
 
