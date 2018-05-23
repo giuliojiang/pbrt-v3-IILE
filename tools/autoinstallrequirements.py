@@ -18,7 +18,7 @@ run_required(
 )
 
 run_required(
-    ["apt", "install", "libgconf-2-4"],
+    ["apt-get", "-y", "install", "libgconf-2-4"],
     msg="Could not run {}. Please re-run this script using sudo"
 )
 
