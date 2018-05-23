@@ -41,7 +41,6 @@ import torch
 import numpy
 import random
 from torch.utils.data import Dataset, DataLoader
-import psutil
 import time
 
 import pfm
@@ -67,10 +66,6 @@ ABLATE_DISTANCE = False
 
 # =============================================================================
 # Utilities
-
-# -----------------------------------------------------------------------------
-def availableRamMb():
-    return psutil.virtual_memory().available / 1000000.0
 
 # -----------------------------------------------------------------------------
 def generate_pfm_filenames(dirname, x, y):
