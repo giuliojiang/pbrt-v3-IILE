@@ -442,6 +442,10 @@ Make automated package installer including blender plugin installer
 
 Make more scenes for training and validation
 
+stuff packaged as zip is not executable
+
+add options for IILE quality in scenefile
+
 ## Selected test scenes
 
 White room daytime

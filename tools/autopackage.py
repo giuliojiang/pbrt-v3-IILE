@@ -26,11 +26,8 @@ os.mkdir(destDir)
 
 # Make the subdirectories for the different package versions
 pIileDir = os.path.join(destDir, "PBRT-IILE")
-pFull = os.path.join(destDir, "FULLPACKAGE")
-pExp = os.path.join(destDir, "EXPORTERONLY")
+pExp = os.path.join(destDir, "render_pbrt")
 os.mkdir(pIileDir)
-os.mkdir(pFull)
-os.mkdir(pExp)
 
 # Create IILE only package ====================================================
 
@@ -50,7 +47,7 @@ PBRT-IILE
         ...
 '''
 
-def packageIILE(iileDir):
+def copyIILEContent(iileDir):
     os.mkdir(iileDir)
 
     buildDir = os.path.join(iileDir, "build")
@@ -74,24 +71,78 @@ def packageIILE(iileDir):
         else:
             shutil.copy(sourcePath, destPath)
 
-packageIILE(os.path.join(pIileDir, "iile"))
-
 def installNode(destDir):
     nodeArchivePath = "/tmp/node.tar.xz"
     subprocess.call(["wget", "-O", nodeArchivePath, nodejsDownloadLink])
     parentDir = os.path.dirname(destDir)
     destBasename = os.path.basename(destDir)
     os.chdir(parentDir)
-    subprocess.call(["tar", "-vxf", nodeArchivePath])
+    subprocess.call(["tar", "-xf", nodeArchivePath])
     content = os.listdir(parentDir)
     for c in content:
         if c.startswith("node"):
             subprocess.call(["mv", c, destBasename])
 
-installNode(os.path.join(pIileDir, "node"))
+def packageIILE(pIileDir):
+        
+    copyIILEContent(os.path.join(pIileDir, "iile"))
 
-# Create launcher link
-shutil.copy(
-    os.path.join(toolsDir, "resources", "pbrt"),
-    os.path.join(pIileDir, "pbrt")
+    installNode(os.path.join(pIileDir, "node"))
+
+    # Create launcher link
+    shutil.copy(
+        os.path.join(toolsDir, "resources", "pbrt"),
+        os.path.join(pIileDir, "pbrt")
+    )
+
+packageIILE(pIileDir)
+
+# Tar it
+print("Compressing PBRT-IILE")
+os.chdir(destDir)
+subprocess.call([
+    "tar",
+    "-I",
+    "pigz",
+    "-cf",
+    "PBRT-IILE.tgz",
+    "PBRT-IILE"
+])
+
+# Create Blender exporter only package ========================================
+
+shutil.copytree(
+    os.path.join(exporterDir, "render_pbrt"),
+    os.path.join(pExp)
 )
+
+print("Compressing Exporter")
+os.chdir(destDir)
+
+subprocess.call([
+    "zip",
+    "-r",
+    "pbrtExporter.zip",
+    "render_pbrt"
+])
+
+# Create Blender exporter with IILE included ==================================
+
+shutil.copy(
+    os.path.join(destDir, "PBRT-IILE.tgz"),
+    os.path.join(pExp, "PBRT-IILE.tgz")
+)
+
+print("Compressing PBRT-IILE + Exporter")
+os.chdir(destDir)
+subprocess.call([
+    "zip",
+    "-r",
+    "pbrtExporterWithIile.zip",
+    "render_pbrt"
+])
+
+# Cleanup
+
+shutil.rmtree(pIileDir)
+shutil.rmtree(pExp)
