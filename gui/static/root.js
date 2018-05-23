@@ -1,6 +1,7 @@
 staticdir = __dirname;
 var path = require("path");
 guiDir = path.dirname(staticdir);
+rootDir = path.dirname(guiDir);
 
 var url = require("url");
 var randomstring = require("randomstring");
@@ -15,8 +16,6 @@ var log = shd.console;
 
 var data = {};
 data.controlDir = "";
-data.exposure = 0;
-data.pbrtStatus = "Idle";
 data.pbrtProc = null;
 
 var priv = {};
@@ -29,21 +28,6 @@ var toControlFile = function(controlString) {
     return path.join(data.controlDir, controlString);
 };
 
-var controlWriteExposure = function() {
-    // Clear existing exposure controls
-    var dircontent = fs.readdirSync(data.controlDir);
-    for (var i = 0; i < dircontent.length; i++) {
-        if (dircontent[i].startsWith("control_gain_")) {
-            var fullPath = path.join(data.controlDir, dircontent[i]);
-            fsExtra.removeSync(fullPath);
-            log.info("Removing: " + dircontent[i]);
-        }
-    }
-
-    var exposureString = "control_gain_" + data.exposure;
-    touchFile(toControlFile(exposureString));
-};
-
 var performStartupActions = function() {
     data.controlDir = path.join("/tmp", randomstring.generate(20));
 
@@ -52,13 +36,8 @@ var performStartupActions = function() {
     // Create control directory
     fs.mkdirSync(data.controlDir);
 
-    // Write exposure
-    controlWriteExposure();
-
     log.info("argv");
     log.info(argv);
-
-    priv.startPbrt();
 }
 
 window.onbeforeunload = (e) => {
@@ -84,7 +63,15 @@ window.onbeforeunload = (e) => {
     }, 1000);
 }
 
-priv.startPbrt = function() {
+// <onPbrtExit> a callback(code, signal) when the subprocess PBRT
+// exits
+//
+// <onRenderFinish> callback() called when rendering completes
+//
+// <onIndirectProgress> function(p) p is a Float
+//
+// <onDirectProgress> function(p) p is a Float
+priv.startPbrt = function(onPbrtExit, onRenderFinish, onIndirectProgress, onDirectProgress) {
     log.info("Starting PBRT...");
 
     if (argv.length != 6) {
@@ -97,29 +84,55 @@ priv.startPbrt = function() {
     var indirectTasks = argv[4];
     var directTasks = argv[5];
 
+    var parseLine = function(line) {
+        if (line.startsWith("#")) {
+            var splt = line.split("!");
+            if (splt.length != 2) {
+                return;
+            }
+
+            var key = splt[0];
+            var value = splt[1];
+
+            if (key == "#DIRECTPROGRESS") {
+                var ratio = parseFloat(value);
+                onDirectProgress(ratio);
+            } else if (key == "#INDPROGRESS") {
+                var ratio = parseFloat(value);
+                onIndirectProgress(ratio);
+            } else if (key == "#FINISH") {
+                onRenderFinish();
+            }
+        }
+    }
+
     // CD into input pbrt file's directory
     var inputDir = path.dirname(inputPath);
     process.chdir(inputDir);
+    
+    log.info("PATH is " + process.env.PATH);
 
     data.pbrtProc = spawn("node", [pbrtExecPath, inputPath, "--iileIndirect=" + indirectTasks, "--iileDirect=" + directTasks, "--iileControl=" + data.controlDir], {
         detached: true
     });
-
-    data.pbrtStatus = "Starting";
-
-    data.pbrtProc.stdout.on("data", (data) => {
-        log.info("STDOUT " + data);
+    
+    data.pbrtProc.on("error", function(error) {
+        alert("PBRT error: " + error);
     });
+
+    data.pbrtProc.stdout.on("line", (line) => {
+        log.info("LINE " + line);
+        parseLine(line);
+    });
+
+    emitLines(data.pbrtProc.stdout);
 
     data.pbrtProc.stderr.on("data", (data) => {
         log.info("STDERR " + data);
     });
 
     data.pbrtProc.on("close", function(code, signal) {
-        data.pbrtStatus = "Exited ["+ code +"] ["+ signal +"]";
+        log.info("Exited ["+ code +"] ["+ signal +"]");
+        onPbrtExit(code, signal);
     });
 };
-
-// Call initialization ========================================================
-
-performStartupActions();

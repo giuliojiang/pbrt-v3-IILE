@@ -1,4 +1,35 @@
 import math
+import numpy
+
+# =============================================================================
+# Efficient Numpy based transforms
+
+def npDivide(data, amount):
+    if amount > 0.0:
+        return data / amount
+    else:
+        return data
+
+def npLog(data):
+    data = data + 1.0
+    data = numpy.clip(data, 1.0, None)
+    data = numpy.log(data)
+    return data
+
+def npSub(data, amount):
+    return data - amount
+
+def npNormalize(data, minV, maxV):
+    mid = (maxV + minV) / 2.0
+    r = maxV - mid
+    data = data - mid
+    if r > 0.0:
+        data = data / r
+    data = numpy.clip(data, -1.0, 1.0)
+    return data
+
+def npAdd(data, amount):
+    return data + amount
 
 # =============================================================================
 # Augmentations

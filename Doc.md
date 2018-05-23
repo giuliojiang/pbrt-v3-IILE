@@ -78,6 +78,13 @@ real	0m23.856s
 real	0m26.131s
 ```
 
+__Optimizing Transforms__
+
+```
+Before optimization caching: 85 examples / second
+After optimization caching: 2700 examples / second
+```
+
 # Saved images and PBRT internal image representation
 
 In PBRT, images coordiantes X and Y:
@@ -421,37 +428,27 @@ bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.
 
 # TODO
 
-Do ablation testing for NN
-
-Render progressive quality of IILE images
-
-```
-Chart:
-X axis: number of tasks/samples
-Y axis, independently:
-    - rendering time
-    - entropy (noise)
-    - HDR VPD 2 vs reference
-```
-
-Regenerate part of the dataset because sampler for iispt_d is now random
-
-recheck rejection with the new sampler
-
 Blender plugin:
 
 * glossy material
 * mirror material
 * glass material
-* texture mapping
-* add sampler options for path
 
 GUI:
 
-* fix refresh flickering
-* display progress bars
-* exposure control based on python not C++
-* make compatible with other integrator's output location
+* allow to stop autoupdates
+
+Make automated package installer including blender plugin installer
+
+Make more scenes for training and validation
+
+stuff packaged as zip is not executable
+
+add options for IILE quality in scenefile
+
+## Portable package requirements
+
+libgconf-2-4
 
 ## Selected test scenes
 

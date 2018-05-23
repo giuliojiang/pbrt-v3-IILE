@@ -1,3 +1,5 @@
+/* Grid system */
+
 .j_image {
     width: 128px;
     height: 128px;
@@ -28,11 +30,36 @@
     flex-grow: 0;
 }
 
+.j_f_spaced {
+    justify-content: space-evenly;
+}
+
+/* Div properties */
+
+.j_d_imgpreview {
+    overflow: scroll;
+}
+
+.j_d_stretch {
+    width: 100%;
+    height: 100%;
+}
+
+.j_d_stretch_v {
+    height: 100%;
+}
+
+.j_d_stretch_h {
+    width: 100%;
+}
+
 .j_p {
     margin: 0;
     border: 0;
     padding: 1px;
 }
+
+/* Colors */
 
 .j_cl_bg {
     background-color: #727272;
@@ -40,6 +67,14 @@
 
 .j_cl_btn {
     background-color: #969696;
+}
+
+.j_cl_inputbg {
+    background-color: #ababab;
+}
+
+.j_cl_inputfg {
+    background-color: #757575;
 }
 
 .j_fscr {
@@ -52,12 +87,4 @@
     right: 0;
     position: fixed;
     z-index: 0;
-}
-
-.j_top_top {
-    height: 10vh;
-}
-
-.j_top_bot {
-    height: 90vh;
 }

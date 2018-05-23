@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import subprocess
+
+path = os.environ["PATH"]
+
+currDir = os.path.abspath(os.path.dirname(__file__))
+
+nodeBinDir = os.path.join(currDir, "node", "bin")
+nodeExecDir = os.path.join(nodeBinDir, "node")
+
+path = path + ':"{}"'.format(nodeBinDir)
+
+os.environ["PATH"] = path
+
+pbrtPath = os.path.join(currDir, "iile", "bin", "pbrt")
+
+argv = sys.argv[1:]
+
+cmd = [nodeExecDir, pbrtPath]
+cmd = cmd + argv
+
+subprocess.call(cmd)

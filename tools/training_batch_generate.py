@@ -9,8 +9,7 @@ rootdir = os.path.abspath(os.path.join(__file__, "..", ".."))
 multiprocess_reference_py = os.path.join(rootdir, "tools", "multiprocess_reference.py")
 
 TASK_LIST = [
-    "/home/gj/git/pbrt-v3-custom-scenes/fireplace1/scene.pbrt",
-    "/home/gj/git/pbrt-v3-custom-scenes/fireplace2/scene.pbrt"
+    "/home/gj/git/pbrt-v3-custom-scenes/mbed1/scene.pbrt"
 ]
 
 for task in TASK_LIST:

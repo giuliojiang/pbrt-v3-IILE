@@ -22,17 +22,24 @@ pydir = os.path.dirname(os.path.abspath(__file__)) # root/ml
 rootdir = os.path.dirname(pydir)
 os.chdir(rootdir)
 
-def plot(low, gauss, result, title):
+def plot(low, gauss, result, title, rlow, rhigh):
     traceLow = go.Box(x=low, name="1spp")
     traceGauss = go.Box(x=gauss, name="blur")
     traceResult = go.Box(x=result, name="predicted")
 
     data = [traceLow, traceGauss, traceResult]
 
+    layout = go.Layout(
+        title = title,
+        xaxis = dict(
+            range = [rlow, rhigh]
+        )
+    )
+
     plotly.offline.plot(
         {
             "data": data,
-            "layout": go.Layout(title=title)
+            "layout": layout
         }
     )
 
@@ -65,7 +72,8 @@ def main():
     print("Processing {} items".format(selected_set_len))
     for i in range(selected_set_len):
 
-        print("Processing index {}".format(i))
+        if i % 100 == 0:
+            print("Processing index {}".format(i))
 
         item = selected_set.__getitem__(i)
         aug = item["aug"]
@@ -83,10 +91,6 @@ def main():
         resultImg.normalize_intensity_upstream(item["mean"])
 
         expectedImg = pfm.load(item["p_name"])
-
-        normalsImg = pfm.load(item["n_name"])
-
-        distanceImg = pfm.load(item["z_name"])
 
         lowImg = pfm.load(item["d_name"])
 
@@ -128,8 +132,8 @@ def main():
     statResultL1 = numpy.array(statResultL1)
     statResultSs = numpy.array(statResultSs)
 
-    plot(statLowL1, statGaussianL1, statResultL1, "L1")
-    plot(statLowSs, statGaussianSs, statResultSs, "Structural Similarity")
+    plot(statLowL1, statGaussianL1, statResultL1, "L1", -0.1, 1.6)
+    plot(statLowSs, statGaussianSs, statResultSs, "Structural Similarity", -0.1, 1.0)
 
     # Compute P values for L1
     data = {

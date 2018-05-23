@@ -133,8 +133,6 @@ std::shared_ptr<IntensityFilm> IisptFilmMonitor::to_intensity_film_priv(
     Vector2i diagonal = film_bounds.Diagonal();
     int width = diagonal.x + 1;
     int height = diagonal.y + 1;
-    std::cerr << "Width and height are ["<< width <<"] ["<< height <<"]" << std::endl;
-    std::cerr << "Computed assuming exclusive pMax are ["<< (film_bounds.pMax.x - film_bounds.pMin.x) <<"] ["<< (film_bounds.pMax.y - film_bounds.pMin.y) <<"]" << std::endl;
 
     std::shared_ptr<IntensityFilm> intensity_film (
                 new IntensityFilm(

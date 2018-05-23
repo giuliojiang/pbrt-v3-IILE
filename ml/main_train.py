@@ -18,11 +18,11 @@ rootdir = os.path.abspath(os.path.join(__file__, "..", ".."))
 print(rootdir)
 os.chdir(rootdir)
 
-TRAINING_TIME_MINUTES = 0.5 * 60.0
+TRAINING_TIME_MINUTES = 1.0 * 60.0
 BATCH_SIZE = 32
 NO_WORKERS = 4
-LEARNING_RATE = 0.0001
-MAX_EPOCHS = 6
+LEARNING_RATE = 6e-5
+MAX_EPOCHS = 3
 
 log_dir = os.path.join('/tmp/runs', datetime.now().strftime('%b%d_%H-%M-%S'))
 writer = SummaryWriter(log_dir=log_dir)
@@ -38,10 +38,9 @@ def minutes_elapsed():
 def main():
 
     trainset, _ = iispt_dataset.load_dataset(config.dataset, 0.0)
-
+    # Cache for trainset
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NO_WORKERS)
-    # testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NO_WORKERS)
-    
+
     _, testset = iispt_dataset.load_dataset(config.testset, 0.0)
     testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NO_WORKERS)
 
@@ -79,7 +78,7 @@ def main():
         # each i is a batch
         for i, data in enumerate(trainloader, 0):
 
-            if i % 10 == 0:
+            if i % 500 == 0:
                 elapsed_minutes = minutes_elapsed()
                 print("Training: elapsed {} minutes".format(elapsed_minutes))
                 if elapsed_minutes > TRAINING_TIME_MINUTES:
@@ -105,17 +104,16 @@ def main():
 
             # Print statistics
             running_loss = loss.data[0]
-            print("Epoch [{}] example [{}] Running loss [{}]".format(epoch, i * BATCH_SIZE, running_loss))
 
             # Log train/loss to TensorBoard at every iteration
             writer.add_scalar('train/loss', loss.data[0], n_iter)
             n_iter += 1
+
+            if i % 500 == 0:
+                print("Epoch [{}] example [{}] Running loss [{}]".format(epoch, i * BATCH_SIZE, running_loss))
         
         # compute loss on the testset
         for i, data in enumerate(testloader, 0):
-
-            if i > 10:
-                break
 
             # Get the inputs
             input_x = data["t"]
@@ -134,7 +132,8 @@ def main():
 
             # Statistics
             running_tloss = loss.data[0]
-            print("Epoch [{}] __testset__ [{}] Loss [{}]".format(epoch, i * BATCH_SIZE, running_tloss))
+            if i % 100 == 0:
+                print("Epoch [{}] __testset__ [{}] Loss [{}]".format(epoch, i * BATCH_SIZE, running_tloss))
 
             # Log to TensorBoard
             writer.add_scalar('train/testloss', loss.data[0], t_iter)

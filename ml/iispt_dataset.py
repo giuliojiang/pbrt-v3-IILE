@@ -41,6 +41,8 @@ import torch
 import numpy
 import random
 from torch.utils.data import Dataset, DataLoader
+import psutil
+import time
 
 import pfm
 import km
@@ -60,8 +62,15 @@ random.seed(0)
 TYPE_PREFIXES = ["p", "d", "n", "z"]
 GAMMA_VALUE = 1.2
 
+ABLATE_NORMALS = True
+ABLATE_DISTANCE = False
+
 # =============================================================================
 # Utilities
+
+# -----------------------------------------------------------------------------
+def availableRamMb():
+    return psutil.virtual_memory().available / 1000000.0
 
 # -----------------------------------------------------------------------------
 def generate_pfm_filenames(dirname, x, y):
@@ -98,6 +107,10 @@ class IISPTDataset(Dataset):
     def __init__(self, data_list):
         # [{directory, x, y, log_normalization, sqrt_normalization, validation}]
         self.data_list = data_list
+        if ABLATE_NORMALS:
+            print("<><><> WARNING <><><> Normals ablation is active")
+        if ABLATE_DISTANCE:
+            print("<><><> WARNING <><><> Distance ablation is active")
     
     # -------------------------------------------------------------------------
     def __len__(self):
@@ -121,7 +134,9 @@ class IISPTDataset(Dataset):
     #   mean     mean of D, returned by d_pfm normalize intensity downstream full
     # }
     def __getitem__(self, idx):
+
         datum = self.data_list[idx]
+
         dirname = datum["directory"]
         x = datum["x"]
         y = datum["y"]
@@ -153,9 +168,13 @@ class IISPTDataset(Dataset):
 
         # Transform N
         n_pfm.normalize(-1.0, 1.0)
+        if ABLATE_NORMALS:
+            n_pfm.clear()
 
         # Transform Z
         z_pfm.normalize_distance_downstream_full()
+        if ABLATE_DISTANCE:
+            z_pfm.clear()
 
         # Convert from numpy to tensors and create results
         result = {}
@@ -319,6 +338,30 @@ def load_dataset(root_directory, validation_probability):
     r_t, r_v = (IISPTDataset(results_train), IISPTDataset(results_validation))
     print("Loaded {} training, {} validation examples".format(r_t.__len__(), r_v.__len__()))
     return (r_t, r_v)
+
+# -----------------------------------------------------------------------------
+def populateCache(dataset, maxRatio):
+    datasetLen = dataset.__len__()
+    lastTime = 0.0
+    for i in range(datasetLen):
+
+        # Check when to stop
+        if i % 1000 == 0:
+            timeDiff = time.time() - lastTime
+            lastTime = time.time()
+            speed = int(1000.0 / timeDiff)
+            ratio = float(i) / float(datasetLen)
+            percentage = int(100.0 * ratio)
+            print("Caching progress {}% Speed {}Ex/s".format(percentage, speed))
+            if ratio > maxRatio:
+                print("Caching finished, Ratio limit reached")
+                return
+
+        datum = dataset.get_datum(i)
+        item = dataset.__getitem__(i)
+        datum["cached"] = item
+
+    print("Caching finished, all data in memory")
 
 # =============================================================================
 
