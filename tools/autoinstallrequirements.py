@@ -1,6 +1,18 @@
 import os
 import sys
 import subprocess
+import time
+
+def run_required(cmd):
+    print(">>> {}".format(" ".join(cmd)))
+    code = subprocess.call(cmd, shell=False)
+    if code != 0:
+        print("Error, command {} exited with {}".format(cmd, code))
+        sys.exit(1)
+
+run_required(["apt", "update"])
+
+run_required(["apt", "install", "libgconf-2-4"])
 
 print("By proceeding you agree to the miniconda license agreement! Press ENTER to continue")
 input()
@@ -9,9 +21,9 @@ minicondaUrl = "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_
 
 os.chdir("/tmp")
 
-subprocess.call(["wget", "-O", "miniconda.sh", minicondaUrl])
+run_required(["wget", "-O", "miniconda.sh", minicondaUrl])
 
-subprocess.call(["chmod", "+x", "miniconda.sh"])
+run_required(["chmod", "+x", "miniconda.sh"])
 
 homeDir = os.path.expanduser("~")
 
@@ -21,7 +33,7 @@ minicondaBinDir = os.path.join(minicondaDir, "bin")
 
 # Install miniconda
 
-subprocess.call([
+run_required([
     "/tmp/miniconda.sh",
     "-b",
     "-p",
@@ -74,4 +86,7 @@ subprocess.call([
 ], env=env)
 
 
-print("Installation complete. Your new environment will take effect after a new login or new terminal")
+print("Installation complete. Please LOGOUT and log back in for the environment to take effect")
+time.sleep(2)
+print("Press ENTER to finish")
+input()
