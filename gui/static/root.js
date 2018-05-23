@@ -109,9 +109,15 @@ priv.startPbrt = function(onPbrtExit, onRenderFinish, onIndirectProgress, onDire
     // CD into input pbrt file's directory
     var inputDir = path.dirname(inputPath);
     process.chdir(inputDir);
+    
+    log.info("PATH is " + process.env.PATH);
 
     data.pbrtProc = spawn("node", [pbrtExecPath, inputPath, "--iileIndirect=" + indirectTasks, "--iileDirect=" + directTasks, "--iileControl=" + data.controlDir], {
         detached: true
+    });
+    
+    data.pbrtProc.on("error", function(error) {
+        alert("PBRT error: " + error);
     });
 
     data.pbrtProc.stdout.on("line", (line) => {

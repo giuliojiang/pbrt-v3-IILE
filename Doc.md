@@ -446,6 +446,10 @@ stuff packaged as zip is not executable
 
 add options for IILE quality in scenefile
 
+## Portable package requirements
+
+libgconf-2-4
+
 ## Selected test scenes
 
 White room daytime
