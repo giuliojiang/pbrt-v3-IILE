@@ -1,6 +1,12 @@
 pbrt, Version 3 - Intelligent Indirect Lighting Estimation
 ===============
 
+# Quickstart
+
+Quickstart and installation info: https://github.com/giuliojiang/pbrt-v3-IISPT/wiki
+
+# Intro
+
 This repository holds the source code to the version of pbrt that is
 described in the third edition of *Physically Based Rendering: From
 Theory to Implementation*, by [Matt Pharr](http://pharr.org/matt), [Wenzel
