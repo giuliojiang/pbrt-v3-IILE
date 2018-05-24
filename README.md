@@ -3,7 +3,7 @@ pbrt, Version 3 - Intelligent Indirect Lighting Estimation
 
 # Quickstart
 
-Quickstart and installation info: https://github.com/giuliojiang/pbrt-v3-IISPT/wiki
+Quickstart and installation info: https://github.com/giuliojiang/pbrt-v3-IILE/wiki
 
 # Intro
 
@@ -60,7 +60,7 @@ Building pbrt
 To check out pbrt together with all dependencies, be sure to use the
 `--recursive` flag when cloning the repository, i.e.
 ```bash
-$ git clone --recursive https://github.com/giuliojiang/pbrt-v3-IISPT/
+$ git clone --recursive https://github.com/giuliojiang/pbrt-v3-IILE/
 ```
 If you accidentally already cloned pbrt without this flag (or to update an
 pbrt source tree after a new submodule has been added, run the following
@@ -135,7 +135,7 @@ typedef RGBSpectrum Spectrum;
 ```
 Again, don't forget to recompile after making this change.
 
-# PBRT-IISPT options
+# PBRT-IILE options
 
 The use of `bin/pbrt` as launcher is recommended.
 
@@ -159,7 +159,7 @@ Sets the path tracing samples to be used in reference mode.
 
 ## .pbrt file
 
-To enable the IISPT integrator, use `iispt` as integrator. For example
+To enable the IILE integrator, use `iispt` as integrator. For example
 
 ```
 Sampler "sobol" "integer pixelsamples" 1
