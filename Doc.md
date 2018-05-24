@@ -446,6 +446,11 @@ GUI: add console output
 
 GUI: change title of window
 
+Exporter: fix issue when material is None
+
+Do direct pass before indirect. Parallelize based on passes not tiles thanks to
+the RandomSampler
+
 ## Portable package requirements
 
 libgconf-2-4
