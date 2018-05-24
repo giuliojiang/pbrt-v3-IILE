@@ -49,6 +49,13 @@ def main():
         "-j4"
     ])
 
+    # npm install
+    npmDirs = ["bin", "gui", "tools"]
+    for npmDir in npmDirs:
+        fullDir = os.path.join(rootDir, npmDir)
+        os.chdir(fullDir)
+        run(["npm", "install"])
+
 # Run =========================================================================
 
 main()
