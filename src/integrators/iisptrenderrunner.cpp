@@ -237,13 +237,6 @@ void IisptRenderRunner::run(const Scene &scene)
         // sm_task end points are exclusive
         std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Task ["<< sm_task.taskNumber + 1 <<"] of ["<< PbrtOptions.iileIndirectTasks <<"]\n";
 
-        float progress = 1.0;
-        if (PbrtOptions.iileIndirectTasks > 0) {
-            progress = ((float) sm_task.taskNumber) / PbrtOptions.iileIndirectTasks;
-        }
-
-        std::cout << "#INDPROGRESS!" << progress << std::endl;
-
         // Use a HashMap to store the hemi points
         std::unordered_map<
                 IisptPoint2i,
@@ -581,6 +574,13 @@ void IisptRenderRunner::run(const Scene &scene)
                     additions_weights
                     );
 
+        float progress = 1.0;
+        if (PbrtOptions.iileIndirectTasks > 0) {
+            progress = ((float) (sm_task.taskNumber + 1)) / PbrtOptions.iileIndirectTasks;
+        }
+
+        std::cout << "#INDPROGRESS!" << progress << std::endl;
+
     }
 
 }
@@ -610,16 +610,14 @@ void IisptRenderRunner::run_direct(const Scene &scene)
         if (directPassNumber >= PbrtOptions.iileDirectSamples) {
             break;
         }
-        float progress = ((float) directPassNumber) / PbrtOptions.iileDirectSamples;
-        std::cout << "#DIRECTPROGRESS!" << progress << std::endl;
-        std::cerr << "iisptrenderrunner.cpp: Thread ["<< thread_no <<"] Direct pass ["<< directPassNumber <<"]\n";
 
         directProgressiveIntegrator->RenderOnePass(scene,
                                                    film_monitor_direct.get());
 
-    }
+        float progress = ((float) (directPassNumber + 1)) / PbrtOptions.iileDirectSamples;
+        std::cout << "#DIRECTPROGRESS!" << progress << std::endl;
 
-    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Completed direct pass add_n_samples\n";
+    }
 }
 
 // ============================================================================
