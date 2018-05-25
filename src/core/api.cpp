@@ -823,21 +823,31 @@ std::shared_ptr<Sampler> MakeSampler(const std::string &name,
                                      const ParamSet &paramSet,
                                      const Film *film) {
     Sampler *sampler = nullptr;
-    if (name == "lowdiscrepancy" || name == "02sequence")
+    if (name == "lowdiscrepancy" || name == "02sequence") {
+        PbrtOptions.iileDSampler = std::string("lowdiscrepancy");
         sampler = CreateZeroTwoSequenceSampler(paramSet);
-    else if (name == "maxmindist")
+    }
+    else if (name == "maxmindist") {
         sampler = CreateMaxMinDistSampler(paramSet);
-    else if (name == "halton")
+    }
+    else if (name == "halton") {
+        PbrtOptions.iileDSampler = std::string("halton");
         sampler = CreateHaltonSampler(paramSet, film->GetSampleBounds());
+    }
     else if (name == "sobol") {
+        PbrtOptions.iileDSampler = std::string("sobol");
         sampler = CreateSobolSampler(paramSet, film->GetSampleBounds());
     }
-    else if (name == "random")
+    else if (name == "random") {
+        PbrtOptions.iileDSampler = std::string("random");
         sampler = CreateRandomSampler(paramSet);
-    else if (name == "stratified")
+    }
+    else if (name == "stratified") {
         sampler = CreateStratifiedSampler(paramSet);
-    else
+    }
+    else {
         Warning("Sampler \"%s\" unknown.", name.c_str());
+    }
     paramSet.ReportUnused();
     return std::shared_ptr<Sampler>(sampler);
 }

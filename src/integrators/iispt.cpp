@@ -470,7 +470,7 @@ void IISPTIntegrator::render_reference(const Scene &scene) {
     write_info_file(IISPT_REFERENCE_DIRECTORY + IISPT_REFERENCE_TRAIN_INFO);
 
     // Create the auxiliary integrator for intersection-view
-    this->dintegrator = std::shared_ptr<IISPTdIntegrator>(CreateIISPTdIntegrator(dcamera));
+    this->dintegrator = std::shared_ptr<IISPTdIntegrator>(CreateIISPTdIntegrator(dcamera, 13));
     // Preprocess on auxiliary integrator
     dintegrator->Preprocess(scene);
 

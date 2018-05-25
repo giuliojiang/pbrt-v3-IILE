@@ -87,6 +87,7 @@ condaExec = os.path.join(minicondaBinDir, "conda")
 subprocess.call([
     condaExec, 
     "install",
+    "-y",
     "pytorch-cpu",
     "torchvision-cpu",
     "-c", 
@@ -96,6 +97,7 @@ subprocess.call([
 subprocess.call([
     condaExec,
     "install",
+    "-y",
     "scikit-image"
 ])
 

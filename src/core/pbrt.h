@@ -176,6 +176,7 @@ struct Options {
     // IILE quality settings
     int iileIndirectTasks = 16;
     int iileDirectSamples = 16;
+    std::string iileDSampler = std::string("random"); // can also be "sobol" or "halton" or "lowdiscrepancy"
     // IILE control directory
     char* iileControl = NULL;
 };

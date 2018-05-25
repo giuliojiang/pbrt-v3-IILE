@@ -215,15 +215,12 @@ IisptRenderRunner::IisptRenderRunner(std::shared_ptr<IisptScheduleMonitor> sched
 void IisptRenderRunner::run(const Scene &scene)
 {
     // dintegrator
-    std::shared_ptr<IISPTdIntegrator> d_integrator = CreateIISPTdIntegrator(this->dcamera);
+    std::shared_ptr<IISPTdIntegrator> d_integrator = CreateIISPTdIntegrator(
+                this->dcamera, 17 * thread_no + 243);
 
     d_integrator->Preprocess(scene);
     lightDistribution =
             CreateLightSampleDistribution(std::string("spatial"), scene);
-
-    std::shared_ptr<Sampler> oneSppSampler (
-                new RandomSampler(1)
-                );
 
     while (1) {
 
@@ -335,8 +332,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 // Run dintegrator render
                 d_integrator->RenderView(
                             scene,
-                            aux_camera.get(),
-                            oneSppSampler.get()
+                            aux_camera.get()
                             );
 
                 // Use NN Connector
