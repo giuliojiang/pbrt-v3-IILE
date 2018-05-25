@@ -20,6 +20,7 @@
 #include "samplers/sobol.h"
 #include "tools/threadpool.h"
 #include "tools/generalutils.h"
+#include "integrators/directprogressiveintegrator.h"
 
 namespace pbrt {
 

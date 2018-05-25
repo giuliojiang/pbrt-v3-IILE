@@ -78,4 +78,14 @@ IisptScheduleMonitorTask IisptScheduleMonitor::next_task() {
     return res;
 }
 
+// ============================================================================
+int IisptScheduleMonitor::getNextDirectPass()
+{
+    std::unique_lock<std::mutex> lock (mutex);
+
+    int res = this->nextDirectPass;
+    this->nextDirectPass++;
+    return res;
+}
+
 }

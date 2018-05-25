@@ -592,23 +592,32 @@ void IisptRenderRunner::run_direct(const Scene &scene)
 {
     std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: starting direct illumination pass\n";
 
-    std::unique_ptr<DirectLightingIntegrator> directIntegrator (
-                new DirectLightingIntegrator(
-                    LightStrategy::UniformSampleAll,
-                    5,
+    std::unique_ptr<Sampler> directSampler = sampler->Clone(6284 + 17 * thread_no);
+
+    std::unique_ptr<DirectProgressiveIntegrator> directProgressiveIntegrator (
+                new DirectProgressiveIntegrator(
                     main_camera,
-                    sampler->Clone(0),
+                    std::move(directSampler),
                     film_monitor_indirect->get_film_bounds()
                     )
                 );
 
-    directIntegrator->Render(scene, false);
+    directProgressiveIntegrator->preprocess(scene);
 
-    std::unique_ptr<IntensityFilm> directFilm = main_camera->film->to_intensity_film();
+    while (1) {
 
-    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Completed direct pass loop\n";
+        int directPassNumber = schedule_monitor->getNextDirectPass();
+        if (directPassNumber >= PbrtOptions.iileDirectSamples) {
+            break;
+        }
+        float progress = ((float) directPassNumber) / PbrtOptions.iileDirectSamples;
+        std::cout << "#DIRECTPROGRESS!" << progress << std::endl;
+        std::cerr << "iisptrenderrunner.cpp: Thread ["<< thread_no <<"] Direct pass ["<< directPassNumber <<"]\n";
 
-    film_monitor_direct->addFromIntensityFilm(directFilm.get());
+        directProgressiveIntegrator->RenderOnePass(scene,
+                                                   film_monitor_direct.get());
+
+    }
 
     std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Completed direct pass add_n_samples\n";
 }

@@ -200,7 +200,6 @@ mainApp.controller("main_controller", function($scope) {
             },
             // onDirectProgress
             function(progress) {
-                $scope.progress.ind = 100;
                 $scope.progress.dir = 100 * progress;
                 $scope.$apply();
             }
