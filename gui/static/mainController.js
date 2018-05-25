@@ -195,13 +195,18 @@ mainApp.controller("main_controller", function($scope) {
             },
             // onIndirectProgress
             function(progress) {
-                $scope.progress.ind = 100 * progress;
+                var newVal = 100 * progress;
+                if (newVal > $scope.progress.ind) {
+                    $scope.progress.ind = newVal;
+                }
                 $scope.$apply();
             },
             // onDirectProgress
             function(progress) {
-                $scope.progress.ind = 100;
-                $scope.progress.dir = 100 * progress;
+                var newVal = 100 * progress;
+                if (newVal > $scope.progress.dir) {
+                    $scope.progress.dir = newVal;
+                }
                 $scope.$apply();
             }
         );

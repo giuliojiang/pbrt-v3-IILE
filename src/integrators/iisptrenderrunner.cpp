@@ -215,15 +215,12 @@ IisptRenderRunner::IisptRenderRunner(std::shared_ptr<IisptScheduleMonitor> sched
 void IisptRenderRunner::run(const Scene &scene)
 {
     // dintegrator
-    std::shared_ptr<IISPTdIntegrator> d_integrator = CreateIISPTdIntegrator(this->dcamera);
+    std::shared_ptr<IISPTdIntegrator> d_integrator = CreateIISPTdIntegrator(
+                this->dcamera, 17 * thread_no + 243);
 
     d_integrator->Preprocess(scene);
     lightDistribution =
             CreateLightSampleDistribution(std::string("spatial"), scene);
-
-    std::shared_ptr<Sampler> oneSppSampler (
-                new RandomSampler(1)
-                );
 
     while (1) {
 
@@ -239,13 +236,6 @@ void IisptRenderRunner::run(const Scene &scene)
 
         // sm_task end points are exclusive
         std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "Task ["<< sm_task.taskNumber + 1 <<"] of ["<< PbrtOptions.iileIndirectTasks <<"]\n";
-
-        float progress = 1.0;
-        if (PbrtOptions.iileIndirectTasks > 0) {
-            progress = ((float) sm_task.taskNumber) / PbrtOptions.iileIndirectTasks;
-        }
-
-        std::cout << "#INDPROGRESS!" << progress << std::endl;
 
         // Use a HashMap to store the hemi points
         std::unordered_map<
@@ -335,8 +325,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 // Run dintegrator render
                 d_integrator->RenderView(
                             scene,
-                            aux_camera.get(),
-                            oneSppSampler.get()
+                            aux_camera.get()
                             );
 
                 // Use NN Connector
@@ -585,6 +574,13 @@ void IisptRenderRunner::run(const Scene &scene)
                     additions_weights
                     );
 
+        float progress = 1.0;
+        if (PbrtOptions.iileIndirectTasks > 0) {
+            progress = ((float) (sm_task.taskNumber + 1)) / PbrtOptions.iileIndirectTasks;
+        }
+
+        std::cout << "#INDPROGRESS!" << progress << std::endl;
+
     }
 
 }
@@ -596,25 +592,32 @@ void IisptRenderRunner::run_direct(const Scene &scene)
 {
     std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: starting direct illumination pass\n";
 
-    std::unique_ptr<DirectLightingIntegrator> directIntegrator (
-                new DirectLightingIntegrator(
-                    LightStrategy::UniformSampleAll,
-                    5,
+    std::unique_ptr<Sampler> directSampler = sampler->Clone(6284 + 17 * thread_no);
+
+    std::unique_ptr<DirectProgressiveIntegrator> directProgressiveIntegrator (
+                new DirectProgressiveIntegrator(
                     main_camera,
-                    sampler->Clone(0),
+                    std::move(directSampler),
                     film_monitor_indirect->get_film_bounds()
                     )
                 );
 
-    directIntegrator->Render(scene, false);
+    directProgressiveIntegrator->preprocess(scene);
 
-    std::unique_ptr<IntensityFilm> directFilm = main_camera->film->to_intensity_film();
+    while (1) {
 
-    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Completed direct pass loop\n";
+        int directPassNumber = schedule_monitor->getNextDirectPass();
+        if (directPassNumber >= PbrtOptions.iileDirectSamples) {
+            break;
+        }
 
-    film_monitor_direct->addFromIntensityFilm(directFilm.get());
+        directProgressiveIntegrator->RenderOnePass(scene,
+                                                   film_monitor_direct.get());
 
-    std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "iisptrenderrunner.cpp: Completed direct pass add_n_samples\n";
+        float progress = ((float) (directPassNumber + 1)) / PbrtOptions.iileDirectSamples;
+        std::cout << "#DIRECTPROGRESS!" << progress << std::endl;
+
+    }
 }
 
 // ============================================================================

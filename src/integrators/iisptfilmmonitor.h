@@ -68,6 +68,10 @@ public:
     void addFromIntensityFilm(
             IntensityFilm* intensityFilm
             );
+
+    void setFromIntensityFilm(
+            IntensityFilm* intensityFilm
+            );
 };
 
 } // namespace pbrt

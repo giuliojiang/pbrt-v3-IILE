@@ -53,6 +53,9 @@ private:
     // Task number
     int taskNumber = 0;
 
+    // Direct passes
+    int nextDirectPass = 0;
+
 public:
 
     // Constructor ------------------------------------------------------------
@@ -61,6 +64,8 @@ public:
     // Public methods ---------------------------------------------------------
 
     IisptScheduleMonitorTask next_task();
+
+    int getNextDirectPass();
 
 };
 

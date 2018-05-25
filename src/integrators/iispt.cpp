@@ -385,14 +385,13 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
     // noCpus = 1;
     ThreadPool threadPool (noCpus);
     std::vector<std::future<void>> futures;
-    std::shared_ptr<IisptRenderRunner> runner0 = nullptr;
 
     // Start threads
     for (int i = 0; i < noCpus; i++) {
         std::shared_ptr<IisptNnConnector> nnConnector =
                 iile::NnConnectorManager::getInstance().getInstance().get(i);
 
-        futures.push_back(threadPool.enqueue([i, &runner0, schedule_monitor, film_monitor_indirect, film_monitor_direct, this, &scene, nnConnector]() {
+        futures.push_back(threadPool.enqueue([i, schedule_monitor, film_monitor_indirect, film_monitor_direct, this, &scene, nnConnector]() {
             std::shared_ptr<IisptRenderRunner> runner (
                         new IisptRenderRunner(
                             schedule_monitor,
@@ -406,9 +405,7 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
                             nnConnector
                             )
                         );
-            if (i == 0) {
-                runner0 = runner;
-            }
+            runner->run_direct(scene);
             runner->run(scene);
         }));
     }
@@ -421,13 +418,6 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
     for (int i = 0; i < noCpus; i++) {
         futures[i].get();
     }
-
-    // Direct pass
-    if (runner0 == nullptr) {
-        std::cerr << "iispt.cpp: Error, runner0 is NULL\n";
-        std::raise(SIGKILL);
-    }
-    runner0->run_direct(scene);
 
     iile::NnConnectorManager::getInstance().stopAll();
 
@@ -470,7 +460,7 @@ void IISPTIntegrator::render_reference(const Scene &scene) {
     write_info_file(IISPT_REFERENCE_DIRECTORY + IISPT_REFERENCE_TRAIN_INFO);
 
     // Create the auxiliary integrator for intersection-view
-    this->dintegrator = std::shared_ptr<IISPTdIntegrator>(CreateIISPTdIntegrator(dcamera));
+    this->dintegrator = std::shared_ptr<IISPTdIntegrator>(CreateIISPTdIntegrator(dcamera, 13));
     // Preprocess on auxiliary integrator
     dintegrator->Preprocess(scene);
 

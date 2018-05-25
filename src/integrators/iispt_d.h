@@ -47,6 +47,9 @@
 #include "lightdistrib.h"
 #include "film/intensityfilm.h"
 #include "samplers/random.h"
+#include "samplers/halton.h"
+#include "samplers/sobol.h"
+#include "samplers/zerotwosequence.h"
 
 namespace pbrt {
 
@@ -130,6 +133,11 @@ public:
 
     void RenderView(
             const Scene &scene,
+            Camera* camera
+            );
+
+    void RenderView(
+            const Scene &scene,
             Camera* camera,
             Sampler* sampler
             );
@@ -152,7 +160,8 @@ public:
 };
 
 std::shared_ptr<IISPTdIntegrator> CreateIISPTdIntegrator(
-    std::shared_ptr<Camera> camera);
+    std::shared_ptr<Camera> camera, int seed
+);
 
 }  // namespace pbrt
 
