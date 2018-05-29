@@ -25,3 +25,8 @@ void FileReader::read(void* buff, int noBytes)
         terminate();
     }
 }
+
+void FileReader::close()
+{
+    file.close();
+}

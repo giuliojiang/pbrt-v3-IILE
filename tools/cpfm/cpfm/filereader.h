@@ -20,6 +20,8 @@ public:
 
     void read(void* buff, int noBytes);
 
+    void close();
+
 };
 
 #endif // FILEREADER_H

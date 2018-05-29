@@ -2,6 +2,8 @@
 #include <vector>
 #include "utils.h"
 #include "filereader.h"
+#include "image.h"
+#include "lodepng.h"
 
 int main(int argc, char** argv)
 {
@@ -87,9 +89,23 @@ int main(int argc, char** argv)
 
     // Read all data
     reader.read(&floatBuff[0], totalBytes);
+    reader.close();
 
-    for (int i = 0; i < 100; i++) {
-        std::cerr << floatBuff[i] << std::endl;
+    std::vector<unsigned char> tonemapped;
+    if (autoExposure) {
+        tonemapAuto(floatBuff, tonemapped);
+    } else {
+        tonemap(floatBuff, exposure, tonemapped);
     }
+    flip(tonemapped, width, height);
+
+    // Output to PNG
+    lodepng::encode(
+                outputFilePath,
+                &tonemapped[0],
+                width,
+                height,
+                LodePNGColorType::LCT_RGB
+                );
 
 }
