@@ -9,6 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(project_sources
    main.cpp
    filereader.cpp
+   lodepng.cpp
 )
 
 add_executable(${PROJECT_NAME}

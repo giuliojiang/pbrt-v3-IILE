@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include "utils.h"
 #include "filereader.h"
 
@@ -28,21 +29,67 @@ int main(int argc, char** argv)
         terminate();
     }
 
+    if (!hasEnding(inputFilePath, ".pfm")) {
+        std::cerr << "Input file must be a .pfm\n";
+        terminate();
+    }
+
+    std::string outputFilePath;
+    {
+        int len = inputFilePath.size();
+        int end = len - 4;
+        outputFilePath = inputFilePath.substr(0, end) + std::string(".png");
+    }
+    std::cerr << "Output filename will be " << outputFilePath << std::endl;
+
     FileReader reader (inputFilePath);
 
+    // Magic line
     std::string line = reader.readLine();
-    std::cerr << "Read line ["<< line <<"]\n";
+    if (line == std::string("Pf")) {
+        std::cerr << "Single-channel PFM is not supported\n";
+        terminate();
+    }
+    if (line != std::string("PF")) {
+        std::cerr << "Unrecognized file format\n";
+        terminate();
+    }
 
+    // Dimensions
+    line = reader.readLine();
+    int width;
+    int height;
+    {
+        std::vector<std::string> splt = split(line, ' ');
+        if (splt.size() != 2) {
+            std::cerr << "Could not read width and height properties\n";
+            terminate();
+        } else {
+            try {
+                width = std::stoi(splt[0]);
+                height = std::stoi(splt[1]);
+            } catch (const std::invalid_argument& ia) {
+                std::cerr << "Error parsing width and height information\n";
+                terminate();
+            }
+        }
+    }
+    std::cerr << "Width ["<< width <<"] Height ["<< height <<"]\n";
+
+    // Endianness and others. Ignore.
     line = reader.readLine();
     std::cerr << "Read line ["<< line <<"]\n";
 
-    line = reader.readLine();
-    std::cerr << "Read line ["<< line <<"]\n";
+    // Compute total number of bytes
+    int totalFloats = width * height * 3;
+    int totalBytes = totalFloats * 4;
+    std::vector<float> floatBuff (totalFloats);
 
-    float buff[10];
-    reader.read(buff, 10 * 4);
-    for (int i = 0; i < 10; i++) {
-        std::cerr << buff[i] << std::endl;
+    // Read all data
+    reader.read(&floatBuff[0], totalBytes);
+
+    for (int i = 0; i < 100; i++) {
+        std::cerr << floatBuff[i] << std::endl;
     }
 
 }
