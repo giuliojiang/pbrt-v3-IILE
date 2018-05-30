@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "filereader.h"
 #include "image.h"
-#include "lodepng.h"
+#include "bitmap_image.hpp"
 
 int main(int argc, char** argv)
 {
@@ -40,7 +40,7 @@ int main(int argc, char** argv)
     {
         int len = inputFilePath.size();
         int end = len - 4;
-        outputFilePath = inputFilePath.substr(0, end) + std::string(".png");
+        outputFilePath = inputFilePath.substr(0, end) + std::string(".bmp");
     }
     std::cerr << "Output filename will be " << outputFilePath << std::endl;
 
@@ -99,13 +99,14 @@ int main(int argc, char** argv)
     }
     flip(tonemapped, width, height);
 
-    // Output to PNG
-    lodepng::encode(
-                outputFilePath,
-                &tonemapped[0],
-                width,
-                height,
-                LodePNGColorType::LCT_RGB
-                );
+    bitmap_image image (width, height);
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int pindex = 3 * (y * width + x);
+            image.set_pixel(x, y, tonemapped[pindex], tonemapped[pindex+1], tonemapped[pindex+2]);
+        }
+    }
+
+    image.save_image(outputFilePath);
 
 }
