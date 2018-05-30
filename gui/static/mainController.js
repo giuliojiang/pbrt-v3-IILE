@@ -26,19 +26,8 @@ mainApp.controller("main_controller", function($scope) {
     };
 
     $scope.reload = {};
-    $scope.reload.wip = false;
 
     $scope.reloadImage = function(callback) {
-
-        // Only allow 1 to execute at a time
-        if ($scope.reload.wip) {
-            if (callback) {
-                callback();
-            }
-            return;
-        }
-
-        $scope.reload.wip = true;
 
         console.info("Reloading image...");
 
@@ -51,9 +40,8 @@ mainApp.controller("main_controller", function($scope) {
             function() {
 
                 // Reload preview image
-                domUtils.loadImage("img_main", toControlFile(activePreview + ".png"));
-
-                $scope.reload.wip = false;
+                domUtils.loadImage("img_main", toControlFile(activePreview + ".bmp"));
+                domUtils.resizeImage("img_main", $scope.zoom.scale);
 
                 if (callback) {
                     callback();
@@ -74,13 +62,13 @@ mainApp.controller("main_controller", function($scope) {
     $scope.buttonExposureApply = function() {
         console.info("Updating exposure control");
         $scope.exposure.auto = false;
-        $scope.autoupdate.run();
+        $scope.reloadImage();
     };
 
     $scope.buttonAutoexpose = function() {
         console.info("Enable autoexposure");
         $scope.exposure.auto = true;
-        $scope.autoupdate.run();
+        $scope.reloadImage();
     };
 
     $scope.buttonSaveAs = function() {
@@ -102,47 +90,25 @@ mainApp.controller("main_controller", function($scope) {
     };
 
     // ========================================================================
-    // Auto update loop
-
-    $scope.autoupdate = {};
-    $scope.autoupdate.enable = true;
-    $scope.autoupdate.running = false;
-
-    $scope.autoupdate.run = function() {
-
-        if ($scope.autoupdate.running) {
-            return;
-        }
-
-        $scope.autoupdate.running = true;
-
-        console.info("Autoupdate");
-
-        $scope.reloadImage(function() {
-
-            $scope.autoupdate.running = false;
-
-            if ($scope.autoupdate.enable) {
-                setTimeout(function() {
-                    $scope.autoupdate.run();
-                }, 3000);
-            } else {
-                return;
-            }
-
-        });
-
-    };
-
-    $scope.autoupdate.run();
-
-    // ========================================================================
     // Progress
 
     $scope.progress = {};
     $scope.progress.finish = false;
     $scope.progress.dir = 0;
     $scope.progress.ind = 0;
+
+    // ========================================================================
+    // Styles
+
+    $scope.styles = {};
+
+    $scope.styles.progressBar = function() {
+        if ($scope.progress.finish) {
+            return "j_cl_greenbg";
+        } else {
+            return "";
+        }
+    }
 
     // ========================================================================
     // Zoom
@@ -184,14 +150,11 @@ mainApp.controller("main_controller", function($scope) {
             },
             // onRenderFinish
             function() {
+                $scope.progress.finish = true;
                 $scope.progress.ind = 100;
                 $scope.progress.dir = 100;
+                $scope.reloadImage();
                 $scope.$apply();
-                // Stop autoupdate after 10 seconds
-                setTimeout(function() {
-                    console.info("Render finished, disabling autoupdate");
-                    $scope.autoupdate.enable = false;
-                }, 10000);
             },
             // onIndirectProgress
             function(progress) {
@@ -208,6 +171,10 @@ mainApp.controller("main_controller", function($scope) {
                     $scope.progress.dir = newVal;
                 }
                 $scope.$apply();
+            },
+            // onRefresh
+            function() {
+                $scope.reloadImage();
             }
         );
     };

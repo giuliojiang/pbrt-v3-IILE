@@ -39,6 +39,7 @@
 #define PBRT_INTEGRATORS_IISPT_H
 
 #include <signal.h>
+#include <atomic>
 
 // integrators/iispt.h*
 #include "pbrt.h"
@@ -136,7 +137,8 @@ private:
 
     void directoryControlThread(
             std::shared_ptr<IisptFilmMonitor> indirectFilmMonitor,
-            std::shared_ptr<IisptFilmMonitor> directFilmMonitor
+            std::shared_ptr<IisptFilmMonitor> directFilmMonitor,
+            std::atomic<bool> &renderingFinished
             );
 
 };

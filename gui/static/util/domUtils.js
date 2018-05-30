@@ -16,6 +16,9 @@ domUtils.loadImage = function(targetId, imagePath) {
 
 domUtils.resizeImage = function(targetId, ratio) {
     var elem = document.getElementById(targetId);
+    if (!elem) {
+        return;
+    }
 
     elem.style.width = "auto";
     elem.style.height = "auto";
