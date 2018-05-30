@@ -448,9 +448,6 @@ GUI: change title of window
 
 Exporter: fix issue when material is None
 
-Do direct pass before indirect. Parallelize based on passes not tiles thanks to
-the RandomSampler
-
 improve performance in interpolation system: don't use vectors but use stack allocated arrays
 
 ## Portable package requirements
