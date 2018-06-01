@@ -16,6 +16,11 @@ static unsigned cpusCountHalf() {
     return std::max(1u, count / 2);
 }
 
+static unsigned cpusCountFull() {
+    unsigned count = std::thread::hardware_concurrency();
+    return std::max(1u, count);
+}
+
 static std::unique_ptr<std::vector<std::string>> listDir(std::string dirName) {
     DIR *d;
     struct dirent *dir;

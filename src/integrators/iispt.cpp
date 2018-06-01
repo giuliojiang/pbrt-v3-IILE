@@ -376,8 +376,10 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
                 );
 
     // Create and start the directory control thread
-    std::thread controlThread ([this, film_monitor_indirect, film_monitor_direct]() {
-        directoryControlThread(film_monitor_indirect, film_monitor_direct);
+    std::atomic<bool> renderingFinished;
+    renderingFinished = false;
+    std::thread controlThread ([this, film_monitor_indirect, film_monitor_direct, &renderingFinished]() {
+        directoryControlThread(film_monitor_indirect, film_monitor_direct, renderingFinished);
     });
 
     // Create thread pool for indirect pass
@@ -405,8 +407,13 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
                             nnConnector
                             )
                         );
-            runner->run_direct(scene);
-            runner->run(scene);
+            if (i % 2 == 0) {
+                runner->run_direct(scene);
+                runner->run(scene);
+            } else {
+                runner->run(scene);
+                runner->run_direct(scene);
+            }
         }));
     }
 
@@ -438,15 +445,8 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
 
     mergedFilm->to_intensity_film()->pbrt_write(PbrtOptions.imageFile);
 
-    std::cout << "#FINISH!" << std::endl;
-
-    // Stall the thread if directory control is enabled
-    if (PbrtOptions.iileControl != NULL) {
-        std::cerr << "Rendering finished. Directory control is active, main thread is going to sleep...\n";
-        while (1) {
-            iile::sleepMillis(5000);
-        }
-    }
+    renderingFinished = true;
+    // Now the control thread will do one last update and signal FINISH
 
     controlThread.join();
 
@@ -748,7 +748,8 @@ void IISPTIntegrator::Li_reference(const RayDifferential &ray,
 // This function is meant to be running in a separate thread
 void IISPTIntegrator::directoryControlThread(
         std::shared_ptr<IisptFilmMonitor> indirectFilmMonitor,
-        std::shared_ptr<IisptFilmMonitor> directFilmMonitor
+        std::shared_ptr<IisptFilmMonitor> directFilmMonitor,
+        std::atomic<bool> &renderingFinished
         )
 {
     // Check if directory control is enabled
@@ -775,6 +776,13 @@ void IISPTIntegrator::directoryControlThread(
         std::shared_ptr<IisptFilmMonitor> combinedFilm =
                 indirectFilmMonitor->merge_into(directFilmMonitor.get());
         combinedFilm->to_intensity_film()->pbrt_write(combinedOutPath);
+
+        std::cout << "#REFRESH!" << std::endl;
+
+        if (renderingFinished) {
+            std::cout << "#FINISH!" << std::endl;
+            return;
+        }
     }
 }
 

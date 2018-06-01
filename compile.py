@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+import shutil
 
 # Directory detection =========================================================
 
@@ -19,6 +20,8 @@ def run(cmd):
 def main():
 
     os.chdir(rootDir)
+
+    # Main build --------------------------------------------------------------
 
     run([
         "rm",
@@ -49,12 +52,30 @@ def main():
         "-j4"
     ])
 
-    # npm install
+    # npm install -------------------------------------------------------------
     npmDirs = ["bin", "gui", "tools"]
     for npmDir in npmDirs:
         fullDir = os.path.join(rootDir, npmDir)
         os.chdir(fullDir)
         run(["npm", "install"])
+
+    # cpfm build --------------------------------------------------------------
+    cpfmDir = os.path.join(rootDir, "tools", "cpfm")
+    cpfmBuildDir = os.path.join(cpfmDir, "build")
+    if os.path.exists(cpfmBuildDir):
+        shutil.rmtree(cpfmBuildDir)
+    os.mkdir(cpfmBuildDir)
+    os.chdir(cpfmBuildDir)
+
+    run([
+        "cmake",
+        "../cpfm"
+    ])
+
+    run([
+        "make",
+        "-j4"
+    ])
 
 # Run =========================================================================
 

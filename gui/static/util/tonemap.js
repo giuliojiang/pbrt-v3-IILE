@@ -9,22 +9,19 @@ priv.tonemap.tonemap = function(pfmPath, exposure, callback) {
 
         // Copy file to a temporary one first
         var tPath = toControlFile("t.pfm");
-        var tPngPath = toControlFile("t.png");
+        var tPngPath = toControlFile("t.bmp");
         fs.copyFileSync(pfmPath, tPath);
 
         var toolsDir = path.join(rootDir, "tools");
-        var tonemapPy = path.join(toolsDir, "pfm_tonemap.py");
+        var cpfmPath = path.join(toolsDir, "cpfm", "build", "cpfm")
 
         var cmd = [];
-        cmd.push(tonemapPy);
         cmd.push(tPath);
         if (exposure != null) {
             cmd.push(exposure.toString());
         }
 
-        console.info("python3 " + cmd);
-
-        var proc = spawn("python3", cmd);
+        var proc = spawn(cpfmPath, cmd);
 
         proc.stdout.on("data", (data) => {
             console.info("stdout " + data);
@@ -37,7 +34,7 @@ priv.tonemap.tonemap = function(pfmPath, exposure, callback) {
         proc.on("close", function(code, signal) {
             var splt = pfmPath.split(".");
             var spltLen = splt.length;
-            splt[spltLen - 1] = "png";
+            splt[spltLen - 1] = "bmp";
             var pngPath = splt.join(".");
             fs.copyFileSync(tPngPath, pngPath);
             console.info("priv.tonemap.tonemap complete ["+ code +"] ["+ signal +"]");

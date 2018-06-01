@@ -60,6 +60,7 @@ window.onbeforeunload = (e) => {
         log.info("Ready to close...");
         fsExtra.removeSync(data.controlDir);
         shd.win.destroy();
+        process.exit(0);
     }, 1000);
 }
 
@@ -71,7 +72,7 @@ window.onbeforeunload = (e) => {
 // <onIndirectProgress> function(p) p is a Float
 //
 // <onDirectProgress> function(p) p is a Float
-priv.startPbrt = function(onPbrtExit, onRenderFinish, onIndirectProgress, onDirectProgress) {
+priv.startPbrt = function(onPbrtExit, onRenderFinish, onIndirectProgress, onDirectProgress, onRefresh) {
     log.info("Starting PBRT...");
 
     if (argv.length != 6) {
@@ -102,6 +103,8 @@ priv.startPbrt = function(onPbrtExit, onRenderFinish, onIndirectProgress, onDire
                 onIndirectProgress(ratio);
             } else if (key == "#FINISH") {
                 onRenderFinish();
+            } else if (key == "#REFRESH") {
+                onRefresh();
             }
         }
     }
