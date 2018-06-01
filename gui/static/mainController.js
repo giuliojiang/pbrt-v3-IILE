@@ -74,17 +74,17 @@ mainApp.controller("main_controller", function($scope) {
     $scope.buttonSaveAs = function() {
         console.info("Save as...");
         var savePath = remote.dialog.showSaveDialog({
-            title: "Save Image As PNG",
+            title: "Save Image As BMP",
             filters: [
                 {
-                    name: "PNG Image",
-                    extensions: [".png"]
+                    name: "BMP Image",
+                    extensions: [".bmp"]
                 }
             ]
         });
         console.info("Savepath is " + savePath);
         fs.copyFileSync(
-            toControlFile($scope.d.activePreview + ".png"),
+            toControlFile($scope.d.activePreview + ".bmp"),
             savePath
         );
     };
