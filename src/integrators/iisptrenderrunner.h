@@ -85,10 +85,9 @@ private:
                                    // which has point X=0, Y=1
             );
 
-    Spectrum sample_hemisphere(
-            const Interaction &it,
-            std::vector<float> &weights,
-            std::vector<HemisphericCamera*> &cameras
+    Spectrum sample_hemisphere(const Interaction &it, int len,
+            float *weights,
+            HemisphericCamera **cameras
             );
 
     Spectrum path_uniform_sample_one_light(
@@ -112,14 +111,14 @@ private:
 
     void sampler_next_pixel();
 
-    void compute_fpixel_weights(
-            std::vector<Point2i> &neighbour_points,
-            std::vector<HemisphericCamera*> &hemi_sampling_cameras,
+    void compute_fpixel_weights(int len,
+            Point2i *neighbour_points,
+            HemisphericCamera **hemi_sampling_cameras,
             Point2i f_pixel,
             SurfaceInteraction &f_isect,
             int tilesize,
             RayDifferential &f_ray,
-            std::vector<float> &out_probabilities
+            float *out_probabilities
             );
 
     void compute_fpixel_weights_3d(

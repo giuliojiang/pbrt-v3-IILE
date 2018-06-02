@@ -85,6 +85,25 @@ Before optimization caching: 85 examples / second
 After optimization caching: 2700 examples / second
 ```
 
+__Optimizing interpolation vectors to arrays__
+
+Using vectors
+
+```
+real	1m0.896s
+user	1m34.794s
+sys	0m0.437s
+gj@gj-ub-4770 ~/git/pbrt-v3-custom-scenes/chairbed1 (master) $ time pbrt --iileIndirect=16 --iileDirect=1 scene.pbrt out.exr
+```
+
+Using arrays
+
+```
+real	0m59.865s
+user	1m33.841s
+sys	0m0.320s
+```
+
 # Saved images and PBRT internal image representation
 
 In PBRT, images coordiantes X and Y:
@@ -427,10 +446,6 @@ bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.
 ```
 
 # TODO
-
-Blender plugin:
-
-* glass material
 
 Make more scenes for training and validation
 

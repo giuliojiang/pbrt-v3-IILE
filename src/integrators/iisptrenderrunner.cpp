@@ -141,15 +141,16 @@ static Spectrum estimate_direct(
 // Sample hemisphere with multiple cameras and weights
 Spectrum IisptRenderRunner::sample_hemisphere(
         const Interaction &it,
-        std::vector<float> &weights,
-        std::vector<HemisphericCamera*> &cameras
+        int len,
+        float* weights,
+        HemisphericCamera** cameras
         )
 {
     Spectrum L(0.f);
 
     int samples_taken = 0;
 
-    for (int i = 0; i < cameras.size(); i++) {
+    for (int i = 0; i < len; i++) {
         HemisphericCamera* a_camera = cameras[i];
         float a_weight = weights[i];
 
@@ -450,13 +451,13 @@ void IisptRenderRunner::run(const Scene &scene)
                             neigh_e.y
                             );
 
-                std::vector<Point2i> neighbour_points (4);
+                Point2i neighbour_points[4];
                 neighbour_points[0] = neigh_s;
                 neighbour_points[1] = neigh_e;
                 neighbour_points[2] = neigh_r;
                 neighbour_points[3] = neigh_b;
 
-                std::vector<HemisphericCamera*> hemi_sampling_cameras (4);
+                HemisphericCamera* hemi_sampling_cameras[4];
 
                 auto hemi_point_get = [&](Point2i pt) {
                     IisptPoint2i pt_key;
@@ -523,8 +524,9 @@ void IisptRenderRunner::run(const Scene &scene)
                 // Valid intersection found
 
                 // Compute weights and probabilities for neighbours
-                std::vector<float> hemi_sampling_weights (4);
+                float hemi_sampling_weights[4];
                 compute_fpixel_weights(
+                            4,
                             neighbour_points,
                             hemi_sampling_cameras,
                             f_pixel,
@@ -557,6 +559,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 // Compute hemispheric contribution
                 L += sample_hemisphere(
                             f_isect,
+                            4,
                             hemi_sampling_weights,
                             hemi_sampling_cameras
                             );
@@ -949,18 +952,16 @@ void IisptRenderRunner::sampler_next_pixel()
 // Compute weights for individual pixels
 
 void IisptRenderRunner::compute_fpixel_weights(
-        std::vector<Point2i> &neighbour_points,
-        std::vector<HemisphericCamera*> &hemi_sampling_cameras,
+        int len,
+        Point2i* neighbour_points,
+        HemisphericCamera** hemi_sampling_cameras,
         Point2i f_pixel,
         SurfaceInteraction &f_isect,
         int tilesize,
         RayDifferential &f_ray,
-        std::vector<float> &out_probabilities
+        float* out_probabilities
         )
 {
-
-    int len = neighbour_points.size();
-
     // Invert surface normal if pointing inwards
     Normal3f surface_normal = f_isect.n;
     Vector3f sf_norm_vec = Vector3f(f_isect.n.x, f_isect.n.y, f_isect.n.z);
@@ -976,7 +977,7 @@ void IisptRenderRunner::compute_fpixel_weights(
     Ray aux_ray = f_isect.SpawnRay(Vector3f(surface_normal));
 
     // Weighting distances for positions
-    std::vector<float> wdpos (len);
+    float wdpos[len];
     for (int i = 0; i < len; i++) {
         wdpos[i] = iispt::weighting_distance_positions(
                     f_pixel,
@@ -1010,7 +1011,7 @@ void IisptRenderRunner::compute_fpixel_weights(
     }
 
     // Weights to probabilities
-    iispt::weights_to_probabilities(out_probabilities);
+    iispt::weights_to_probabilities(len, out_probabilities);
 }
 
 void IisptRenderRunner::compute_fpixel_weights_3d(
