@@ -136,35 +136,19 @@ def main():
     plot(statLowSs, statGaussianSs, statResultSs, "Structural Similarity", -0.1, 1.0)
 
     # Compute P values for L1
-    data = {
-        'a': statGaussianL1,
-        'b': statResultL1
-    }
-    t, p =  scipy.stats.f_oneway(*data.values())
+    t, p =  scipy.stats.kruskal(statGaussianL1, statResultL1)
     print("P value L1 gaussian-predicted {}".format(p))
     
     # Compute P values for Ss
-    data = {
-        'a': statGaussianSs,
-        'b': statResultSs
-    }
-    t, p =  scipy.stats.f_oneway(*data.values())
+    t, p =  scipy.stats.kruskal(statGaussianSs, statResultSs)
     print("P value Ss gaussian-predicted {}".format(p))
 
     # Compute P values for L1
-    data = {
-        'a': statLowL1,
-        'b': statResultL1
-    }
-    t, p =  scipy.stats.f_oneway(*data.values())
+    t, p =  scipy.stats.kruskal(statLowL1, statResultL1)
     print("P value L1 low-predicted {}".format(p))
     
     # Compute P values for Ss
-    data = {
-        'a': statLowSs,
-        'b': statResultSs
-    }
-    t, p =  scipy.stats.f_oneway(*data.values())
+    t, p =  scipy.stats.kruskal(statLowSs, statResultSs)
     print("P value Ss low-predicted {}".format(p))
 
 main()

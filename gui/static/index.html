@@ -21,6 +21,8 @@
 
         <script src="util/tonemap.js"></script>
 
+        <script src="util/timeUtils.js"></script>
+
         <script src="mainController.js"></script>
     </head>
     <body ng-app="mainApp" ng-controller="main_controller" onunload="bodyUnload()">
@@ -83,6 +85,10 @@
                                     <div class="j_cl_inputbg">
                                         <div class="j_cl_inputfg {{styles.progressBar()}}" style="width:{{progress.dir}}%;">Direct</div>
                                     </div>
+                                </div>
+                                <!-- Time elapsed -->
+                                <div class="j_item j_d_stretch_h">
+                                    <p>{{d.timeElapsedText}}</p>
                                 </div>
                             </div>
                         </div>

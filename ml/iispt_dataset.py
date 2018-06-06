@@ -61,7 +61,7 @@ random.seed(0)
 TYPE_PREFIXES = ["p", "d", "n", "z"]
 GAMMA_VALUE = 1.2
 
-ABLATE_NORMALS = True
+ABLATE_NORMALS = False
 ABLATE_DISTANCE = False
 
 # =============================================================================
