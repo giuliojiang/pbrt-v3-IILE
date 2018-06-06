@@ -166,6 +166,12 @@ Spectrum IISPTdIntegrator::Li(const RayDifferential &r,
         BxDFType flags;
         Spectrum f = isect.bsdf->Sample_f(wo, &wi, sampler.Get2D(), &pdf,
                                           BSDF_ALL, &flags);
+
+        // Ignore transmission in bounces count
+        if ((flags & BSDF_TRANSMISSION) || (flags & BSDF_SPECULAR)) {
+            bounces -= 1;
+        }
+
         VLOG(2) << "Sampled BSDF, f = " << f << ", pdf = " << pdf;
         if (f.IsBlack() || pdf == 0.f) break;
         beta *= f * AbsDot(wi, isect.shading.n) / pdf;

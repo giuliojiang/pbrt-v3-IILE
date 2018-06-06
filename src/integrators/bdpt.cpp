@@ -194,7 +194,7 @@ int RandomWalk(const Scene &scene, RayDifferential ray, Sampler &sampler,
             Spectrum f = isect.bsdf->Sample_f(wo, &wi, sampler.Get2D(), &pdfFwd,
                                               BSDF_ALL, &type);
 
-            if (type & BSDF_TRANSMISSION) {
+            if ((type & BSDF_TRANSMISSION) || (type & BSDF_SPECULAR)) {
                 bounces -= 1;
             }
 
