@@ -186,13 +186,20 @@ int RandomWalk(const Scene &scene, RayDifferential ray, Sampler &sampler,
 
             // Initialize _vertex_ with surface intersection information
             vertex = Vertex::CreateSurface(isect, beta, pdfFwd, prev);
-            if (++bounces >= maxDepth) break;
+
 
             // Sample BSDF at current vertex and compute reverse probability
             Vector3f wi, wo = isect.wo;
             BxDFType type;
             Spectrum f = isect.bsdf->Sample_f(wo, &wi, sampler.Get2D(), &pdfFwd,
                                               BSDF_ALL, &type);
+
+            if (type & BSDF_TRANSMISSION) {
+                bounces -= 1;
+            }
+
+            if (++bounces >= maxDepth) break;
+
             VLOG(2) << "Random walk sampled dir " << wi << " f: " << f <<
                 ", pdfFwd: " << pdfFwd;
             if (f.IsBlack() || pdfFwd == 0.f) break;
