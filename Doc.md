@@ -85,6 +85,25 @@ Before optimization caching: 85 examples / second
 After optimization caching: 2700 examples / second
 ```
 
+__Optimizing interpolation vectors to arrays__
+
+Using vectors
+
+```
+real	1m0.896s
+user	1m34.794s
+sys	0m0.437s
+gj@gj-ub-4770 ~/git/pbrt-v3-custom-scenes/chairbed1 (master) $ time pbrt --iileIndirect=16 --iileDirect=1 scene.pbrt out.exr
+```
+
+Using arrays
+
+```
+real	0m59.865s
+user	1m33.841s
+sys	0m0.320s
+```
+
 # Saved images and PBRT internal image representation
 
 In PBRT, images coordiantes X and Y:
@@ -426,11 +445,17 @@ Blender export command
 bpy.ops.export_scene.obj(filepath="/home/gj/git/pbrt-v3-scenes-custom/cbox/cobx.obj", axis_forward="Y", axis_up="-Z", use_materials=True)
 ```
 
+# P values using kruskal
+
+```
+Statistics collection completed
+P value L1 gaussian-predicted 4.364805995204919e-189
+P value Ss gaussian-predicted 4.8917089088066696e-107
+P value L1 low-predicted 0.0
+P value Ss low-predicted 1.4126296280156113e-298
+```
+
 # TODO
-
-Blender plugin:
-
-* glass material
 
 Make more scenes for training and validation
 
@@ -438,7 +463,7 @@ add options for IILE quality in scenefile
 
 GUI: add console output
 
-improve performance in interpolation system: don't use vectors but use stack allocated arrays
+Make more same-time path vs OSR. See bookmarks in firefox for blendswap interior scenes to be converted.
 
 ## Portable package requirements
 

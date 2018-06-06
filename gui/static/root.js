@@ -64,8 +64,8 @@ window.onbeforeunload = (e) => {
     }, 1000);
 }
 
-// <onPbrtExit> a callback(code, signal) when the subprocess PBRT
-// exits
+// <onPbrtExit> a callback(code, signal, duration) when the subprocess PBRT
+// exits. Duration is the duration of the process running in milliseconds
 //
 // <onRenderFinish> callback() called when rendering completes
 //
@@ -115,6 +115,9 @@ priv.startPbrt = function(onPbrtExit, onRenderFinish, onIndirectProgress, onDire
     
     log.info("PATH is " + process.env.PATH);
 
+    // Record starting time
+    var startTime = priv.time.start();
+
     data.pbrtProc = spawn("node", [pbrtExecPath, inputPath, "--iileIndirect=" + indirectTasks, "--iileDirect=" + directTasks, "--iileControl=" + data.controlDir], {
         detached: true
     });
@@ -135,7 +138,8 @@ priv.startPbrt = function(onPbrtExit, onRenderFinish, onIndirectProgress, onDire
     });
 
     data.pbrtProc.on("close", function(code, signal) {
+        var msElapsed = priv.time.stop(startTime);
         log.info("Exited ["+ code +"] ["+ signal +"]");
-        onPbrtExit(code, signal);
+        onPbrtExit(code, signal, msElapsed);
     });
 };

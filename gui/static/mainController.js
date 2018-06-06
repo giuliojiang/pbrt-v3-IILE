@@ -96,6 +96,7 @@ mainApp.controller("main_controller", function($scope) {
     $scope.progress.finish = false;
     $scope.progress.dir = 0;
     $scope.progress.ind = 0;
+    $scope.d.timeElapsedText = "";
 
     // ========================================================================
     // Styles
@@ -145,8 +146,10 @@ mainApp.controller("main_controller", function($scope) {
         performStartupActions();
         priv.startPbrt(
             // onPbrtExit
-            function(code, signal) {
-
+            function(code, signal, elapsed) {
+                var secondsElapsed = elapsed / 1000;
+                $scope.d.timeElapsedText = "Completed in ["+ secondsElapsed +"] seconds";
+                $scope.$apply();
             },
             // onRenderFinish
             function() {

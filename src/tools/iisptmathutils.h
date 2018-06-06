@@ -156,6 +156,24 @@ static void weights_to_probabilities(
     }
 }
 
+static void weights_to_probabilities(
+        int len,
+        float* weights
+        )
+{
+    float totweight = 0.0;
+    for (int i = 0; i < len; i++) {
+        float w = weights[i];
+        totweight += w;
+    }
+    if (totweight > 0.0) {
+        for (int i = 0; i < len; i++) {
+            float w = weights[i];
+            weights[i] = w / totweight;
+        }
+    }
+}
+
 // ============================================================================
 static int positiveModulo(int i, int n) {
     return (i % n + n) % n;

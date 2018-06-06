@@ -383,7 +383,7 @@ void IISPTIntegrator::render_normal_2(const Scene &scene) {
     });
 
     // Create thread pool for indirect pass
-    unsigned noCpus = iile::cpusCountHalf();
+    unsigned noCpus = iile::cpusCountFull();
     // noCpus = 1;
     ThreadPool threadPool (noCpus);
     std::vector<std::future<void>> futures;
