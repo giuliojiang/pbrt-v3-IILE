@@ -343,10 +343,14 @@ void IisptRenderRunner::run(const Scene &scene)
                         d_integrator->get_distance_film();
 
                 // Normalize the maps
-                float intensityMean = normalizeMapsDownstream(
+                float rmean, gmean, bmean;
+                normalizeMapsDownstream(
                             aux_intensity.get(),
                             aux_normals,
-                            aux_distance
+                            aux_distance,
+                            rmean,
+                            gmean,
+                            bmean
                             );
 
                 int communicate_status = -1;
@@ -359,7 +363,7 @@ void IisptRenderRunner::run(const Scene &scene)
                             );
 
                 // Upstream transforms on returned intensity
-                transformMapsUpstream(nn_film.get(), intensityMean);
+                transformMapsUpstream(nn_film.get(), rmean, gmean, bmean);
 
                 if (communicate_status) {
                     std::cerr << "iisptrenderrunner.cpp: Thread " << thread_no << " " << "NN communication issue" << std::endl;
@@ -1138,16 +1142,20 @@ void IisptRenderRunner::compute_fpixel_weights_simple(
 
 // ============================================================================
 // <return> the mean value of the Intensity Film
-float IisptRenderRunner::normalizeMapsDownstream(
+void IisptRenderRunner::normalizeMapsDownstream(
         IntensityFilm* intensity,
         NormalFilm* normals,
-        DistanceFilm* distance
+        DistanceFilm* distance,
+        float &rmean,
+        float &gmean,
+        float &bmean
         )
 {
     // Intensity --------------------------------------------------------------
 
     // Compute mean of intensity
     std::shared_ptr<ImageFilm> intensityFilm = intensity->get_image_film();
+    intensityFilm->computeMeanChannels(rmean, gmean, bmean);
     float intensityMean = intensityFilm->computeMean();
 
     // Divide by 10*mean
@@ -1187,14 +1195,14 @@ float IisptRenderRunner::normalizeMapsDownstream(
 
     // Subtract 0.1
     distanceFilm->add(-0.1);
-
-    return intensityMean;
 }
 
 // ============================================================================
 void IisptRenderRunner::transformMapsUpstream(
         IntensityFilm* intensity,
-        float targetMean
+        float rmean,
+        float gmean,
+        float bmean
         )
 {
     std::shared_ptr<ImageFilm> intensityFilm = intensity->get_image_film();
@@ -1203,17 +1211,32 @@ void IisptRenderRunner::transformMapsUpstream(
     intensityFilm->positiveLogInverse();
 
     // Compute actual mean
-    float actualMean = intensityFilm->computeMean();
+    float ractual, gactual, bactual;
+    intensityFilm->computeMeanChannels(ractual, gactual, bactual);
 
-    float multiplier;
-    if (actualMean > 1e-5) {
-        multiplier = targetMean / actualMean;
+    float rmul;
+    if (ractual > 1e-10) {
+        rmul = rmean / ractual;
     } else {
-        multiplier = 0.0;
+        rmul = 0.0;
     }
 
-    // Multiply by 10*mean
-    intensityFilm->multiply(multiplier);
+    float gmul;
+    if (gactual > 1e-10) {
+        gmul = gmean / gactual;
+    } else {
+        gmul = 0.0;
+    }
+
+    float bmul;
+    if (bactual > 1e-10) {
+        bmul = bmean / bactual;
+    } else {
+        bmul = 0.0;
+    }
+
+    intensityFilm->multiplyChannels(rmul, gmul, bmul);
+
 }
 
 // ============================================================================

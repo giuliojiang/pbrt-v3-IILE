@@ -141,16 +141,14 @@ private:
             std::vector<float> &out_probabilities
             );
 
-    float normalizeMapsDownstream(
-            IntensityFilm* intensity,
+    void normalizeMapsDownstream(IntensityFilm* intensity,
             NormalFilm* normals,
             DistanceFilm* distance
-            );
+            , float &rmean, float &gmean, float &bmean);
 
-    void transformMapsUpstream(
-            IntensityFilm* intensity,
-            float targetMean
-            );
+    void transformMapsUpstream(IntensityFilm* intensity,
+            float rmean
+            , float gmean, float bmean);
 
     float tileToTileMinimumDistance(
             std::vector<HemisphericCamera*> &hemiSamplingCameras

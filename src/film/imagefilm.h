@@ -106,12 +106,16 @@ public:
     // Compute mean
     float computeMean();
 
+    void computeMeanChannels(float &r, float &g, float &b);
+
     // ========================================================================
     float computeMax();
 
     // ========================================================================
     // Multiply
     void multiply(float ratio);
+
+    void multiplyChannels(float rm, float gm, float bm);
 
     // ========================================================================
     // Log
