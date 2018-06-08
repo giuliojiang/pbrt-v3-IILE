@@ -349,7 +349,7 @@ INCLUDE_DIRECTORIES ( src/ext/ptex/src/ptex )
 ###############################################################################
 # rapidjson
 
-INCLUDE_DIRECTORIES ( src/ext/rapidjson )
+INCLUDE_DIRECTORIES ( src/ext/rapidjson/include )
 
 ###########################################################################
 # On to pbrt...
