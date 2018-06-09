@@ -502,7 +502,7 @@ std::shared_ptr<IISPTdIntegrator> CreateIISPTdIntegrator(
     std::shared_ptr<Camera> camera, int seed) {
 
     LOG(INFO) << "CreateIISPTdIntegrator: in";
-    int maxDepth = 16; // NOTE Hard-coded "maxdepth"
+    int maxDepth = 3; // NOTE Hard-coded "maxdepth"
 
     Bounds2i pixelBounds (
                 Point2i(0, 0),

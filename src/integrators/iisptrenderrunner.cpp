@@ -223,6 +223,8 @@ void IisptRenderRunner::run(const Scene &scene)
     lightDistribution =
             CreateLightSampleDistribution(std::string("spatial"), scene);
 
+    Point3f mainCameraOrigin = main_camera->getCameraWorldPosition();
+
     while (1) {
 
         // Obtain the current task
@@ -537,7 +539,8 @@ void IisptRenderRunner::run(const Scene &scene)
                             f_isect,
                             sm_task.tilesize,
                             f_ray,
-                            hemi_sampling_weights // << output
+                            hemi_sampling_weights, // << output
+                            mainCameraOrigin
                             );
 
                 // Compute scattering functions for surface interaction
@@ -963,7 +966,8 @@ void IisptRenderRunner::compute_fpixel_weights(
         SurfaceInteraction &f_isect,
         int tilesize,
         RayDifferential &f_ray,
-        float* out_probabilities
+        float* out_probabilities,
+        Point3f mainCameraOrigin
         )
 {
     // Invert surface normal if pointing inwards
@@ -991,7 +995,7 @@ void IisptRenderRunner::compute_fpixel_weights(
     }
 
     // Weighting distance for normals
-    std::vector<float> wdnor (len);
+    float wdnor[len];
     for (int i = 0; i < len; i++) {
         if (!hemi_sampling_cameras[i]) {
             wdnor[i] = 0.0f;
@@ -1003,141 +1007,33 @@ void IisptRenderRunner::compute_fpixel_weights(
         }
     }
 
+    // Weighting distance for world to camera distances
+    float wdd[len];
+    for (int i = 0; i < len; i++) {
+        if (!hemi_sampling_cameras[i]) {
+            wdd[i] = 0.0f;
+        } else {
+            wdd[i] = iispt::weightingCameraDistance(
+                        mainCameraOrigin,
+                        f_isect.p,
+                        hemi_sampling_cameras[i]->getOriginPosition()
+                        );
+        }
+    }
+
     // Weighting overall distance
     std::vector<float> wod (len);
     for (int i = 0; i < len; i++) {
-        wod[i] = wdpos[i] * wdnor[i] + wdpos[i];
+        wod[i] = wdpos[i] * wdnor[i] + wdpos[i] * wdd[i] + wdpos[i];
     }
 
     // Final weights
     for (int i = 0; i < len; i++) {
-        out_probabilities[i] = std::max(0.0, 1.0 - wod[i]) + 0.001;
+        out_probabilities[i] = std::max(0.0, 2.0 - wod[i]) + 0.001;
     }
 
     // Weights to probabilities
     iispt::weights_to_probabilities(len, out_probabilities);
-}
-
-void IisptRenderRunner::compute_fpixel_weights_3d(
-        std::vector<Point2i> &neighbour_points,
-        std::vector<HemisphericCamera*> &hemi_sampling_cameras,
-        Point2i f_pixel,
-        SurfaceInteraction &f_isect,
-        int tilesize,
-        RayDifferential &f_ray,
-        std::vector<float> &out_probabilities
-        )
-{
-    int len = neighbour_points.size();
-
-    // Invert surface normal if pointing inwards
-    Normal3f surface_normal = f_isect.n;
-    Vector3f sf_norm_vec = Vector3f(f_isect.n.x, f_isect.n.y, f_isect.n.z);
-    Vector3f ray_vec = Vector3f(f_ray.d.x, f_ray.d.y, f_ray.d.z);
-    if (Dot(sf_norm_vec, ray_vec) > 0.0) {
-        surface_normal = Normal3f(
-                    -f_isect.n.x,
-                    -f_isect.n.y,
-                    -f_isect.n.z
-                    );
-    }
-    // Aux ray
-    Ray aux_ray = f_isect.SpawnRay(Vector3f(surface_normal));
-
-    // Compute weights for 3D positions using bilinear interpolation
-
-    // Left side interpolation
-    Point2i leftSideFPixel (neighbour_points[0].x, f_pixel.y);
-    Point2i interpolationLeftPoint;
-    float interpolationS = iispt::linearRatioDistance(
-                leftSideFPixel,
-                neighbour_points[0],
-                neighbour_points[2],
-                interpolationLeftPoint
-                );
-    float interpolationB = 1.0f - interpolationS;
-
-    // Right side interpolation
-    Point2i rightSideFPixel (neighbour_points[1].x, f_pixel.y);
-    Point2i interpolationRightPoint;
-    float interpolationR = iispt::linearRatioDistance(
-                rightSideFPixel,
-                neighbour_points[1],
-                neighbour_points[3],
-                interpolationRightPoint
-                );
-    float interpolationE = 1.0f - interpolationR;
-
-    // Horizontal interpolation
-    Point2i interpolationCentral;
-    float interpolationHL = iispt::linearRatioDistance(
-                f_pixel,
-                interpolationLeftPoint,
-                interpolationRightPoint,
-                interpolationCentral
-                );
-    float interpolationHR = 1.0f - interpolationHL;
-
-    // Compute final interpolation values
-    std::vector<float> positionWeights (len);
-    positionWeights[0] = interpolationHL * interpolationS;
-    positionWeights[1] = interpolationHR * interpolationR;
-    positionWeights[2] = interpolationHL * interpolationB;
-    positionWeights[3] = interpolationHR * interpolationE;
-
-    // Compute weights for 3D normals
-    std::vector<float> normalWeights (len);
-    for (int i = 0; i < len; i++) {
-        normalWeights[i] = iispt::weighting_normals(aux_ray.d, hemi_sampling_cameras[i]->get_look_direction());
-    }
-
-    // Final weights
-    for (int i = 0; i < len; i++) {
-        out_probabilities[i] = positionWeights[i] * normalWeights[i] + 0.0001;
-    }
-
-    // Weights to probabilities
-    iispt::weights_to_probabilities(out_probabilities);
-
-}
-
-// ============================================================================
-void IisptRenderRunner::compute_fpixel_weights_simple(
-        std::vector<Point2i> &neighbour_points,
-        std::vector<HemisphericCamera*> &hemi_sampling_cameras,
-        Point2i f_pixel,
-        SurfaceInteraction &f_isect,
-        int tilesize,
-        RayDifferential &f_ray,
-        std::vector<float> &out_probabilities
-        )
-{
-    int len = neighbour_points.size();
-
-    float total_distance = 0.0;
-    std::vector<float> distances (len);
-    for (int i = 0; i < len; i++) {
-        float a_distance = iispt::points_distance(
-                    f_pixel, neighbour_points[i]
-                    );
-        total_distance += a_distance;
-        distances[i] = a_distance;
-    }
-
-    // Divide by total distance
-    if (total_distance > 0.0) {
-        for (int i = 0; i < len; i++) {
-            distances[i] = distances[i] / total_distance;
-        }
-    }
-
-    // Invert
-    for (int i = 0; i < len; i++) {
-        out_probabilities[i] = 1.0 - distances[i];
-    }
-
-    // To probabilities
-    iispt::weights_to_probabilities(out_probabilities);
 }
 
 // ============================================================================

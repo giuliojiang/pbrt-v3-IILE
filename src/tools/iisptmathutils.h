@@ -113,6 +113,36 @@ static float weighting_distance_normals(
 }
 
 // ============================================================================
+static float weightingCameraDistance(
+        Point3f mainCameraLocation,
+        Point3f intersectionPoint,
+        Point3f sampleLocation
+        )
+{
+    float intersectionToCamera = Distance(mainCameraLocation, intersectionPoint);
+    if (intersectionToCamera < 1e-10) {
+        // Intersection is at the camera?
+        return 0.0f;
+    }
+
+    float sampleToCamera = Distance(mainCameraLocation, sampleLocation);
+
+    float relativeError = std::abs(intersectionToCamera - sampleToCamera) /
+            intersectionToCamera;
+
+    relativeError *= 1.f;
+
+    float weight = 1.0f - relativeError;
+    if (weight < 0.f) {
+        return 0.f;
+    } else if (weight > 1.f) {
+        return 1.f;
+    } else {
+        return weight;
+    }
+}
+
+// ============================================================================
 static float weighting_normals(
         Vector3f a,
         Vector3f b
