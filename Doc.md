@@ -465,6 +465,8 @@ GUI: add console output
 
 Make more same-time path vs OSR. See bookmarks in firefox for blendswap interior scenes to be converted.
 
+Direct lighting integrator should use 'one' instead of 'all' lights sampling to scale better to large scenes.
+
 ## Portable package requirements
 
 libgconf-2-4
