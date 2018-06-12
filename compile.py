@@ -3,6 +3,7 @@
 import os
 import subprocess
 import shutil
+import sys
 
 # Directory detection =========================================================
 
@@ -13,7 +14,10 @@ rootDir = os.path.abspath(os.path.dirname(__file__))
 
 def run(cmd):
     print(">>> {}".format(" ".join(cmd)))
-    subprocess.call(cmd, shell=False)
+    code = subprocess.call(cmd, shell=False)
+    if code != 0:
+        print("Failed.")
+        sys.exit(1)
 
 # Main script =================================================================
 
