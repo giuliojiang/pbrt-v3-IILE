@@ -61,6 +61,7 @@ class Camera {
     virtual Spectrum Sample_Wi(const Interaction &ref, const Point2f &u,
                                Vector3f *wi, Float *pdf, Point2f *pRaster,
                                VisibilityTester *vis) const;
+    virtual Point3f getCameraWorldPosition() const;
 
     // Camera Public Data
     AnimatedTransform CameraToWorld;

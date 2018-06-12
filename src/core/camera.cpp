@@ -112,4 +112,15 @@ Spectrum Camera::Sample_Wi(const Interaction &ref, const Point2f &u,
     return Spectrum(0.f);
 }
 
+Point3f Camera::getCameraWorldPosition() const
+{
+    Ray r;
+    CameraSample sample;
+    sample.pFilm = Point2f(0.0, 0.0);
+    sample.pLens = Point2f(0.0, 0.0);
+    sample.time = 0.0;
+    GenerateRay(sample, &r);
+    return r.o;
+}
+
 }  // namespace pbrt

@@ -221,6 +221,38 @@ float ImageFilm::computeMean()
     return sum / count;
 }
 
+void ImageFilm::computeMeanChannels(float &rres, float &gres, float &bres)
+{
+    if (num_components == 1) {
+        std::cerr << "imagefilm.cpp:computeMeanChannels cannot be used on greyscale images\n";
+        std::raise(SIGKILL);
+    }
+
+    double rsum = 0.0;
+    double gsum = 0.0;
+    double bsum = 0.0;
+    int count = 0;
+
+    for (int i = 0; i < data.size(); i++) {
+        PfmItem item = data[i];
+        float r, g, b;
+        item.get_triple_component(r, g, b);
+        rsum += r;
+        gsum += g;
+        bsum += b;
+        count += 1;
+    }
+
+    if (count == 0) {
+        std::cerr << "imagefilm.cpp:computeMeanChannels, count is zero at the end\n";
+        std::raise(SIGKILL);
+    }
+
+    rres = rsum / count;
+    gres = gsum / count;
+    bres = bsum / count;
+}
+
 
 // ============================================================================
 
@@ -268,6 +300,23 @@ void ImageFilm::multiply(float ratio)
     map([&](float v) {
         return v * ratio;
     });
+}
+
+void ImageFilm::multiplyChannels(float rm, float gm, float bm)
+{
+    if (num_components == 1) {
+        std::cerr << "imagefilm.cpp:multiplyChannels cannot be applied on greyscale images\n";
+        std::raise(SIGKILL);
+    }
+    for (int i = 0; i < data.size(); i++) {
+        PfmItem item = data[i];
+
+        item.r = rm * item.r;
+        item.g = gm * item.g;
+        item.b = bm * item.b;
+
+        data[i] = item;
+    }
 }
 
 // ============================================================================

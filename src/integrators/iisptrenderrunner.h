@@ -119,38 +119,16 @@ private:
             int tilesize,
             RayDifferential &f_ray,
             float *out_probabilities
-            );
+            , Point3f mainCameraOrigin);
 
-    void compute_fpixel_weights_3d(
-            std::vector<Point2i> &neighbour_points,
-            std::vector<HemisphericCamera*> &hemi_sampling_cameras,
-            Point2i f_pixel,
-            SurfaceInteraction &f_isect,
-            int tilesize,
-            RayDifferential &f_ray,
-            std::vector<float> &out_probabilities
-            );
-
-    void compute_fpixel_weights_simple(
-            std::vector<Point2i> &neighbour_points,
-            std::vector<HemisphericCamera*> &hemi_sampling_cameras,
-            Point2i f_pixel,
-            SurfaceInteraction &f_isect,
-            int tilesize,
-            RayDifferential &f_ray,
-            std::vector<float> &out_probabilities
-            );
-
-    float normalizeMapsDownstream(
-            IntensityFilm* intensity,
+    void normalizeMapsDownstream(IntensityFilm* intensity,
             NormalFilm* normals,
             DistanceFilm* distance
-            );
+            , float &rmean, float &gmean, float &bmean);
 
-    void transformMapsUpstream(
-            IntensityFilm* intensity,
-            float targetMean
-            );
+    void transformMapsUpstream(IntensityFilm* intensity,
+            float rmean
+            , float gmean, float bmean);
 
     float tileToTileMinimumDistance(
             std::vector<HemisphericCamera*> &hemiSamplingCameras
