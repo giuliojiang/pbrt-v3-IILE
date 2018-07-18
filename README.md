@@ -57,6 +57,12 @@ them. :-)
 Building pbrt
 -------------
 
+A detailed guide for downloading and building PBRTv3-OSR from source
+is here: https://osr.jstudios.ovh/CompileFromSource
+
+While the original PBRTv3 supports Linux, OSX and Windows, PBRTv3-OSR has only
+been developed for Linux.
+
 To check out pbrt together with all dependencies, be sure to use the
 `--recursive` flag when cloning the repository, i.e.
 ```bash
@@ -68,25 +74,6 @@ command to also fetch the dependencies:
 ```bash
 $ git submodule update --init --recursive
 ```
-
-Use the `setup.sh` script to download additional dependencies such as Boost:
-```
-./setup.sh
-```
-
-pbrt uses [cmake](http://www.cmake.org/) for its build system.  On Linux
-and OS X, cmake is available via most package management systems.  For
-Windows, or to build it from source, see the [cmake downloads
-page](http://www.cmake.org/download/).
-
-* For command-line builds on Linux and OS X, once you have cmake installed,
-  create a new directory for the build, change to that directory, and run
-  `cmake [path to pbrt-v3]`. A Makefile will be created in that
-  current directory.  Run `make -j8`, to build pbrt, the obj2pbrt and imgtool
-  utilities, and an executable that runs pbrt's unit tests.
-* To make an XCode project file on OS X, run `cmake -G Xcode [path to pbrt-v3]`.
-* Finally, on Windows, the cmake GUI will create MSVC solution files that
-  you can load in MSVC.
 
 ### Debug and Release Builds ###
 
