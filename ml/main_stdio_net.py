@@ -13,6 +13,7 @@ import iispt_transforms
 import iispt_dataset
 import km
 import iispt_net
+import pfm
 
 # =============================================================================
 
@@ -23,6 +24,7 @@ import iispt_net
 # Constants
 
 IISPT_IMAGE_SIZE = 32
+USE_NN = False # If False, uses Gaussian Blur
 
 # -----------------------------------------------------------------------------
 # Init
@@ -69,6 +71,23 @@ def read_input():
     # Concatenate into single multiarray
     return numpy.concatenate([intensityArray, normalsArray, distanceArray], axis=0)
 
+# Return a PFM object
+def read_input_gauss():
+
+    # Read intensity data
+    intensityArray = read_float_array(IISPT_IMAGE_SIZE * IISPT_IMAGE_SIZE * 3)
+
+    # Read normals data (unused)
+    normalsArray = read_float_array(IISPT_IMAGE_SIZE * IISPT_IMAGE_SIZE * 3)
+
+    # Read distance data (unused)
+    distanceArray = read_float_array(IISPT_IMAGE_SIZE * IISPT_IMAGE_SIZE * 1)
+
+    # Load as PFM
+    intensityPfm = pfm.load_from_flat_numpy(intensityArray)
+
+    return intensityPfm
+
 # =============================================================================
 # <nparray> a shape (channel, height, width) 3D ndarray
 # Outputted as an image with dimensions order as (height, width, channel)
@@ -85,18 +104,34 @@ def output_to_stdout(nparray):
 # Processing function
 def process_one(net):
 
-    # Read input from stdin
-    inputNdArray = read_input()
+    if USE_NN:
 
-    torchData = torch.from_numpy(inputNdArray).float()
-    torchData = torchData.unsqueeze(0)
-    inputVariable = Variable(torchData)
+        # Read input from stdin
+        inputNdArray = read_input()
 
-    # Run the network
-    outputVariable = net(inputVariable)
+        torchData = torch.from_numpy(inputNdArray).float()
+        torchData = torchData.unsqueeze(0)
+        inputVariable = Variable(torchData)
 
-    outputNdArray = outputVariable.data.numpy()[0]
-    output_to_stdout(outputNdArray)
+        # Run the network
+        outputVariable = net(inputVariable)
+
+        outputNdArray = outputVariable.data.numpy()[0]
+        output_to_stdout(outputNdArray)
+
+    else:
+
+        # Use gaussian blurs
+
+        intensityPfm = read_input_gauss()
+
+        intensityPfm.gaussianBlur(1.0)
+
+        data = intensityPfm.data
+
+        data = numpy.transpose(data, (2, 0, 1))
+
+        output_to_stdout(data)
 
 # =============================================================================
 # Main

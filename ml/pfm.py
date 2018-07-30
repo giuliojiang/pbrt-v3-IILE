@@ -366,6 +366,7 @@ class PfmImage:
 
     # -------------------------------------------------------------------------
     def gaussianBlur(self, sd):
+        self.data = numpy.copy(self.data)
         height, width, channels = self.data.shape
 
         for c in range(channels):
