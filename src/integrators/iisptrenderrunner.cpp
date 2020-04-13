@@ -574,7 +574,7 @@ void IisptRenderRunner::run(const Scene &scene)
                 // Record sample
                 additions_pt.push_back(f_pixel);
                 additions_spectrum.push_back(f_beta * L);
-                additions_weights.push_back(1.0);
+                additions_weights.push_back(0.5);
             }
         }
 
