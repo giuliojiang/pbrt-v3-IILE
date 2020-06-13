@@ -27,6 +27,7 @@ static void linear(std::vector<float> &vals, float gain,
     int n = vals.size();
     for (int i = 0; i < n; i++) {
         float v = vals[i];
+        std::cout << v << std::endl;
         v *= m;
         out[i] = v;
     }

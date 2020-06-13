@@ -81,6 +81,10 @@ mainApp.controller("main_controller", function($scope) {
         });
     };
 
+    $scope.button_clear = function() {
+        $scope.d.examples = [];
+    };
+
     // ------------------------------------------------------------------------
     // Images
 

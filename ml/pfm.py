@@ -270,6 +270,52 @@ class PfmImage:
         )
         im.save(out_path)
 
+    # Similar to save_png, but normalizes and adds 1
+    def save_normal_png(self, out_path, reverse=False):
+        height, width, channels = self.data.shape
+
+        # Triplicate values if single channel
+        if channels == 1:
+            d = numpy.concatenate([self.data, self.data, self.data], axis=2)
+        elif channels == 3:
+            d = self.data
+        else:
+            raise Exception("Unsupported channels {}".format(channels))
+
+        res = numpy.zeros(shape=(height, width, channels))
+
+        for y in range(height):
+            for x in range(width):
+                r = d[y, x, 0]
+                g = d[y, x, 1]
+                b = d[y, x, 2]
+                distSquared = r*r + g*g + b*b
+                if distSquared > 0.0:
+                    dist = math.sqrt(distSquared)
+                    res[y, x, 0] = (r / dist + 1.0) * 128
+                    res[y, x, 1] = (g / dist + 1.0) * 128
+                    res[y, x, 2] = (b / dist + 1.0) * 128
+                else:
+                    res[y, x, 0] = 0.0
+                    res[y, x, 1] = 0.0
+                    res[y, x, 2] = 0.0
+        
+        if reverse:
+            res = numpy.flip(res, 0)
+        
+        res = res.flatten()
+
+        # Change type
+        res = res.astype(numpy.uint8)
+
+        im = PIL.Image.frombytes(
+            "RGB",
+            (width, height),
+            res.tobytes()
+        )
+        im.save(out_path)
+        
+
 
     # -------------------------------------------------------------------------
     # Compute autoexposure

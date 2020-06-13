@@ -86,7 +86,8 @@ def main():
         # Save the normals map
         normalsImage = pfm.load(item["n_name"])
         iispt_transforms.augmentList([normalsImage], aug)
-        normalsImage.save_png("interactiveNormals.png", normalsImage.computeAutoexposure(), GAMMA)
+        # normalsImage.save_png("interactiveNormals.png", normalsImage.computeAutoexposure(), GAMMA)
+        normalsImage.save_normal_png("interactiveNormals.png")
 
         # Save the distance map
         distanceImage = pfm.load(item["z_name"])
