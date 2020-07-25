@@ -105,12 +105,7 @@ Spectrum IISPTdIntegrator::Li(const RayDifferential &r,
                 // Compute camera-relative normal film
                 Normal3f cameraNormal = camera->WorldToCamera
                         ->operator()(isect.n);
-                if (cameraNormal.LengthSquared() != 0.0f) {
-                    cameraNormal = Normalize(cameraNormal);
-                }
-                Normal3f displayableNormal = Normal3f(cameraNormal.x + 1.0f, cameraNormal.y + 1.0f, cameraNormal.z + 1.0f);
-                // std::cout << cameraNormal.x << " " << cameraNormal.y << " " << cameraNormal.z << std::endl;
-                normal_film->set_camera_coord(x, y, displayableNormal);
+                normal_film->set_camera_coord(x, y, cameraNormal);
             } else {
                 distance_film->set_camera_coord(x, y, NO_INTERSECTION_DISTANCE);
                 normal_film->set_camera_coord(x, y, Normal3f(0.0, 0.0, 0.0));
